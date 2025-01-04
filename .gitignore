@@ -1,11 +1,9 @@
+
 # Secrets and environment variables
 .env
+/.env
 **/.env
 server/.env
-.env.local
-.env.development
-.env.test
-.env.production
 
 # Dependencies
 node_modules/
