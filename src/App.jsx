@@ -10,7 +10,7 @@ import {
   Check,
   CaretRight
 } from '@phosphor-icons/react';
-import TopicInput from './components/TopicInput';
+import TopicInput from './components/topic-input/TopicInput';
 import './App.css';
 
 function App() {
@@ -32,15 +32,22 @@ function App() {
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  const getPointsForQuestion = (index) => {
+    if (index < 2) return 50;      // First two questions
+    if (index === 2) return 100;   // Third question
+    if (index === 3) return 200;   // Fourth question
+    return 500;                    // Fifth question
+  };
+
   const generateQuestions = async () => {
     if (!topic.trim()) {
       setError('Bitte gib ein Thema ein');
       return;
     }
-
+  
     setIsLoading(true);
     setError(null);
-
+  
     try {
       const response = await fetch('http://localhost:3001/api/generate-questions', {
         method: 'POST',
@@ -49,48 +56,42 @@ function App() {
         },
         body: JSON.stringify({ topic })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
-      }
-
+  
       const data = await response.json();
-      
-      if (data.questions && Array.isArray(data.questions)) {
-        const transformedQuestions = data.questions.map((q, index) => ({
-          id: index + 1,
-          question: q.main_question,
-          options: q.answer_options,
-          correct: q.correct_answer_index,
-          points: getPointsForQuestion(index),
-          alternateQuestion: {
-            question: q.alternate_question,
-            options: q.answer_options,
-            correct: q.correct_answer_index
-          },
-          hint: q.hint || 'Keine Hinweise verfügbar'
-        }));
-
-        setQuestions(transformedQuestions);
-        setGameStarted(true);
-      } else {
-        throw new Error('Invalid response format');
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Fehler beim Generieren der Fragen');
       }
+  
+      if (!data.questions || !Array.isArray(data.questions)) {
+        throw new Error('Ungültiges Antwortformat vom Server');
+      }
+  
+      const transformedQuestions = data.questions.map((q, index) => ({
+        id: index + 1,
+        question: q.main_question,
+        options: q.answer_options,
+        correct: q.correct_answer_index,
+        points: getPointsForQuestion(index),
+        alternateQuestion: {
+          question: q.alternate_question,
+          options: q.answer_options,
+          correct: q.correct_answer_index
+        },
+        hint: q.hint || 'Keine Hinweise verfügbar'
+      }));
+  
+      setQuestions(transformedQuestions);
+      setGameStarted(true);
     } catch (err) {
       console.error('Error:', err);
-      setError('Fehler beim Generieren der Fragen. Bitte versuche es erneut.');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getPointsForQuestion = (index) => {
-    if (index < 2) return 50;      // First two questions
-    if (index === 2) return 100;   // Third question
-    if (index === 3) return 200;   // Fourth question
-    return 500;                    // Fifth question
-  };
-
+  
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
     const correctAnswer = isAlternateQuestion 
