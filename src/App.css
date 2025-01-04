@@ -1,0 +1,167 @@
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+
+
+/* Base styles */
+body {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #2d2d2d;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 600px;
+  padding: 0 16px;
+}
+
+/* Card styles */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Topic screen */
+.topic-screen {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.topic-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.topic-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.topic-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.topic-input:disabled {
+  background-color: #f8fafc;
+  cursor: not-allowed;
+}
+
+/* Button styles */
+.button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.button:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+.button:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-outline {
+  background-color: white;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.button-outline:hover {
+  background-color: #f8fafc;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* Header styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.header-item {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+/* Question styles */
+.question {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  line-height: 1.4;
+  color: #1a202c;
+}
+
+/* Options grid */
+.options-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Help options */
+.help-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid #f0f0f0;
+}
+
+/* Feedback message */
+.feedback {
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease-in-out;
+}
