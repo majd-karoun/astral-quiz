@@ -6,9 +6,8 @@ const LoadingScreen = () => {
     <div className="container">
       <div className="card">
         <div className="loading-screen">
-          <CircleNotch size={64} className="spinner" weight="bold" />
-          <h2 className="title-large">Generiere dein Quiz...</h2>
-          <p className="loading-text">Das kann einen Moment dauern</p>
+          <CircleNotch size={80} className="spinner" weight="bold" />
+          <h2 className="title-large">Generating Quiz...</h2>
         </div>
       </div>
     </div>
@@ -29,11 +28,7 @@ const styles = `
   text-align: center;
 }
 
-.loading-text {
-  color: #6b7280;
-  font-size: 16px;
-  margin: 0;
-}
+
 
 @keyframes spin {
   from {
