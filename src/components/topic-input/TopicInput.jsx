@@ -19,7 +19,6 @@ const TOPIC_SUGGESTIONS = [
   { text: "E-Commerce Development", emoji: "🛒" },
   { text: "Blockchain Technology", emoji: "🔗" },
   { text: "Italian Cooking", emoji: "🍝" },
-  { text: "Watercolor Painting", emoji: "🎨" },
   { text: "Web Development", emoji: "💻" },
   { text: "Introduction to Psychology", emoji: "🧠" },
   { text: "Japanese Culture", emoji: "🎌" },
