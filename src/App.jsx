@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState } from 'react';
 import {
   Question,
@@ -12,6 +13,123 @@ import {
 import TopicInput from './components/topic-input/TopicInput';
 import LoadingScreen from './components/LoadingScreen';
 import './App.css';
+
+const GameCard = ({ children, show }) => (
+  <div className={`card-wrapper ${show ? 'card-visible' : ''}`}>
+    <div className="card">
+      {children}
+    </div>
+  </div>
+);
+
+const WinnerCard = ({ points, onRetry, onNewGame }) => (
+  <div className="result-screen">
+    <Trophy size={64} className="result-icon winner" />
+    <h2 className="title-large">Congratulations! You Won!</h2>
+    <p className="score">Score: {points}</p>
+    <div className="button-group">
+      <button className="button" onClick={onRetry}>
+        <Repeat size={24} />
+        Retry
+      </button>
+      <button className="button button-outline" onClick={onNewGame}>
+        <CaretRight size={24} />
+        Choose a different topic
+      </button>
+    </div>
+  </div>
+);
+
+const GameOverCard = ({ points, onRetry, onNewGame }) => (
+  <div className="result-screen">
+    <X size={64} className="result-icon game-over" />
+    <h2 className="title-large">Game Over!</h2>
+    <p className="score">Score: {points}</p>
+    <div className="button-group">
+      <button className="button" onClick={onRetry}>
+        <Repeat size={24} />
+        Retry
+      </button>
+      <button className="button button-outline" onClick={onNewGame}>
+        <CaretRight size={24} />
+        Choose a different topic
+      </button>
+    </div>
+  </div>
+);
+
+const QuestionCard = ({ 
+  currentQuestion,
+  points,
+  remainingHints,
+  question,
+  onAnswer,
+  onUseHint,
+  feedback 
+}) => (
+  <>
+    <div className="header">
+      <span className="header-item">
+        <Question size={24} />
+        Question {currentQuestion + 1}/5
+      </span>
+      <span className="header-item">
+        <Target size={24} />
+        Score: {points}
+      </span>
+      <span className="header-item">
+        <Lightning size={24} />
+        Hints: {remainingHints}
+      </span>
+    </div>
+    <div className="question-and-options">
+      <div className="question">{question.question}</div>
+      <div className="options-grid">
+        {question.options.map((option, index) => (
+          <button
+            key={index}
+            onClick={() => onAnswer(index)}
+            className="button button-outline"
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
+    {remainingHints > 0 && (
+      <div className="bottom-container">
+        <div className="help-options">
+          <button onClick={onUseHint} className="button button-outline">
+            <Lightning size={20} />
+            Use Hint ({remainingHints})
+          </button>
+        </div>
+        <div className="feedback-container">
+          {feedback && (
+            <div
+              className={`feedback ${
+                feedback.type === 'success'
+                  ? 'feedback-success'
+                  : feedback.type === 'hint'
+                  ? 'feedback-hint'
+                  : 'feedback-info'
+              }`}
+            >
+              {feedback.type === 'success' ? (
+                <Check size={20} />
+              ) : feedback.type === 'hint' ? (
+                <Lightning size={20} />
+              ) : (
+                <CaretRight size={20} />
+              )}
+              {feedback.message}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+  </>
+);
 
 function App() {
   const [topic, setTopic] = useState('');
@@ -152,146 +270,59 @@ function App() {
     setQuestions([]);
   };
 
-  if (showWinner) {
-    return (
-      <div className="container">
-        <div className="card">
-          <div className="result-screen">
-            <Trophy size={64} weight="fill" className="result-icon winner" />
-            <h2 className="title-large">Congratulations! You Won!</h2>
-            <p className="score">Score: {points}</p>
-            <div className="button-group">
-              <button
-                className="button"
-                onClick={retryGame}
-              >
-                <Repeat size={24} />
-                Retry
-              </button>
-              <button
-                className="button button-outline"
-                onClick={startNewGame}
-              >
-                <CaretRight size={24} />
-                Choose a different topic
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (gameOver) {
-    return (
-      <div className="container">
-        <div className="card">
-          <div className="result-screen">
-            <X size={64} weight="fill" className="result-icon game-over" />
-            <h2 className="title-large">Game Over!</h2>
-            <p className="score">Score: {points}</p>
-            <div className="button-group">
-              <button
-                className="button"
-                onClick={retryGame}
-              >
-                <Repeat size={24} />
-                Retry
-              </button>
-              <button
-                className="button button-outline"
-                onClick={startNewGame}
-              >
-                <CaretRight size={24} />
-                Choose a different topic
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container">
-      <div className="card">
-        {isLoading ? (
-          <LoadingScreen />
-        ) : !gameStarted ? (
-          <TopicInput
-            topic={topic}
-            setTopic={setTopic}
-            generateQuestions={generateQuestions}
-            isLoading={isLoading}
-            error={error}
-            hasApiKey={!!apiKey}
-          />
-        ) : (
-          <>
-            <div className="header">
-              <span className="header-item">
-                <Question size={24} weight="duotone" />
-                Question {currentQuestion + 1}/5
-              </span>
-              <span className="header-item">
-                <Target size={24} weight="duotone" />
-                Score: {points}
-              </span>
-              <span className="header-item">
-                <Lightning size={24} weight="duotone" />
-                Hints: {remainingHints}
-              </span>
-            </div>
-            {questions[currentQuestion] && (
-              <>
-                <div className="question-and-options">
-                  <div className="question">
-                    {questions[currentQuestion].question}
-                  </div>
-                  <div className="options-grid">
-                    {questions[currentQuestion].options.map((option, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleAnswer(index)}
-                        className="button button-outline"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+    <div className="app-wrapper">
+      <div className="container">
+        <GameCard show={!gameStarted && !isLoading && !gameOver && !showWinner}>
+          {!gameStarted && !isLoading && (
+            <TopicInput
+              topic={topic}
+              setTopic={setTopic}
+              generateQuestions={generateQuestions}
+              isLoading={isLoading}
+              error={error}
+              hasApiKey={!!apiKey}
+            />
+          )}
+        </GameCard>
 
-                {remainingHints > 0 && (
-                  <div className="bottom-container">
-                    <div className="help-options">
-                      <button
-                        onClick={useHint}
-                        className="button button-outline"
-                      >
-                        <Lightning size={20} weight="duotone" />
-                        Use Hint ({remainingHints})
-                      </button>
-                    </div>
-                    <div className="feedback-container">
-                      {feedback && (
-                        <div className={`feedback ${
-                          feedback.type === 'success' ? 'feedback-success' :
-                          feedback.type === 'hint' ? 'feedback-hint' :
-                          'feedback-info'
-                        }`}>
-                          {feedback.type === 'success' ? <Check size={20} /> :
-                          feedback.type === 'hint' ? <Lightning size={20} /> :
-                          <CaretRight size={20} />}
-                          {feedback.message}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
+        <GameCard show={isLoading}>
+          {isLoading && <LoadingScreen />}
+        </GameCard>
+
+        <GameCard show={gameStarted && !isLoading && !gameOver && !showWinner}>
+          {gameStarted && !isLoading && questions[currentQuestion] && (
+            <QuestionCard
+              currentQuestion={currentQuestion}
+              points={points}
+              remainingHints={remainingHints}
+              question={questions[currentQuestion]}
+              onAnswer={handleAnswer}
+              onUseHint={useHint}
+              feedback={feedback}
+            />
+          )}
+        </GameCard>
+
+        <GameCard show={gameOver}>
+          {gameOver && (
+            <GameOverCard
+              points={points}
+              onRetry={retryGame}
+              onNewGame={startNewGame}
+            />
+          )}
+        </GameCard>
+
+        <GameCard show={showWinner}>
+          {showWinner && (
+            <WinnerCard
+              points={points}
+              onRetry={retryGame}
+              onNewGame={startNewGame}
+            />
+          )}
+        </GameCard>
       </div>
     </div>
   );
