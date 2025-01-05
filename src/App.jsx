@@ -4,8 +4,6 @@ import {
   Target,
   Lightning,
   Repeat,
-  Scissors,
-  Trophy,
   X,
   Check,
   CaretRight
@@ -23,13 +21,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
-  const [helpOptions, setHelpOptions] = useState({
-    hint: true,
-    changeQuestion: true,
-    removeOptions: true
-  });
-  const [removedOptions, setRemovedOptions] = useState([]);
-  const [isAlternateQuestion, setIsAlternateQuestion] = useState(false);
+  const [remainingHints, setRemainingHints] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -47,12 +39,10 @@ function App() {
       return;
     }
 
-    // If an API key is provided, store it
     if (providedApiKey) {
       setApiKey(providedApiKey);
     }
     
-    // Use stored API key if no new one is provided
     const keyToUse = providedApiKey || apiKey;
 
     setIsLoading(true);
@@ -84,11 +74,6 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        alternateQuestion: {
-          question: q.alternate_question,
-          options: q.answer_options,
-          correct: q.correct_answer_index
-        },
         hint: q.hint || 'Keine Hinweise verfügbar'
       }));
 
@@ -104,9 +89,7 @@ function App() {
 
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
-    const correctAnswer = isAlternateQuestion 
-      ? question.alternateQuestion.correct 
-      : question.correct;
+    const correctAnswer = question.correct;
 
     if (optionIndex === correctAnswer) {
       setPoints(prev => prev + question.points);
@@ -121,8 +104,6 @@ function App() {
           setShowWinner(true);
         } else {
           setCurrentQuestion(prev => prev + 1);
-          setIsAlternateQuestion(false);
-          setRemovedOptions([]);
         }
       }, 2000);
     } else {
@@ -130,51 +111,14 @@ function App() {
     }
   };
 
-  const useHelpOption = (option) => {
-    if (!questions[currentQuestion]) return;
-
-    switch (option) {
-      case 'hint':
-        setFeedback({
-          type: 'hint',
-          message: questions[currentQuestion].hint
-        });
-        setHelpOptions(prev => ({ ...prev, hint: false }));
-        break;
-
-      case 'changeQuestion':
-        setIsAlternateQuestion(true);
-        setHelpOptions(prev => ({ ...prev, changeQuestion: false }));
-        setRemovedOptions([]);
-        setFeedback({
-          type: 'info',
-          message: 'Frage wurde geändert'
-        });
-        setTimeout(() => setFeedback(null), 2000);
-        break;
-
-      case 'removeOptions':
-        const question = questions[currentQuestion];
-        const correct = isAlternateQuestion 
-          ? question.alternateQuestion.correct 
-          : question.correct;
-        let newRemovedOptions = [];
-        let count = 0;
-        while (count < 2) {
-          const randomIndex = Math.floor(Math.random() * 4);
-          if (randomIndex !== correct && !newRemovedOptions.includes(randomIndex)) {
-            newRemovedOptions.push(randomIndex);
-            count++;
-          }
-        }
-        setRemovedOptions(newRemovedOptions);
-        setHelpOptions(prev => ({ ...prev, removeOptions: false }));
-        setFeedback({
-          type: 'info',
-          message: 'Zwei falsche Optionen wurden entfernt'
-        });
-        setTimeout(() => setFeedback(null), 2000);
-        break;
+  const useHint = () => {
+    if (remainingHints > 0 && questions[currentQuestion]) {
+      setFeedback({
+        type: 'hint',
+        message: questions[currentQuestion].hint
+      });
+      setRemainingHints(prev => prev - 1);
+      setTimeout(() => setFeedback(null), 3000);
     }
   };
 
@@ -182,9 +126,7 @@ function App() {
     setIsLoading(true);
     setCurrentQuestion(0);
     setPoints(0);
-    setHelpOptions({ hint: true, changeQuestion: true, removeOptions: true });
-    setRemovedOptions([]);
-    setIsAlternateQuestion(false);
+    setRemainingHints(3);
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
@@ -195,9 +137,7 @@ function App() {
     setGameStarted(false);
     setCurrentQuestion(0);
     setPoints(0);
-    setHelpOptions({ hint: true, changeQuestion: true, removeOptions: true });
-    setRemovedOptions([]);
-    setIsAlternateQuestion(false);
+    setRemainingHints(3);
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
@@ -290,14 +230,16 @@ function App() {
                 <Target size={24} weight="duotone" />
                 Punkte: {points}
               </span>
+              <span className="header-item">
+                <Lightning size={24} weight="duotone" />
+                Tipps: {remainingHints}
+              </span>
             </div>
             
             {questions[currentQuestion] && (
               <>
                 <div className="question">
-                  {isAlternateQuestion 
-                    ? questions[currentQuestion].alternateQuestion.question 
-                    : questions[currentQuestion].question}
+                  {questions[currentQuestion].question}
                 </div>
                 
                 {feedback && (
@@ -314,52 +256,29 @@ function App() {
                 )}
 
                 <div className="options-grid">
-                  {(isAlternateQuestion 
-                    ? questions[currentQuestion].alternateQuestion.options 
-                    : questions[currentQuestion].options
-                  )?.map((option, index) => (
-                    !removedOptions.includes(index) && (
-                      <button 
-                        key={index}
-                        onClick={() => handleAnswer(index)}
-                        className="button button-outline"
-                      >
-                        <CaretRight size={20} />
-                        {option}
-                      </button>
-                    )
+                  {questions[currentQuestion].options.map((option, index) => (
+                    <button 
+                      key={index}
+                      onClick={() => handleAnswer(index)}
+                      className="button button-outline"
+                    >
+                      <CaretRight size={20} />
+                      {option}
+                    </button>
                   ))}
                 </div>
 
-                <div className="help-options">
-                  {helpOptions.hint && (
+                {remainingHints > 0 && (
+                  <div className="help-options">
                     <button 
-                      onClick={() => useHelpOption('hint')}
+                      onClick={useHint}
                       className="button button-outline"
                     >
                       <Lightning size={20} weight="duotone" />
-                      Tipp
+                      Tipp ({remainingHints})
                     </button>
-                  )}
-                  {helpOptions.changeQuestion && (
-                    <button 
-                      onClick={() => useHelpOption('changeQuestion')}
-                      className="button button-outline"
-                    >
-                      <Repeat size={20} weight="duotone" />
-                      Frage ändern
-                    </button>
-                  )}
-                  {helpOptions.removeOptions && (
-                    <button 
-                      onClick={() => useHelpOption('removeOptions')}
-                      className="button button-outline"
-                    >
-                      <Scissors size={20} weight="duotone" />
-                      2 Optionen entfernen
-                    </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </>
             )}
           </>
