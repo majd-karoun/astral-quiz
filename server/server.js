@@ -44,11 +44,12 @@ const validateApiKey = (apiKey) => {
 
 // Helper function to construct the quiz generation prompt
 const constructPrompt = (topic) => {
-  return `Create 5 quiz questions about ${topic} with increasing difficulty:
- - Questions 1-2: Easy (50 points each)
- - Question 3: Medium (100 points)
- - Question 4: Hard (200 points)
- - Question 5: Very Hard (500 points)
+  return `Create 15 quiz questions about ${topic} with increasing difficulty levels:
+ - Questions 1-3: Very Easy (50 points each)
+ - Questions 4-5: Easy (100 points each)
+ - Questions 6-10: Medium (200 points each)
+ - Questions 11-13: Hard (500 points each)
+ - Questions 14-15: Very Hard (1000 points each)
  
 For each question, provide:
 1. Main question
@@ -164,8 +165,8 @@ app.post('/api/generate-questions', async (req, res) => {
         return q;
       });
 
-      // Ensure we have exactly 5 questions
-      if (parsedData.questions.length !== 5) {
+      // Ensure we have exactly 15 questions
+      if (parsedData.questions.length !== 15) {
         throw new Error('Invalid number of questions generated');
       }
 

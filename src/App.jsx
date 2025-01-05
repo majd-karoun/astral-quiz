@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useState } from 'react';
 import {
   Question,
@@ -71,7 +70,7 @@ const QuestionCard = ({
     <div className="header">
       <span className="header-item">
         <Question size={24} />
-        Question {currentQuestion + 1}/5
+        Question {currentQuestion + 1}/15
       </span>
       <span className="header-item">
         <Target size={24} />
@@ -140,16 +139,17 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
-  const [remainingHints, setRemainingHints] = useState(3);
+  const [remainingHints, setRemainingHints] = useState(5);
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
   const getPointsForQuestion = (index) => {
-    if (index < 2) return 50; // First two questions
-    if (index === 2) return 100; // Third question
-    if (index === 3) return 200; // Fourth question
-    return 500; // Fifth question
+    if (index < 3) return 50;  // Questions 1-3
+    if (index < 5) return 100; // Questions 4-5
+    if (index < 10) return 200; // Questions 6-10
+    if (index < 13) return 500; // Questions 11-13
+    return 1000; // Questions 14-15
   };
 
   const generateQuestions = async (providedApiKey = null) => {
@@ -192,7 +192,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint || `Hint ${index + 1}: Consider the relationships between answer options.`
+        hint: q.hint
       }));
 
       setQuestions(transformedQuestions);
@@ -231,19 +231,11 @@ function App() {
   const useHint = () => {
     if (remainingHints > 0 && questions[currentQuestion]) {
       const currentHint = questions[currentQuestion].hint;
-      if (currentHint && currentHint !== 'No hints available') {
-        setFeedback({
-          type: 'hint',
-          message: currentHint
-        });
-        setRemainingHints(prev => prev - 1);
-      } else {
-        setFeedback({
-          type: 'hint',
-          message: 'Consider how the answer options relate to each other.'
-        });
-        setRemainingHints(prev => prev - 1);
-      }
+      setFeedback({
+        type: 'hint',
+        message: currentHint
+      });
+      setRemainingHints(prev => prev - 1);
     }
   };
 
@@ -251,7 +243,7 @@ function App() {
     setIsLoading(true);
     setCurrentQuestion(0);
     setPoints(0);
-    setRemainingHints(3);
+    setRemainingHints(5);
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
@@ -262,7 +254,7 @@ function App() {
     setGameStarted(false);
     setCurrentQuestion(0);
     setPoints(0);
-    setRemainingHints(3);
+    setRemainingHints(5);
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
