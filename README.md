@@ -4,6 +4,8 @@ An interactive quiz application that generates personalized questions based on a
 ## 🌐 Live Demo
 Visit [Astral Quiz](https://astral-quiz.netlify.app)
 
+![Astral Quiz Interface](./screenshot.png)
+
 ## 🎮 How to Play
 
 1. Enter a topic of your choice or select from suggested topics
