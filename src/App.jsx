@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Question,
   Target,
@@ -137,7 +137,7 @@ const QuestionCard = ({
 
 function App() {
   const [topic, setTopic] = useState('');
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -166,6 +166,7 @@ function App() {
 
     if (providedApiKey) {
       setApiKey(providedApiKey);
+      localStorage.setItem('openai_api_key', providedApiKey);
     }
 
     const keyToUse = providedApiKey || apiKey;
@@ -206,6 +207,10 @@ function App() {
     } catch (err) {
       console.error('Error:', err);
       setError(err.message);
+      if (err.message.includes('API key')) {
+        localStorage.removeItem('openai_api_key');
+        setApiKey('');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -283,6 +288,7 @@ function App() {
               isLoading={isLoading}
               error={error}
               hasApiKey={!!apiKey}
+              setApiKey={setApiKey}
             />
           )}
         </GameCard>

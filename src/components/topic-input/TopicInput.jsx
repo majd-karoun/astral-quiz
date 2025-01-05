@@ -21,11 +21,17 @@ const TOPIC_SUGGESTIONS = [
   { text: "Watercolor Painting", emoji: "🎨" },
   { text: "Web Development", emoji: "💻" },
   { text: "Introduction to Psychology", emoji: "🧠" }
-  
 ];
 
-const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasApiKey }) => {
-  const [apiKey, setApiKey] = useState('');
+const TopicInput = ({ 
+  topic, 
+  setTopic, 
+  generateQuestions, 
+  isLoading, 
+  error, 
+  hasApiKey 
+}) => {
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
@@ -44,14 +50,13 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
           const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
           let newScrollPosition = scrollContainer.scrollLeft + 1;
 
-          // Reset to beginning when reaching the end
           if (newScrollPosition >= maxScroll) {
             newScrollPosition = 0;
           }
 
           scrollContainer.scrollLeft = newScrollPosition;
         }
-      }, 30); // Adjust speed by changing this value (higher = slower)
+      }, 30);
     };
 
     startScrolling();
@@ -71,18 +76,16 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
       return;
     }
 
-    if (!hasApiKey) {
-      if (!apiKey.trim()) {
-        setApiKeyError('OpenAI API Key ist erforderlich');
-        return;
-      }
-      if (!apiKey.startsWith('sk-')) {
-        setApiKeyError('Ungültiger API Key Format');
-        return;
-      }
+    if (!apiKey.trim()) {
+      setApiKeyError('OpenAI API Key is required');
+      return;
+    }
+    if (!apiKey.startsWith('sk-')) {
+      setApiKeyError('Invalid API Key format');
+      return;
     }
     
-    generateQuestions(hasApiKey ? null : apiKey);
+    generateQuestions(apiKey);
   };
 
   return (
@@ -103,7 +106,7 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="choose a topic to practice..."
+                placeholder="Choose a topic to practice..."
                 className="topic-input"
                 disabled={isLoading}
               />
@@ -119,7 +122,6 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
                 className="topics-carousel" 
                 ref={carouselRef}
               >
-                {/* Duplicate topics for seamless scrolling */}
                 {[...TOPIC_SUGGESTIONS, ...TOPIC_SUGGESTIONS].map((suggestion, index) => (
                   <button
                     key={index}
@@ -136,54 +138,50 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
             </div>
           </div>
 
-          {/* API Key Section */}
-          {!hasApiKey && (
-            <div className="input-section">
-              <label htmlFor="apiKey">
-                OpenAI API Key
-                <a 
-                  href="https://platform.openai.com/api-keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="api-key-link"
-                >
-                  Get your API key here
-                </a>
-              </label>
-              <div className="input-container">
-                <input
-                  id="apiKey"
-                  type={showApiKey ? "text" : "password"}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="sk-..."
-                  className="topic-input"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="visibility-toggle"
-                >
-                  {showApiKey ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              {apiKeyError && (
-                <p className="error-message">{apiKeyError}</p>
-              )}
+          {/* API Key Section - Always visible */}
+          <div className="input-section">
+            <label htmlFor="apiKey">
+              OpenAI API Key
+              <a 
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="api-key-link"
+              >
+                Get your API key here
+              </a>
+            </label>
+            <div className="input-container">
+              <input
+                id="apiKey"
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="sk-..."
+                className="topic-input"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="visibility-toggle"
+              >
+                {showApiKey ? 'Hide' : 'Show'}
+              </button>
             </div>
-          )}
+            {apiKeyError && (
+              <p className="error-message">{apiKeyError}</p>
+            )}
+          </div>
         </div>
 
         <button
           type="submit"
-          className={`start-button ${(!topic.trim() || (!hasApiKey && !apiKey.trim())) ? 'disabled' : ''}`}
-          disabled={isLoading || !topic.trim() || (!hasApiKey && !apiKey.trim())}
+          className={`start-button ${(!topic.trim() || !apiKey.trim()) ? 'disabled' : ''}`}
+          disabled={isLoading || !topic.trim() || !apiKey.trim()}
         >
-        
-              <CaretRight className="button-icon" />
-              <span>Quiz starten</span>
-            
+          <CaretRight className="button-icon" />
+          <span>Start Quiz</span>
         </button>
 
         {error && (
