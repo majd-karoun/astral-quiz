@@ -144,7 +144,7 @@ const TopicInput = ({
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="Choose a topic to practice..."
+                placeholder="Choose a topic to..."
                 className="topic-input"
                 disabled={isLoading}
               />
