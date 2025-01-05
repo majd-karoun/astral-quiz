@@ -163,11 +163,16 @@ function App() {
       setError('Please enter a topic');
       return;
     }
-  
+
+    if (providedApiKey) {
+      setApiKey(providedApiKey);
+      localStorage.setItem('openai_api_key', providedApiKey);
+    }
+
     const keyToUse = providedApiKey || apiKey;
     setIsLoading(true);
     setError(null);
-  
+
     try {
       const response = await fetch(`https://astral-quiz.onrender.com/api/generate-questions`, {
         method: 'POST',
@@ -177,19 +182,19 @@ function App() {
         },
         body: JSON.stringify({ topic })
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
-        console.error('Server response:', data);
-        throw new Error(data.error || data.details || 'Error generating questions');
+        throw new Error(data.error || 'Error generating questions');
       }
-  
+
       if (!data.questions || !Array.isArray(data.questions)) {
-        console.error('Invalid response format:', data);
         throw new Error('Invalid response format from server');
       }
-  
+
+      console.log('OpenAI API Response:', data.questions);
+
       const transformedQuestions = data.questions.map((q, index) => ({
         id: index + 1,
         question: q.main_question,
@@ -198,23 +203,30 @@ function App() {
         points: getPointsForQuestion(index),
         hint: q.helpful_hint
       }));
-  
+
       setQuestions(transformedQuestions);
       setGameStarted(true);
     } catch (err) {
-      console.error('Error details:', err);
+      console.error('Error:', err);
       setError(err.message);
       if (err.message.includes('API key')) {
         localStorage.removeItem('openai_api_key');
         setApiKey('');
       }
       // Reset game state on error
-      resetGameState();
+      setGameStarted(false);
+      setCurrentQuestion(0);
+      setPoints(0);
+      setRemainingHints(5);
+      setGameOver(false);
+      setShowWinner(false);
+      setFeedback(null);
+      setUsedHints(new Set());
+      setQuestions([]);
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
