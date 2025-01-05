@@ -65,7 +65,8 @@ const QuestionCard = ({
   onAnswer,
   onUseHint,
   feedback,
-  isHintUsed
+  isHintUsed,
+  isTransitioning
 }) => (
   <>
     <div className="header">
@@ -82,7 +83,7 @@ const QuestionCard = ({
         Hints: {remainingHints}
       </span>
     </div>
-    <div className="question-and-options">
+    <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
       <div className="question">{question.question}</div>
       <div className="options-grid">
         {question.options.map((option, index) => (
@@ -149,6 +150,7 @@ function App() {
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [usedHints, setUsedHints] = useState(new Set());
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const getPointsForQuestion = (index) => {
     if (index < 3) return 50;  // Questions 1-3
@@ -193,8 +195,6 @@ function App() {
         throw new Error('Invalid response format from server');
       }
 
-      console.log('OpenAI API Response:', data.questions);
-
       const transformedQuestions = data.questions.map((q, index) => ({
         id: index + 1,
         question: q.main_question,
@@ -213,7 +213,6 @@ function App() {
         localStorage.removeItem('openai_api_key');
         setApiKey('');
       }
-      // Reset game state on error
       setGameStarted(false);
       setCurrentQuestion(0);
       setPoints(0);
@@ -238,14 +237,20 @@ function App() {
         type: 'success',
         message: `Correct! +${question.points} points`
       });
-      setTimeout(() => {
-        setFeedback(null);
-        if (currentQuestion === questions.length - 1) {
+      
+      if (currentQuestion === questions.length - 1) {
+        setTimeout(() => {
+          setFeedback(null);
           setShowWinner(true);
-        } else {
+        }, 1000);
+      } else {
+        setIsTransitioning(true);
+        setTimeout(() => {
           setCurrentQuestion(prev => prev + 1);
-        }
-      }, 2000);
+          setFeedback(null);
+          setIsTransitioning(false);
+        }, 1000);
+      }
     } else {
       setGameOver(true);
     }
@@ -254,7 +259,6 @@ function App() {
   const useHint = () => {
     if (remainingHints > 0 && questions[currentQuestion] && !usedHints.has(currentQuestion)) {
       const currentHint = questions[currentQuestion].hint;
-      console.log('Using hint:', currentHint);
       
       if (!currentHint || currentHint.trim() === '') {
         setFeedback({
@@ -329,6 +333,7 @@ function App() {
               onUseHint={useHint}
               feedback={feedback}
               isHintUsed={usedHints.has(currentQuestion)}
+              isTransitioning={isTransitioning}
             />
           )}
         </GameCard>

@@ -108,11 +108,10 @@ body {
 
 .button:hover {
   background-color: #026c65;
-
 }
 
 .button:active {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 .button:disabled {
@@ -155,6 +154,14 @@ body {
 /* Question and Options */
 .question-and-options {
   animation: fadeSlideIn 0.3s ease-out;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.question-and-options.transitioning {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 
 .question {
