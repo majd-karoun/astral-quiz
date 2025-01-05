@@ -96,9 +96,9 @@ const QuestionCard = ({
         ))}
       </div>
     </div>
-    {remainingHints > 0 && (
-      <div className="bottom-container">
-        <div className="help-options">
+    <div className="bottom-container">
+      <div className="help-options">
+        {remainingHints > 0 && (
           <button 
             onClick={onUseHint} 
             className="button button-outline"
@@ -107,31 +107,31 @@ const QuestionCard = ({
             <Lightning size={20} />
             Use Hint ({remainingHints})
           </button>
-        </div>
-        <div className="feedback-container">
-          {feedback && (
-            <div
-              className={`feedback ${
-                feedback.type === 'success'
-                  ? 'feedback-success'
-                  : feedback.type === 'hint'
-                  ? 'feedback-hint'
-                  : 'feedback-info'
-              }`}
-            >
-              {feedback.type === 'success' ? (
-                <Check size={20} />
-              ) : feedback.type === 'hint' ? (
-                <Lightning size={20} />
-              ) : (
-                <CaretRight size={20} />
-              )}
-              {feedback.message}
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    )}
+      <div className="feedback-container">
+        {feedback && (
+          <div
+            className={`feedback ${
+              feedback.type === 'success'
+                ? 'feedback-success'
+                : feedback.type === 'hint'
+                ? 'feedback-hint'
+                : 'feedback-info'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <Check size={20} />
+            ) : feedback.type === 'hint' ? (
+              <Lightning size={20} />
+            ) : (
+              <CaretRight size={20} />
+            )}
+            {feedback.message}
+          </div>
+        )}
+      </div>
+    </div>
   </>
 );
 
@@ -246,50 +246,47 @@ function App() {
     }
   };
 
-const retryGame = async () => {
-  setIsLoading(true);
-  setCurrentQuestion(0);
-  setPoints(0);
-  setRemainingHints(5);
-  setGameOver(false);
-  setShowWinner(false);
-  setFeedback(null);
-  setUsedHints(new Set());
-  
-  try {
-    // Keep the existing topic and apiKey, just regenerate questions
-    const response = await fetch('http://localhost:3001/api/generate-questions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({ topic })
-    });
+  const retryGame = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/api/generate-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ topic })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Error generating questions');
+      }
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Error generating questions');
+      const transformedQuestions = data.questions.map((q, index) => ({
+        question: q.main_question,
+        options: q.answer_options,
+        correct: q.correct_answer_index,
+        points: getPointsForQuestion(index),
+        hint: q.hint
+      }));
+
+      // Reset game state
+      setQuestions(transformedQuestions);
+      setCurrentQuestion(0);
+      setPoints(0);
+      setRemainingHints(5);
+      setGameOver(false);
+      setShowWinner(false);
+      setFeedback(null);
+      setUsedHints(new Set());
+      setGameStarted(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    const transformedQuestions = data.questions.map((q, index) => ({
-      id: index + 1,
-      question: q.main_question,
-      options: q.answer_options,
-      correct: q.correct_answer_index,
-      points: getPointsForQuestion(index),
-      hint: q.hint
-    }));
-
-    setQuestions(transformedQuestions);
-    setIsLoading(false);
-  } catch (err) {
-    console.error('Error:', err);
-    setError(err.message);
-    setIsLoading(false);
-  }
-};
+  };
 
   const startNewGame = () => {
     setGameStarted(false);
@@ -319,11 +316,11 @@ const retryGame = async () => {
             />
           )}
         </GameCard>
-
-        <GameCard show={isLoading}>
+  
+        <GameCard show={isLoading && !gameOver}>
           {isLoading && <LoadingScreen />}
         </GameCard>
-
+  
         <GameCard show={gameStarted && !isLoading && !gameOver && !showWinner}>
           {gameStarted && !isLoading && questions[currentQuestion] && (
             <QuestionCard
@@ -338,9 +335,9 @@ const retryGame = async () => {
             />
           )}
         </GameCard>
-
-        <GameCard show={gameOver}>
-          {gameOver && (
+  
+        <GameCard show={gameOver && !isLoading}>
+          {gameOver && !isLoading && (
             <GameOverCard
               points={points}
               onRetry={retryGame}
@@ -348,8 +345,8 @@ const retryGame = async () => {
             />
           )}
         </GameCard>
-
-        <GameCard show={showWinner}>
+  
+        <GameCard show={showWinner && !isLoading}>
           {showWinner && (
             <WinnerCard
               points={points}
