@@ -3,7 +3,7 @@ An interactive quiz application that generates personalized questions based on a
 
 [Live Demo](https://sticky-todo-notes.netlify.app) 🚀
 
-![Astral Quiz Interface](./screenshot.png)
+
 
 ## 🎮 How to Play
 
