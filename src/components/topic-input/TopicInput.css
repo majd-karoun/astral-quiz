@@ -51,12 +51,14 @@
 
 .api-key-link {
   font-size: 0.75rem;
-  color: #3b82f6;
+  color: #039c92;
   text-decoration: none;
 }
 
 .api-key-link:hover {
   text-decoration: underline;
+  color: #026c65;
+
 }
 
 .input-container {
@@ -76,7 +78,7 @@
 
 .topic-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #039c92;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
@@ -125,8 +127,8 @@
 
 .topic-suggestion-button:hover:not(:disabled) {
   background-color: #E5E7EB;
-  color: #111827;
-  transform: translateY(-1px);
+  color: #026c65;
+  border: #026c65 1px solid;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -167,7 +169,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #3b82f6;
+  background-color: #039c92;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -177,7 +179,7 @@
 }
 
 .start-button:hover:not(:disabled) {
-  background-color: #3b82f6;
+  background-color: #026c65;
 }
 
 .start-button:disabled {
