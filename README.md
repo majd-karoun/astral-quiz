@@ -17,7 +17,7 @@ Visit [Astral Quiz](https://astral-quiz.netlify.app)
 - You'll need your own OpenAI API key to generate questions
 - Your OpenAI account needs to have available credit
 - The backend includes rate limiting to prevent abuse
-- Questions are generated using GPT 4o-mini modal for optimal cost (few Cents per multiple rounds)
+- Questions are generated using GPT 4o-mini modal for optimal cost
 
 
 ## 💻 Tech Stack
