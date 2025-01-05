@@ -246,17 +246,50 @@ function App() {
     }
   };
 
-  const retryGame = async () => {
-    setIsLoading(true);
-    setCurrentQuestion(0);
-    setPoints(0);
-    setRemainingHints(5);
-    setGameOver(false);
-    setShowWinner(false);
-    setFeedback(null);
-    setUsedHints(new Set());
-    await generateQuestions();
-  };
+const retryGame = async () => {
+  setIsLoading(true);
+  setCurrentQuestion(0);
+  setPoints(0);
+  setRemainingHints(5);
+  setGameOver(false);
+  setShowWinner(false);
+  setFeedback(null);
+  setUsedHints(new Set());
+  
+  try {
+    // Keep the existing topic and apiKey, just regenerate questions
+    const response = await fetch('http://localhost:3001/api/generate-questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({ topic })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error generating questions');
+    }
+
+    const transformedQuestions = data.questions.map((q, index) => ({
+      id: index + 1,
+      question: q.main_question,
+      options: q.answer_options,
+      correct: q.correct_answer_index,
+      points: getPointsForQuestion(index),
+      hint: q.hint
+    }));
+
+    setQuestions(transformedQuestions);
+    setIsLoading(false);
+  } catch (err) {
+    console.error('Error:', err);
+    setError(err.message);
+    setIsLoading(false);
+  }
+};
 
   const startNewGame = () => {
     setGameStarted(false);

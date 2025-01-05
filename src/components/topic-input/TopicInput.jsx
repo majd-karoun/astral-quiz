@@ -3,26 +3,25 @@ import { Books, CaretRight } from '@phosphor-icons/react';
 import './TopicInput.css';
 
 const TOPIC_SUGGESTIONS = [
-  { text: "Spanish Grammar", emoji: "🇪🇸" },
+  { text: "Spanish Vocabulary", emoji: "🇪🇸" },
   { text: "Time Management", emoji: "⏰" },
   { text: "Python Coding", emoji: "💻" },
-  { text: "UI/UX Design", emoji: "🧩" },
-  { text: "Digital Photography", emoji: "📸" },
-  { text: "Meditation", emoji: "🧘" },
-  { text: "Garden Planning", emoji: "🌱" },
-  { text: "Financial Planning", emoji: "💰" },
-  { text: "Guitar Basics", emoji: "🎸" },
-  { text: "French Vocabulary", emoji: "🇫🇷" },
-  { text: "Yoga for Beginners", emoji: "🧘‍♀️" },
-  { text: "Public Speaking", emoji: "🎤" },
+  { text: "Ui/UX Design", emoji: "🧩" },
   { text: "Creative Writing", emoji: "✍️" },
+  { text: "Prompt Engineering", emoji: "🦾" },
+  { text: "Cybersecurity Fundamentals", emoji: "🔒" },
+  { text: "Environmental Science", emoji: "🌍" },
+  { text: "Digital Marketing", emoji: "🛒" },
+  { text: "Cloud Computing and AWS Basics", emoji: "☁️" },
+  { text: "Public Speaking", emoji: "🎤" },
   { text: "Interior Design", emoji: "🎨" },
-  { text: "Basic Car Maintenance", emoji: "🚗" },
-  { text: "Dog Training", emoji: "🐕" },
+  { text: "E-Commerce Development", emoji: "🛒" },
+  { text: "Blockchain Technology and Applications", emoji: "🔗" },
   { text: "Italian Cooking", emoji: "🍝" },
   { text: "Watercolor Painting", emoji: "🎨" },
   { text: "Web Development", emoji: "💻" },
-  { text: "Mental Health", emoji: "🧠" }
+  { text: "Introduction to Psychology", emoji: "🧠" }
+  
 ];
 
 const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasApiKey }) => {
@@ -74,11 +73,11 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
 
     if (!hasApiKey) {
       if (!apiKey.trim()) {
-        setApiKeyError('OpenAI API Key is required');
+        setApiKeyError('OpenAI API Key ist erforderlich');
         return;
       }
       if (!apiKey.startsWith('sk-')) {
-        setApiKeyError('Invalid API Key format');
+        setApiKeyError('Ungültiger API Key Format');
         return;
       }
     }
@@ -104,7 +103,7 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="Choose a topic to practice..."
+                placeholder="choose a topic to practice..."
                 className="topic-input"
                 disabled={isLoading}
               />
@@ -181,8 +180,10 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
           className={`start-button ${(!topic.trim() || (!hasApiKey && !apiKey.trim())) ? 'disabled' : ''}`}
           disabled={isLoading || !topic.trim() || (!hasApiKey && !apiKey.trim())}
         >
-          <CaretRight className="button-icon" />
-          <span>Start Quiz</span>
+        
+              <CaretRight className="button-icon" />
+              <span>Quiz starten</span>
+            
         </button>
 
         {error && (
