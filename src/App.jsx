@@ -64,7 +64,8 @@ const QuestionCard = ({
   question,
   onAnswer,
   onUseHint,
-  feedback 
+  feedback,
+  isHintUsed
 }) => (
   <>
     <div className="header">
@@ -98,7 +99,11 @@ const QuestionCard = ({
     {remainingHints > 0 && (
       <div className="bottom-container">
         <div className="help-options">
-          <button onClick={onUseHint} className="button button-outline">
+          <button 
+            onClick={onUseHint} 
+            className="button button-outline"
+            disabled={isHintUsed}
+          >
             <Lightning size={20} />
             Use Hint ({remainingHints})
           </button>
@@ -143,6 +148,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [usedHints, setUsedHints] = useState(new Set());
 
   const getPointsForQuestion = (index) => {
     if (index < 3) return 50;  // Questions 1-3
@@ -229,13 +235,14 @@ function App() {
   };
 
   const useHint = () => {
-    if (remainingHints > 0 && questions[currentQuestion]) {
+    if (remainingHints > 0 && questions[currentQuestion] && !usedHints.has(currentQuestion)) {
       const currentHint = questions[currentQuestion].hint;
       setFeedback({
         type: 'hint',
         message: currentHint
       });
       setRemainingHints(prev => prev - 1);
+      setUsedHints(prev => new Set(prev).add(currentQuestion));
     }
   };
 
@@ -247,6 +254,7 @@ function App() {
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
+    setUsedHints(new Set());
     await generateQuestions();
   };
 
@@ -258,6 +266,7 @@ function App() {
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
+    setUsedHints(new Set());
     setTopic('');
     setQuestions([]);
   };
@@ -292,6 +301,7 @@ function App() {
               onAnswer={handleAnswer}
               onUseHint={useHint}
               feedback={feedback}
+              isHintUsed={usedHints.has(currentQuestion)}
             />
           )}
         </GameCard>
