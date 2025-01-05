@@ -11,6 +11,7 @@ Visit [Astral Quiz](https://astral-quiz.netlify.app)
 3. Answer 15 questions of increasing difficulty
 4. Use hints strategically (5 available per game)
 5. Try to achieve the highest score possible
+   
 
 ## ⚠️ Important Notes
 
@@ -18,6 +19,7 @@ Visit [Astral Quiz](https://astral-quiz.netlify.app)
 - Your OpenAI account needs to have available credit
 - The backend includes rate limiting to prevent abuse
 - Questions are generated using GPT 4o-mini modal for optimal cost
+
 
 
 ## 💻 Tech Stack
