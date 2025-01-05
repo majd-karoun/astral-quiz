@@ -3,11 +3,11 @@ const cors = require('cors');
 const OpenAI = require('openai');
 const app = express();
 
-// Middleware
+// Enable CORS for all origins
 app.use(cors());
 app.use(express.json());
 
-// Rate limiting constants
+// Rate limiting setup
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const MAX_REQUESTS = 50;
 const requestCounts = new Map();
@@ -19,8 +19,6 @@ const rateLimiter = (req, res, next) => {
 
   const now = Date.now();
   const userRequests = requestCounts.get(apiKey) || [];
-  
-  // Remove requests outside the current window
   const validRequests = userRequests.filter(time => time > now - RATE_LIMIT_WINDOW);
   
   if (validRequests.length >= MAX_REQUESTS) {
@@ -37,12 +35,11 @@ const rateLimiter = (req, res, next) => {
 
 app.use(rateLimiter);
 
-// Helper function to validate OpenAI API key
+// Helper functions
 const validateApiKey = (apiKey) => {
   return typeof apiKey === 'string' && apiKey.startsWith('sk-') && apiKey.length > 20;
 };
 
-// Helper function to construct the quiz generation prompt
 const constructPrompt = (topic) => {
   return `Create 15 quiz questions about ${topic} with increasing difficulty levels:
  - Questions 1-3: Very Easy (50 points each)
@@ -57,19 +54,6 @@ For each question, provide:
 3. Correct answer index (0-3)
 4. A helpful hint that gives a clue without revealing the answer directly
 
-Requirements for questions:
-- Make questions clear and unambiguous
-- Ensure all answer options are plausible
-- Avoid overly technical language unless appropriate for the topic
-- Include relevant context when necessary
-
-Requirements for hints:
-- Hints should guide thinking without revealing the answer
-- Make hints specific to the question content
-- Include relevant background information or problem-solving strategies
-- For calculation questions, suggest solution approaches
-- For knowledge questions, point to related concepts
-
 Format as a JSON object with this structure:
 {
   "questions": [
@@ -80,25 +64,17 @@ Format as a JSON object with this structure:
       "helpful_hint": "string"
     }
   ]
-}
-
-Example hint formats:
-- History: "This event occurred during the same period as the Industrial Revolution"
-- Science: "This concept is closely related to Newton's Third Law"
-- Math: "Try solving this step-by-step, starting with the basic formula"
-- Geography: "This location is known for its unique climate conditions"
-- Literature: "This author was part of the Romantic movement"
-
-Make sure each hint provides meaningful guidance without giving away the answer.`;
+}`;
 };
 
 // Main question generation endpoint
 app.post('/api/generate-questions', async (req, res) => {
+  console.log('Received question generation request');
+  
   try {
     const { topic } = req.body;
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
-    // Validate inputs
     if (!apiKey) {
       return res.status(401).json({ error: 'API key is required' });
     }
@@ -111,81 +87,54 @@ app.post('/api/generate-questions', async (req, res) => {
       return res.status(400).json({ error: 'Valid topic is required' });
     }
 
-    // Initialize OpenAI client
-    const openai = new OpenAI({
-      apiKey: apiKey
-    });
+    const openai = new OpenAI({ apiKey });
 
-    // Generate questions
     const completion = await openai.chat.completions.create({
       messages: [{ 
         role: "user", 
         content: constructPrompt(topic)
       }],
-      model: "gpt-4o-mini",
+      model: "gpt-3.5-turbo",
       temperature: 0.7,
       response_format: { type: "json_object" }
     });
 
-    const responseData = completion.choices[0].message.content;
-
-    // Parse and validate response
     let parsedData;
     try {
-      parsedData = JSON.parse(responseData);
+      parsedData = JSON.parse(completion.choices[0].message.content);
       
-      // Validate structure
       if (!parsedData.questions || !Array.isArray(parsedData.questions)) {
         throw new Error('Invalid response format: missing questions array');
       }
 
-      // Validate each question
-      parsedData.questions = parsedData.questions.map((q, index) => {
-        // Validate question structure
-        if (!q.main_question || !Array.isArray(q.answer_options) || 
-            q.correct_answer_index === undefined || !q.hint) {
-          throw new Error(`Invalid question format at index ${index}`);
-        }
+      parsedData.questions = parsedData.questions.map((q, index) => ({
+        main_question: q.main_question || `Question ${index + 1}`,
+        answer_options: Array.isArray(q.answer_options) && q.answer_options.length === 4 
+          ? q.answer_options 
+          : ['Option A', 'Option B', 'Option C', 'Option D'],
+        correct_answer_index: typeof q.correct_answer_index === 'number' && 
+                            q.correct_answer_index >= 0 && 
+                            q.correct_answer_index <= 3
+          ? q.correct_answer_index
+          : 0,
+        helpful_hint: q.helpful_hint || `Hint ${index + 1}: Think about the related concepts.`
+      }));
 
-        // Validate answer options
-        if (q.answer_options.length !== 4) {
-          throw new Error(`Invalid number of answer options at index ${index}`);
-        }
-
-        // Validate correct answer index
-        if (q.correct_answer_index < 0 || q.correct_answer_index > 3) {
-          throw new Error(`Invalid correct answer index at index ${index}`);
-        }
-
-        // Ensure hint exists and is meaningful
-        if (!q.hint || q.hint.trim() === '') {
-          q.hint = `Tipp ${index + 1}: Analysiere die Beziehungen zwischen den Antwortmöglichkeiten und denke an verwandte Konzepte.`;
-        }
-
-        return q;
-      });
-
-      // Ensure we have exactly 15 questions
-      if (parsedData.questions.length !== 15) {
-        throw new Error('Invalid number of questions generated');
-      }
-
+      parsedData.questions = parsedData.questions.slice(0, 15);
+      
     } catch (parseError) {
       console.error('Parse error:', parseError);
-      console.error('Raw response:', responseData);
       return res.status(500).json({ 
         error: 'Failed to parse OpenAI response',
         details: parseError.message
       });
     }
 
-    // Send successful response
     res.json(parsedData);
 
   } catch (error) {
     console.error('OpenAI API Error:', error);
     
-    // Handle specific OpenAI errors
     if (error.response?.status === 401) {
       return res.status(401).json({ error: 'Invalid API key' });
     }
@@ -194,7 +143,6 @@ app.post('/api/generate-questions', async (req, res) => {
       return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
     }
 
-    // Handle general errors
     res.status(500).json({
       error: 'Failed to generate questions',
       details: error.message
@@ -204,7 +152,10 @@ app.post('/api/generate-questions', async (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware
