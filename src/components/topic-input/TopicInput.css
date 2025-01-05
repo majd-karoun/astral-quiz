@@ -12,7 +12,7 @@
 .topic-icon {
   width: 80px;
   height: 80px;
-  color: #4F46E5;
+  color: #000000;
   margin-bottom: 1rem;
 }
 
@@ -71,7 +71,7 @@
   font-size: 0.875rem;
   transition: all 0.2s;
   background: white;
-  color: black;
+  color: #000000;
 }
 
 .topic-input:focus {
@@ -83,6 +83,65 @@
 .topic-input:disabled {
   background-color: #F3F4F6;
   cursor: not-allowed;
+}
+
+/* Topic Suggestions Carousel */
+.topics-carousel-container {
+  position: relative;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.topics-carousel {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0.75rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.topics-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.topic-suggestion-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  padding: 0.5rem 1rem;
+  background-color: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  border-radius: 2rem;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.topic-suggestion-button:hover:not(:disabled) {
+  background-color: #E5E7EB;
+  color: #111827;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.topic-suggestion-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.topic-suggestion-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.topic-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .visibility-toggle {
@@ -154,4 +213,20 @@
   color: #DC2626;
   font-size: 0.875rem;
   margin: 0.25rem 0 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .topic-screen {
+    padding: 1rem;
+  }
+
+  .topic-suggestion-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .topic-emoji {
+    font-size: 1rem;
+  }
 }

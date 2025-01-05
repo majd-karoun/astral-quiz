@@ -164,22 +164,22 @@ function App() {
         <div className="card">
           <div className="result-screen">
             <Trophy size={64} weight="fill" className="result-icon winner" />
-            <h2 className="title-large">Gratulation! Du hast gewonnen!</h2>
-            <p className="score">Gesamtpunktzahl: {points}</p>
+            <h2 className="title-large">congratualtion! You Won!</h2>
+            <p className="score">Score: {points}</p>
             <div className="button-group">
               <button 
                 className="button"
                 onClick={retryGame}
               >
                 <Repeat size={24} />
-                Gleiches Thema wiederholen
+                Retry
               </button>
               <button 
                 className="button button-outline"
                 onClick={startNewGame}
               >
                 <CaretRight size={24} />
-                Neues Quiz starten
+                Choose a different topic
               </button>
             </div>
           </div>
@@ -194,22 +194,22 @@ function App() {
         <div className="card">
           <div className="result-screen">
             <X size={64} weight="fill" className="result-icon game-over" />
-            <h2 className="title-large">Spiel vorbei!</h2>
-            <p className="score">Erreichte Punktzahl: {points}</p>
+            <h2 className="title-large">Game Over!</h2>
+            <p className="score">Score: {points}</p>
             <div className="button-group">
               <button 
                 className="button"
                 onClick={retryGame}
               >
                 <Repeat size={24} />
-                Gleiches Thema wiederholen
+                Retry
               </button>
               <button 
                 className="button button-outline"
                 onClick={startNewGame}
               >
                 <CaretRight size={24} />
-                Neues Quiz starten
+                Choose a different topic
               </button>
             </div>
           </div>
@@ -237,15 +237,15 @@ function App() {
             <div className="header">
               <span className="header-item">
                 <Question size={24} weight="duotone" />
-                Frage {currentQuestion + 1}/5
+                Question {currentQuestion + 1}/5
               </span>
               <span className="header-item">
                 <Target size={24} weight="duotone" />
-                Punkte: {points}
+                Score: {points}
               </span>
               <span className="header-item">
                 <Lightning size={24} weight="duotone" />
-                Tipps: {remainingHints}
+                Hints: {remainingHints}
               </span>
             </div>
             
@@ -288,7 +288,7 @@ function App() {
                       className="button button-outline"
                     >
                       <Lightning size={20} weight="duotone" />
-                      Tipp ({remainingHints})
+                      Hint ({remainingHints})
                     </button>
                   </div>
                 )}
