@@ -27,7 +27,6 @@ const TOPIC_SUGGESTIONS = [
   { text: "Photography Tips", emoji: "📸" },
   { text: "Mindfullness", emoji: "🧘" },
   { text: "Music Theory", emoji: "🎵" },
-  { text: "Budget Management", emoji: "💰" },
   { text: "World History", emoji: "📚" },
   { text: "Astronomy Basics", emoji: "🌌" },
   { text: "French Language", emoji: "🇫🇷" },
