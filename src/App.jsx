@@ -28,10 +28,10 @@ function App() {
   const [feedback, setFeedback] = useState(null);
 
   const getPointsForQuestion = (index) => {
-    if (index < 2) return 50;      // First two questions
-    if (index === 2) return 100;   // Third question
-    if (index === 3) return 200;   // Fourth question
-    return 500;                    // Fifth question
+    if (index < 2) return 50; // First two questions
+    if (index === 2) return 100; // Third question
+    if (index === 3) return 200; // Fourth question
+    return 500; // Fifth question
   };
 
   const generateQuestions = async (providedApiKey = null) => {
@@ -43,9 +43,8 @@ function App() {
     if (providedApiKey) {
       setApiKey(providedApiKey);
     }
-    
-    const keyToUse = providedApiKey || apiKey;
 
+    const keyToUse = providedApiKey || apiKey;
     setIsLoading(true);
     setError(null);
 
@@ -98,7 +97,6 @@ function App() {
         type: 'success',
         message: `Correct! +${question.points} points`
       });
-      
       setTimeout(() => {
         setFeedback(null);
         if (currentQuestion === questions.length - 1) {
@@ -115,8 +113,6 @@ function App() {
   const useHint = () => {
     if (remainingHints > 0 && questions[currentQuestion]) {
       const currentHint = questions[currentQuestion].hint;
-      
-      // Display the hint if available
       if (currentHint && currentHint !== 'No hints available') {
         setFeedback({
           type: 'hint',
@@ -165,14 +161,14 @@ function App() {
             <h2 className="title-large">Congratulations! You Won!</h2>
             <p className="score">Score: {points}</p>
             <div className="button-group">
-              <button 
+              <button
                 className="button"
                 onClick={retryGame}
               >
                 <Repeat size={24} />
                 Retry
               </button>
-              <button 
+              <button
                 className="button button-outline"
                 onClick={startNewGame}
               >
@@ -195,14 +191,14 @@ function App() {
             <h2 className="title-large">Game Over!</h2>
             <p className="score">Score: {points}</p>
             <div className="button-group">
-              <button 
+              <button
                 className="button"
                 onClick={retryGame}
               >
                 <Repeat size={24} />
                 Retry
               </button>
-              <button 
+              <button
                 className="button button-outline"
                 onClick={startNewGame}
               >
@@ -246,47 +242,50 @@ function App() {
                 Hints: {remainingHints}
               </span>
             </div>
-            
             {questions[currentQuestion] && (
               <>
-                <div className="question">
-                  {questions[currentQuestion].question}
-                </div>
-                
-                {feedback && (
-                  <div className={`feedback ${
-                    feedback.type === 'success' ? 'feedback-success' :
-                    feedback.type === 'hint' ? 'feedback-hint' :
-                    'feedback-info'
-                  }`}>
-                    {feedback.type === 'success' ? <Check size={20} /> :
-                     feedback.type === 'hint' ? <Lightning size={20} /> :
-                     <CaretRight size={20} />}
-                    {feedback.message}
+                <div className="question-and-options">
+                  <div className="question">
+                    {questions[currentQuestion].question}
                   </div>
-                )}
-
-                <div className="options-grid">
-                  {questions[currentQuestion].options.map((option, index) => (
-                    <button 
-                      key={index}
-                      onClick={() => handleAnswer(index)}
-                      className="button button-outline"
-                    >
-                      {option}
-                    </button>
-                  ))}
+                  <div className="options-grid">
+                    {questions[currentQuestion].options.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAnswer(index)}
+                        className="button button-outline"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {remainingHints > 0 && (
-                  <div className="help-options">
-                    <button 
-                      onClick={useHint}
-                      className="button button-outline"
-                    >
-                      <Lightning size={20} weight="duotone" />
-                      Use Hint ({remainingHints})
-                    </button>
+                  <div className="bottom-container">
+                    <div className="help-options">
+                      <button
+                        onClick={useHint}
+                        className="button button-outline"
+                      >
+                        <Lightning size={20} weight="duotone" />
+                        Use Hint ({remainingHints})
+                      </button>
+                    </div>
+                    <div className="feedback-container">
+                      {feedback && (
+                        <div className={`feedback ${
+                          feedback.type === 'success' ? 'feedback-success' :
+                          feedback.type === 'hint' ? 'feedback-hint' :
+                          'feedback-info'
+                        }`}>
+                          {feedback.type === 'success' ? <Check size={20} /> :
+                          feedback.type === 'hint' ? <Lightning size={20} /> :
+                          <CaretRight size={20} />}
+                          {feedback.message}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
