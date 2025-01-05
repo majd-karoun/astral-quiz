@@ -7,7 +7,7 @@ import {
   X,
   Check,
   CaretRight,
-  Trophy // Added missing Trophy import
+  Trophy
 } from '@phosphor-icons/react';
 import TopicInput from './components/topic-input/TopicInput';
 import LoadingScreen from './components/LoadingScreen';
@@ -75,7 +75,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint || `Tipp zur Frage ${index + 1}` // Provide a default hint that's more specific
+        hint: q.hint || `Tipp zur Frage ${index + 1}`
       }));
 
       setQuestions(transformedQuestions);
@@ -99,6 +99,7 @@ function App() {
         message: `Richtig! +${question.points} Punkte`
       });
       
+      // Clear feedback and move to next question after delay
       setTimeout(() => {
         setFeedback(null);
         if (currentQuestion === questions.length - 1) {
@@ -123,7 +124,6 @@ function App() {
           message: currentHint
         });
         setRemainingHints(prev => prev - 1);
-        setTimeout(() => setFeedback(null), 3000);
       } else {
         // Show a more helpful message if no hint is available
         setFeedback({
@@ -131,7 +131,6 @@ function App() {
           message: 'Überlege dir die möglichen Zusammenhänge der Antwortoptionen.'
         });
         setRemainingHints(prev => prev - 1);
-        setTimeout(() => setFeedback(null), 3000);
       }
     }
   };
@@ -276,7 +275,7 @@ function App() {
                       onClick={() => handleAnswer(index)}
                       className="button button-outline"
                     >
-                      
+                     
                       {option}
                     </button>
                   ))}
