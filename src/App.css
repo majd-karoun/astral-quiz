@@ -165,3 +165,37 @@ body {
   margin-bottom: 20px;
   animation: fadeIn 0.3s ease-in-out;
 }
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.result-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 64px;
+}
+
+.result-icon.winner {
+  color: #f59e0b;
+}
+
+.result-icon.game-over {
+  color: #ef4444;
+}
+
+.score {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0;
+}

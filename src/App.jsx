@@ -15,6 +15,7 @@ import './App.css';
 
 function App() {
   const [topic, setTopic] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -39,34 +40,43 @@ function App() {
     return 500;                    // Fifth question
   };
 
-  const generateQuestions = async () => {
+  const generateQuestions = async (providedApiKey = null) => {
     if (!topic.trim()) {
       setError('Bitte gib ein Thema ein');
       return;
     }
-  
+
+    // If an API key is provided, store it
+    if (providedApiKey) {
+      setApiKey(providedApiKey);
+    }
+    
+    // Use stored API key if no new one is provided
+    const keyToUse = providedApiKey || apiKey;
+
     setIsLoading(true);
     setError(null);
-  
+
     try {
       const response = await fetch('http://localhost:3001/api/generate-questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${keyToUse}`
         },
         body: JSON.stringify({ topic })
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.error || 'Fehler beim Generieren der Fragen');
       }
-  
+
       if (!data.questions || !Array.isArray(data.questions)) {
         throw new Error('Ungültiges Antwortformat vom Server');
       }
-  
+
       const transformedQuestions = data.questions.map((q, index) => ({
         id: index + 1,
         question: q.main_question,
@@ -80,7 +90,7 @@ function App() {
         },
         hint: q.hint || 'Keine Hinweise verfügbar'
       }));
-  
+
       setQuestions(transformedQuestions);
       setGameStarted(true);
     } catch (err) {
@@ -91,7 +101,6 @@ function App() {
     }
   };
 
-  
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
     const correctAnswer = isAlternateQuestion 
@@ -131,6 +140,7 @@ function App() {
         });
         setHelpOptions(prev => ({ ...prev, hint: false }));
         break;
+
       case 'changeQuestion':
         setIsAlternateQuestion(true);
         setHelpOptions(prev => ({ ...prev, changeQuestion: false }));
@@ -141,6 +151,7 @@ function App() {
         });
         setTimeout(() => setFeedback(null), 2000);
         break;
+
       case 'removeOptions':
         const question = questions[currentQuestion];
         const correct = isAlternateQuestion 
@@ -166,7 +177,19 @@ function App() {
     }
   };
 
-  const restartGame = () => {
+  const retryGame = () => {
+    setCurrentQuestion(0);
+    setPoints(0);
+    setHelpOptions({ hint: true, changeQuestion: true, removeOptions: true });
+    setRemovedOptions([]);
+    setIsAlternateQuestion(false);
+    setGameOver(false);
+    setShowWinner(false);
+    setFeedback(null);
+    generateQuestions(); // Uses stored API key
+  };
+
+  const startNewGame = () => {
     setGameStarted(false);
     setCurrentQuestion(0);
     setPoints(0);
@@ -188,13 +211,22 @@ function App() {
             <Trophy size={64} weight="fill" className="result-icon winner" />
             <h2 className="title-large">Gratulation! Du hast gewonnen!</h2>
             <p className="score">Gesamtpunktzahl: {points}</p>
-            <button 
-              className="button"
-              onClick={restartGame}
-            >
-              <Repeat size={24} />
-              Neues Quiz starten
-            </button>
+            <div className="button-group">
+              <button 
+                className="button"
+                onClick={retryGame}
+              >
+                <Repeat size={24} />
+                Gleiches Thema wiederholen
+              </button>
+              <button 
+                className="button button-outline"
+                onClick={startNewGame}
+              >
+                <CaretRight size={24} />
+                Neues Quiz starten
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -209,13 +241,22 @@ function App() {
             <X size={64} weight="fill" className="result-icon game-over" />
             <h2 className="title-large">Spiel vorbei!</h2>
             <p className="score">Erreichte Punktzahl: {points}</p>
-            <button 
-              className="button"
-              onClick={restartGame}
-            >
-              <Repeat size={24} />
-              Neues Quiz starten
-            </button>
+            <div className="button-group">
+              <button 
+                className="button"
+                onClick={retryGame}
+              >
+                <Repeat size={24} />
+                Gleiches Thema wiederholen
+              </button>
+              <button 
+                className="button button-outline"
+                onClick={startNewGame}
+              >
+                <CaretRight size={24} />
+                Neues Quiz starten
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -232,6 +273,7 @@ function App() {
             generateQuestions={generateQuestions}
             isLoading={isLoading}
             error={error}
+            hasApiKey={!!apiKey}
           />
         ) : (
           <>

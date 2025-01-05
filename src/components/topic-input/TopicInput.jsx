@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Books, CaretRight, Spinner, Eye, EyeSlash } from '@phosphor-icons/react';
 
-const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error }) => {
+const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasApiKey }) => {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyError, setApiKeyError] = useState('');
@@ -10,17 +10,20 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error }) =>
     e.preventDefault();
     setApiKeyError('');
 
-    if (!apiKey.trim()) {
-      setApiKeyError('OpenAI API Key ist erforderlich');
-      return;
+    // Only validate API key if we don't have one stored already
+    if (!hasApiKey) {
+      if (!apiKey.trim()) {
+        setApiKeyError('OpenAI API Key ist erforderlich');
+        return;
+      }
+
+      if (!apiKey.startsWith('sk-')) {
+        setApiKeyError('Ungültiger API Key Format');
+        return;
+      }
     }
 
-    if (!apiKey.startsWith('sk-')) {
-      setApiKeyError('Ungültiger API Key Format');
-      return;
-    }
-
-    generateQuestions(apiKey);
+    generateQuestions(hasApiKey ? null : apiKey);
   };
 
   return (
@@ -41,32 +44,34 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error }) =>
             />
           </div>
 
-          <div className="api-key-container">
-            <div className="api-key-wrapper">
-              <input
-                type={showApiKey ? "text" : "password"}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="OpenAI API Key"
-                className="topic-input api-key-input"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="toggle-visibility"
-                disabled={isLoading}
-              >
-                {showApiKey ? <EyeSlash size={20} /> : <Eye size={20} />}
-              </button>
+          {!hasApiKey && (
+            <div className="api-key-container">
+              <div className="api-key-wrapper">
+                <input
+                  type={showApiKey ? "text" : "password"}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="OpenAI API Key"
+                  className="topic-input api-key-input"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="toggle-visibility"
+                  disabled={isLoading}
+                >
+                  {showApiKey ? <EyeSlash size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              <span className="api-key-info">
+                Beginnt mit 'sk-'. Dein API Key wird nicht gespeichert.
+              </span>
+              {apiKeyError && (
+                <p className="error-message">{apiKeyError}</p>
+              )}
             </div>
-            <span className="api-key-info">
-              Beginnt mit 'sk-'. Dein API Key wird nicht gespeichert.
-            </span>
-            {apiKeyError && (
-              <p className="error-message">{apiKeyError}</p>
-            )}
-          </div>
+          )}
         </div>
 
         <button
