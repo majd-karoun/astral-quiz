@@ -1,9 +1,10 @@
 # Astral Quiz
 An interactive quiz application that generates personalized questions based on any topic using OpenAI's GPT models. This application creates engaging, difficulty-progressive quizzes with automated hints and scoring system.
 
-[Live Demo](https://sticky-todo-notes.netlify.app) 🚀
+[Live Demo](https://astral-quiz.netlify.app) 🚀
 
 ![Astral Quiz Interface](./screenshot.png)
+
 
 ## 🎮 How to Play
 
@@ -14,12 +15,12 @@ An interactive quiz application that generates personalized questions based on a
 5. Try to achieve the highest score possible
    
 
-## ⚠️ Important Notes
+## 🔑 API Key
 
 - You'll need your own OpenAI API key to generate questions
 - Your OpenAI account needs to have available credit
 - The backend includes rate limiting to prevent abuse
-- Questions are generated using GPT 4o-mini modal for optimal cost
+- Questions are generated using GPT 4o-mini modal
 
 
 
