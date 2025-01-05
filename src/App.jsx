@@ -174,7 +174,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3001/api/generate-questions', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint || q.helpful_hint || 'No hint available'
+        hint: q.helpful_hint
       }));
 
       setQuestions(transformedQuestions);
