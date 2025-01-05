@@ -11,6 +11,7 @@ import {
   CaretRight
 } from '@phosphor-icons/react';
 import TopicInput from './components/topic-input/TopicInput';
+import LoadingScreen from './components/LoadingScreen';
 import './App.css';
 
 function App() {
@@ -177,7 +178,8 @@ function App() {
     }
   };
 
-  const retryGame = () => {
+  const retryGame = async () => {
+    setIsLoading(true);
     setCurrentQuestion(0);
     setPoints(0);
     setHelpOptions({ hint: true, changeQuestion: true, removeOptions: true });
@@ -186,7 +188,7 @@ function App() {
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
-    generateQuestions(); // Uses stored API key
+    await generateQuestions();
   };
 
   const startNewGame = () => {
@@ -266,7 +268,9 @@ function App() {
   return (
     <div className="container">
       <div className="card">
-        {!gameStarted ? (
+        {isLoading ? (
+          <LoadingScreen />
+        ) : !gameStarted ? (
           <TopicInput
             topic={topic}
             setTopic={setTopic}
