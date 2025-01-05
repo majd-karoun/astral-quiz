@@ -28,7 +28,7 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
 
   return (
     <div className="topic-screen">
-      <Books size={64} weight="duotone" className="topic-icon" />
+      <Books size={80} weight="duotone" className="topic-icon" />
       <h2>Wähle ein Thema für dein Quiz</h2>
       
       <form onSubmit={handleSubmit} className="input-form">
@@ -55,18 +55,9 @@ const TopicInput = ({ topic, setTopic, generateQuestions, isLoading, error, hasA
                   className="topic-input api-key-input"
                   disabled={isLoading}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="toggle-visibility"
-                  disabled={isLoading}
-                >
-                  {showApiKey ? <EyeSlash size={20} /> : <Eye size={20} />}
-                </button>
+               
               </div>
-              <span className="api-key-info">
-                Beginnt mit 'sk-'. Dein API Key wird nicht gespeichert.
-              </span>
+             
               {apiKeyError && (
                 <p className="error-message">{apiKeyError}</p>
               )}
