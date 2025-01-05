@@ -20,7 +20,7 @@ An interactive quiz application that generates personalized questions based on a
 - You'll need your own OpenAI API key to generate questions
 - Your OpenAI account needs to have available credit
 - The backend includes rate limiting to prevent abuse
-- Questions are generated using GPT 4o-mini modal
+- Questions are generated using GPT 4o-mini model
 
 
 
