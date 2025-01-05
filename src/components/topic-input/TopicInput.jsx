@@ -3,6 +3,7 @@ import { Books, CaretRight } from '@phosphor-icons/react';
 import './TopicInput.css';
 
 const TOPIC_SUGGESTIONS = [
+  // Original topics
   { text: "Spanish Vocabulary", emoji: "🇪🇸" },
   { text: "Time Management", emoji: "⏰" },
   { text: "Python Coding", emoji: "💻" },
@@ -16,12 +17,42 @@ const TOPIC_SUGGESTIONS = [
   { text: "Public Speaking", emoji: "🎤" },
   { text: "Interior Design", emoji: "🎨" },
   { text: "E-Commerce Development", emoji: "🛒" },
-  { text: "Blockchain Technology and Applications", emoji: "🔗" },
+  { text: "Blockchain Technology", emoji: "🔗" },
   { text: "Italian Cooking", emoji: "🍝" },
   { text: "Watercolor Painting", emoji: "🎨" },
   { text: "Web Development", emoji: "💻" },
-  { text: "Introduction to Psychology", emoji: "🧠" }
+  { text: "Introduction to Psychology", emoji: "🧠" },
+  { text: "Japanese Culture", emoji: "🎌" },
+  { text: "Data Science Basics", emoji: "📊" },
+  { text: "Photography Tips", emoji: "📸" },
+  { text: "Mindfullness", emoji: "🧘" },
+  { text: "Music Theory", emoji: "🎵" },
+  { text: "Budget Management", emoji: "💰" },
+  { text: "World History", emoji: "📚" },
+  { text: "Astronomy Basics", emoji: "🌌" },
+  { text: "French Language", emoji: "🇫🇷" },
+  { text: "Artificial Intelligence", emoji: "🤖" },
+  { text: "Nutrition Science", emoji: "🥗" },
+  { text: "Game Development", emoji: "🎮" },
+  { text: "Marine Biology", emoji: "🐋" },
+  { text: "Content Creation", emoji: "🎥" },
+  { text: "Human Anatomy", emoji: "🫀" },
+  { text: "Business Strategy", emoji: "📈" },
+  { text: "Graphic Design", emoji: "🎯" },
+  { text: "Film Making", emoji: "🎬" },
+  { text: "Machine Learning", emoji: "🧮" },
+  { text: "Ancient Civilizations", emoji: "🏛️" }
 ];
+
+// Fisher-Yates shuffle algorithm
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 const TopicInput = ({ 
   topic, 
@@ -36,6 +67,7 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const carouselRef = useRef(null);
+  const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -76,16 +108,18 @@ const TopicInput = ({
       return;
     }
 
-    if (!apiKey.trim()) {
-      setApiKeyError('OpenAI API Key is required');
-      return;
-    }
-    if (!apiKey.startsWith('sk-')) {
-      setApiKeyError('Invalid API Key format');
-      return;
+    if (!hasApiKey) {
+      if (!apiKey.trim()) {
+        setApiKeyError('OpenAI API Key is required');
+        return;
+      }
+      if (!apiKey.startsWith('sk-')) {
+        setApiKeyError('Invalid API Key format');
+        return;
+      }
     }
     
-    generateQuestions(apiKey);
+    generateQuestions(hasApiKey ? null : apiKey);
   };
 
   return (
@@ -122,7 +156,8 @@ const TopicInput = ({
                 className="topics-carousel" 
                 ref={carouselRef}
               >
-                {[...TOPIC_SUGGESTIONS, ...TOPIC_SUGGESTIONS].map((suggestion, index) => (
+                {/* Double the shuffled array for seamless scrolling */}
+                {[...shuffledTopics, ...shuffledTopics].map((suggestion, index) => (
                   <button
                     key={index}
                     type="button"
@@ -138,7 +173,7 @@ const TopicInput = ({
             </div>
           </div>
 
-          {/* API Key Section - Always visible */}
+          {/* API Key Section */}
           <div className="input-section">
             <label htmlFor="apiKey">
               OpenAI API Key
