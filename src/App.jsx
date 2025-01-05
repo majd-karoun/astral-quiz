@@ -6,7 +6,8 @@ import {
   Repeat,
   X,
   Check,
-  CaretRight
+  CaretRight,
+  Trophy // Added missing Trophy import
 } from '@phosphor-icons/react';
 import TopicInput from './components/topic-input/TopicInput';
 import LoadingScreen from './components/LoadingScreen';
@@ -74,7 +75,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint || 'Keine Hinweise verfügbar'
+        hint: q.hint || `Tipp zur Frage ${index + 1}` // Provide a default hint that's more specific
       }));
 
       setQuestions(transformedQuestions);
@@ -113,12 +114,25 @@ function App() {
 
   const useHint = () => {
     if (remainingHints > 0 && questions[currentQuestion]) {
-      setFeedback({
-        type: 'hint',
-        message: questions[currentQuestion].hint
-      });
-      setRemainingHints(prev => prev - 1);
-      setTimeout(() => setFeedback(null), 3000);
+      const currentHint = questions[currentQuestion].hint;
+      
+      // Only show the hint if it exists and is not the default message
+      if (currentHint && currentHint !== 'Keine Hinweise verfügbar') {
+        setFeedback({
+          type: 'hint',
+          message: currentHint
+        });
+        setRemainingHints(prev => prev - 1);
+        setTimeout(() => setFeedback(null), 3000);
+      } else {
+        // Show a more helpful message if no hint is available
+        setFeedback({
+          type: 'hint',
+          message: 'Überlege dir die möglichen Zusammenhänge der Antwortoptionen.'
+        });
+        setRemainingHints(prev => prev - 1);
+        setTimeout(() => setFeedback(null), 3000);
+      }
     }
   };
 
@@ -262,7 +276,7 @@ function App() {
                       onClick={() => handleAnswer(index)}
                       className="button button-outline"
                     >
-                      <CaretRight size={20} />
+                      
                       {option}
                     </button>
                   ))}
