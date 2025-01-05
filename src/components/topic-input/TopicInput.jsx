@@ -62,11 +62,17 @@ const TopicInput = ({
   hasApiKey 
 }) => {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
-  const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const carouselRef = useRef(null);
   const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
+
+  // Handle API key changes
+  const handleApiKeyChange = (e) => {
+    const newApiKey = e.target.value;
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+  };
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -155,7 +161,6 @@ const TopicInput = ({
                 className="topics-carousel" 
                 ref={carouselRef}
               >
-                {/* Double the shuffled array for seamless scrolling */}
                 {[...shuffledTopics, ...shuffledTopics].map((suggestion, index) => (
                   <button
                     key={index}
@@ -188,20 +193,13 @@ const TopicInput = ({
             <div className="input-container">
               <input
                 id="apiKey"
-                type={showApiKey ? "text" : "password"}
+                type="password"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={handleApiKeyChange}
                 placeholder="sk-..."
                 className="topic-input"
                 disabled={isLoading}
               />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="visibility-toggle"
-              >
-                {showApiKey ? 'Hide' : 'Show'}
-              </button>
             </div>
             {apiKeyError && (
               <p className="error-message">{apiKeyError}</p>
