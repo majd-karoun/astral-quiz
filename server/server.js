@@ -77,7 +77,7 @@ Format as a JSON object with this structure:
       "main_question": "string",
       "answer_options": ["string", "string", "string", "string"],
       "correct_answer_index": number,
-      "hint": "string"
+      "helpful_hint": "string"
     }
   ]
 }

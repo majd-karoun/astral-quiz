@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Question,
   Target,
@@ -193,13 +193,15 @@ function App() {
         throw new Error('Invalid response format from server');
       }
 
+      console.log('OpenAI API Response:', data.questions);
+
       const transformedQuestions = data.questions.map((q, index) => ({
         id: index + 1,
         question: q.main_question,
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint
+        hint: q.helpful_hint
       }));
 
       setQuestions(transformedQuestions);
@@ -242,10 +244,20 @@ function App() {
   const useHint = () => {
     if (remainingHints > 0 && questions[currentQuestion] && !usedHints.has(currentQuestion)) {
       const currentHint = questions[currentQuestion].hint;
-      setFeedback({
-        type: 'hint',
-        message: currentHint
-      });
+      console.log('Using hint:', currentHint);
+      
+      if (!currentHint || currentHint.trim() === '') {
+        setFeedback({
+          type: 'hint',
+          message: 'No hint available for this question'
+        });
+      } else {
+        setFeedback({
+          type: 'hint',
+          message: currentHint
+        });
+      }
+      
       setRemainingHints(prev => prev - 1);
       setUsedHints(prev => new Set(prev).add(currentQuestion));
     }
@@ -288,7 +300,6 @@ function App() {
               isLoading={isLoading}
               error={error}
               hasApiKey={!!apiKey}
-              setApiKey={setApiKey}
             />
           )}
         </GameCard>
