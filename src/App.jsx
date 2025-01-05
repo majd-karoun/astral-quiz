@@ -36,7 +36,7 @@ function App() {
 
   const generateQuestions = async (providedApiKey = null) => {
     if (!topic.trim()) {
-      setError('Bitte gib ein Thema ein');
+      setError('Please enter a topic');
       return;
     }
 
@@ -62,11 +62,11 @@ function App() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Fehler beim Generieren der Fragen');
+        throw new Error(data.error || 'Error generating questions');
       }
 
       if (!data.questions || !Array.isArray(data.questions)) {
-        throw new Error('Ungültiges Antwortformat vom Server');
+        throw new Error('Invalid response format from server');
       }
 
       const transformedQuestions = data.questions.map((q, index) => ({
@@ -75,7 +75,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.hint || `Tipp zur Frage ${index + 1}`
+        hint: q.hint || `Hint ${index + 1}: Consider the relationships between answer options.`
       }));
 
       setQuestions(transformedQuestions);
@@ -96,10 +96,9 @@ function App() {
       setPoints(prev => prev + question.points);
       setFeedback({
         type: 'success',
-        message: `Richtig! +${question.points} Punkte`
+        message: `Correct! +${question.points} points`
       });
       
-      // Clear feedback and move to next question after delay
       setTimeout(() => {
         setFeedback(null);
         if (currentQuestion === questions.length - 1) {
@@ -117,18 +116,17 @@ function App() {
     if (remainingHints > 0 && questions[currentQuestion]) {
       const currentHint = questions[currentQuestion].hint;
       
-      // Only show the hint if it exists and is not the default message
-      if (currentHint && currentHint !== 'Keine Hinweise verfügbar') {
+      // Display the hint if available
+      if (currentHint && currentHint !== 'No hints available') {
         setFeedback({
           type: 'hint',
           message: currentHint
         });
         setRemainingHints(prev => prev - 1);
       } else {
-        // Show a more helpful message if no hint is available
         setFeedback({
           type: 'hint',
-          message: 'Überlege dir die möglichen Zusammenhänge der Antwortoptionen.'
+          message: 'Consider how the answer options relate to each other.'
         });
         setRemainingHints(prev => prev - 1);
       }
@@ -164,7 +162,7 @@ function App() {
         <div className="card">
           <div className="result-screen">
             <Trophy size={64} weight="fill" className="result-icon winner" />
-            <h2 className="title-large">congratualtion! You Won!</h2>
+            <h2 className="title-large">Congratulations! You Won!</h2>
             <p className="score">Score: {points}</p>
             <div className="button-group">
               <button 
@@ -275,7 +273,6 @@ function App() {
                       onClick={() => handleAnswer(index)}
                       className="button button-outline"
                     >
-                     
                       {option}
                     </button>
                   ))}
@@ -288,7 +285,7 @@ function App() {
                       className="button button-outline"
                     >
                       <Lightning size={20} weight="duotone" />
-                      Hint ({remainingHints})
+                      Use Hint ({remainingHints})
                     </button>
                   </div>
                 )}
