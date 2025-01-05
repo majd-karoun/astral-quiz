@@ -3,14 +3,14 @@ import { CircleNotch } from '@phosphor-icons/react';
 
 const LoadingScreen = () => {
   return (
-    <div className="container">
+    
       <div className="card">
         <div className="loading-screen">
           <CircleNotch size={80} className="spinner" weight="bold" />
           <h2 className="title-large">Generating Quiz...</h2>
         </div>
       </div>
-    </div>
+    
   );
 };
 

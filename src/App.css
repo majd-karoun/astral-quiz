@@ -96,7 +96,7 @@ body {
 
 .button:hover {
   background-color: #2563eb;
-  transform: translateY(-2px);
+ 
 }
 
 .button:disabled {
@@ -129,7 +129,7 @@ body {
 .header-item {
   font-size: 16px;
   font-weight: 500;
-  color: #4a5568;
+  color: #0348c0;
 }
 
 /* Question styles */
