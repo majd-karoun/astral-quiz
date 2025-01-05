@@ -201,7 +201,7 @@ function App() {
         options: q.answer_options,
         correct: q.correct_answer_index,
         points: getPointsForQuestion(index),
-        hint: q.helpful_hint
+        hint: q.hint || q.helpful_hint || 'No hint available'
       }));
 
       setQuestions(transformedQuestions);
@@ -213,6 +213,16 @@ function App() {
         localStorage.removeItem('openai_api_key');
         setApiKey('');
       }
+      // Reset game state on error
+      setGameStarted(false);
+      setCurrentQuestion(0);
+      setPoints(0);
+      setRemainingHints(5);
+      setGameOver(false);
+      setShowWinner(false);
+      setFeedback(null);
+      setUsedHints(new Set());
+      setQuestions([]);
     } finally {
       setIsLoading(false);
     }
