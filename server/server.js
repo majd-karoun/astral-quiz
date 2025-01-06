@@ -94,7 +94,7 @@ app.post('/api/generate-questions', async (req, res) => {
         role: "user", 
         content: constructPrompt(topic)
       }],
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       temperature: 0.7,
       response_format: { type: "json_object" }
     });
