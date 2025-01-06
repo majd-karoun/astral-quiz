@@ -10,7 +10,7 @@ import {
   Trophy
 } from '@phosphor-icons/react';
 import TopicInput from './components/topic-input/TopicInput';
-import LoadingScreen from './components/LoadingScreen';
+import LoadingScreen from './components/loading-screen/LoadingScreen';
 import './App.css';
 
 const GameCard = ({ children, show }) => (
