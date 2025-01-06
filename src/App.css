@@ -334,9 +334,9 @@ body {
 }
 
 /* Media Queries */
-@media (max-width: 840px) {
+@media (max-width: 400px) {
   .container {
-    max-width: 600px;
+    max-width: 400px;
   }
   
   .card {
@@ -346,9 +346,7 @@ body {
   .question {
     font-size: 20px;
   }
-}
 
-@media (max-width: 640px) {
   .app-wrapper {
     padding: 16px;
   }
@@ -368,4 +366,7 @@ body {
   .button {
     padding: 14px 20px;
   }
+
+
 }
+
