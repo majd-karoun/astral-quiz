@@ -336,7 +336,7 @@ body {
 /* Media Queries */
 @media (max-width: 400px) {
   .container {
-    max-width: 400px;
+    max-width: 380px;
   }
   
   .card {
