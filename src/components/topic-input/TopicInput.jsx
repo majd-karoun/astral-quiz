@@ -63,7 +63,20 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const carouselRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
   const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
+
+  // Check for mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 480);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Handle API key changes
   const handleApiKeyChange = (e) => {
@@ -74,7 +87,7 @@ const TopicInput = ({
 
   // Auto-scroll functionality
   useEffect(() => {
-    if (!carouselRef.current) return;
+    if (!carouselRef.current || isMobile) return;
 
     const scrollContainer = carouselRef.current;
     let scrollInterval;
@@ -101,7 +114,7 @@ const TopicInput = ({
         clearInterval(scrollInterval);
       }
     };
-  }, [isPaused]);
+  }, [isPaused, isMobile]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -152,8 +165,8 @@ const TopicInput = ({
             {/* Auto-scrolling Topic Suggestions */}
             <div 
               className="topics-carousel-container"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
+              onMouseEnter={() => !isMobile && setIsPaused(true)}
+              onMouseLeave={() => !isMobile && setIsPaused(false)}
             >
               <div 
                 className="topics-carousel" 
