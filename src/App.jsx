@@ -176,7 +176,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/generate-questions`, {
+      const response = await fetch(`https://astral-quiz.onrender.com/api/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
