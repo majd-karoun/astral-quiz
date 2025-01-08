@@ -17,7 +17,6 @@ const TOPIC_SUGGESTIONS = [
   { text: "Introduction to Psychology", emoji: "🧠" },
   { text: "Japanese Culture", emoji: "🎌" },
   { text: "Data Science Basics", emoji: "📊" },
-  { text: "Photography Tips", emoji: "📸" },
   { text: "Mindfullness", emoji: "🧘" },
   { text: "Music Theory", emoji: "🎵" },
   { text: "World History", emoji: "📚" },
