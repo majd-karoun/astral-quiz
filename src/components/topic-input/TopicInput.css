@@ -223,11 +223,23 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
+  background-color: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(0px);
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
@@ -235,9 +247,18 @@
   border-radius: 0.5rem;
   width: 90%;
   max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 70vh;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: scale(0.95);
+  opacity: 0;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-overlay.open .modal-content {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .modal-header {
@@ -246,6 +267,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: white;
+  border-radius: 0.5rem 0.5rem 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .modal-title {
@@ -274,17 +300,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
 }
 
 .modal-close:hover {
   color: #1f2937;
+  background-color: #f3f4f6;
 }
 
 .leaderboard-list {
   padding: 1rem;
-  max-height: 60vh;
   overflow-y: auto;
+  flex-grow: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.leaderboard-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaderboard-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaderboard-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
 }
 
 .leaderboard-item {
@@ -292,10 +335,27 @@
   align-items: center;
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
+  animation: fadeIn 0.3s ease;
+  transition: background-color 0.2s ease;
+}
+
+.leaderboard-item:hover {
+  background-color: #f9fafb;
 }
 
 .leaderboard-item:last-child {
   border-bottom: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .leaderboard-rank {
@@ -354,7 +414,6 @@
 .leaderboard-button:hover {
   background-color: #026c65;
 }
-
 /* Mobile Responsiveness */
 @media (max-width: 480px) {
   .topic-screen {

@@ -51,26 +51,61 @@ const shuffleArray = (array) => {
 
 const LeaderboardModal = ({ isOpen, onClose }) => {
   const [leaderboard, setLeaderboard] = useState([]);
+  const [isClosing, setIsClosing] = useState(false);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
       const sortedHistory = history.sort((a, b) => b.score - a.score);
       setLeaderboard(sortedHistory);
+      setIsClosing(false);
+      document.body.style.overflow = 'hidden';
     }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 300);
+  };
+
+  const handleOverlayClick = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      handleClose();
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div 
+      className={`modal-overlay ${!isClosing ? 'open' : ''}`} 
+      onClick={handleOverlayClick}
+    >
+      <div className="modal-content" ref={modalRef}>
         <div className="modal-header">
           <div className="modal-title">
             <Trophy size={24} className="leaderboard-icon" />
             <h2>Leaderboard</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
