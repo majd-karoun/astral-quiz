@@ -43,7 +43,7 @@ body {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgb(255, 255, 255);
   border-radius: 24px;
   padding: 40px;
   width: 100%;
