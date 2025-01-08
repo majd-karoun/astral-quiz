@@ -11,7 +11,7 @@ An interactive quiz application that generates personalized questions based on a
 1. Enter a topic of your choice or select from suggested topics
 2. Provide your OpenAI API key
 3. Answer 15 questions of increasing difficulty
-4. Use hints strategically (5 available per game)
+4. Use hints strategically (3 available per game)
 5. Try to achieve the highest score possible
    
 
