@@ -13,7 +13,8 @@
   width: 80px;
   height: 80px;
   color: #039c92;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+
 }
 
 .topic-header h2 {
@@ -418,6 +419,10 @@
 @media (max-width: 480px) {
   .topic-screen {
     padding: 1rem;
+  }
+
+  .topic-header{
+    margin-top: 2rem;
   }
 
   .topic-suggestion-button {

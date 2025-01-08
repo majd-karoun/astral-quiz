@@ -97,42 +97,40 @@ const QuestionCard = ({
         ))}
       </div>
     </div>
-    {remainingHints > 0 && (
-      <div className="bottom-container">
-        <div className="help-options">
-          <button 
-            onClick={onUseHint} 
-            className="button button-outline"
-            disabled={isHintUsed}
-          >
-            <Lightning size={20} />
-            Use Hint ({remainingHints})
-          </button>
-        </div>
-        <div className="feedback-container">
-          {feedback && (
-            <div
-              className={`feedback ${
-                feedback.type === 'success'
-                  ? 'feedback-success'
-                  : feedback.type === 'hint'
-                  ? 'feedback-hint'
-                  : 'feedback-info'
-              }`}
-            >
-              {feedback.type === 'success' ? (
-                <Check size={20} />
-              ) : feedback.type === 'hint' ? (
-                <Lightning size={20} />
-              ) : (
-                <CaretRight size={20} />
-              )}
-              {feedback.message}
-            </div>
-          )}
-        </div>
+    <div className="bottom-container">
+      <div className="help-options">
+        <button 
+          onClick={onUseHint} 
+          className="button button-outline"
+          disabled={isHintUsed || remainingHints <= 0}
+        >
+          <Lightning size={20} />
+          Use Hint ({remainingHints})
+        </button>
       </div>
-    )}
+      <div className="feedback-container">
+        {feedback && (
+          <div
+            className={`feedback ${
+              feedback.type === 'success'
+                ? 'feedback-success'
+                : feedback.type === 'hint'
+                ? 'feedback-hint'
+                : 'feedback-info'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <Check size={20} />
+            ) : feedback.type === 'hint' ? (
+              <Lightning size={20} />
+            ) : (
+              <CaretRight size={20} />
+            )}
+            {feedback.message}
+          </div>
+        )}
+      </div>
+    </div>
   </>
 );
 
@@ -263,26 +261,37 @@ function App() {
   };
 
   const useHint = () => {
-    if (remainingHints > 0 && questions[currentQuestion] && !usedHints.has(currentQuestion)) {
-      const currentHint = questions[currentQuestion].hint;
-      
-      if (!currentHint || currentHint.trim() === '') {
-        setFeedback({
-          type: 'hint',
-          message: 'No hint available for this question'
-        });
-      } else {
-        setFeedback({
-          type: 'hint',
-          message: currentHint
-        });
-      }
-      
-      setRemainingHints(prev => prev - 1);
-      setUsedHints(prev => new Set(prev).add(currentQuestion));
+    // Return early if conditions aren't met
+    if (!questions[currentQuestion] || 
+        usedHints.has(currentQuestion) || 
+        remainingHints <= 0) {
+      return;
     }
+  
+    const currentHint = questions[currentQuestion].hint;
+    
+    // Set the feedback first
+    if (!currentHint || currentHint.trim() === '') {
+      setFeedback({
+        type: 'hint',
+        message: 'No hint available for this question'
+      });
+    } else {
+      setFeedback({
+        type: 'hint',
+        message: currentHint
+      });
+    }
+    
+    // Then update the hint states
+    setUsedHints(prev => {
+      const newSet = new Set(prev);
+      newSet.add(currentQuestion);
+      return newSet;
+    });
+    
+    setRemainingHints(prev => Math.max(0, prev - 1));
   };
-
   const resetGame = () => {
     setGameStarted(false);
     setCurrentQuestion(0);
