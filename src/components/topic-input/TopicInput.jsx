@@ -31,7 +31,13 @@ const TOPIC_SUGGESTIONS = [
   { text: "Graphic Design", emoji: "🎯" },
   { text: "Film Making", emoji: "🎬" },
   { text: "Machine Learning", emoji: "🧮" },
-  { text: "Ancient Civilizations", emoji: "🏛️" }
+  { text: "Ancient Civilizations", emoji: "🏛️" },
+  { text: "Movie Trivia", emoji: "🎬" },
+  { text: "Sports Facts", emoji: "⚽" },
+  { text: "Geography Quiz", emoji: "🗺️" },
+  { text: "Space & Planets", emoji: "🪐" },
+
+
 ];
 
 // Fisher-Yates shuffle algorithm

@@ -225,6 +225,7 @@
   right: 0;
   bottom: 0;
   display: flex;
+  border-radius: 24px;
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -245,7 +246,7 @@
 
 .modal-content {
   background: white;
-  border-radius: 0.5rem;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 70vh;
@@ -269,7 +270,7 @@
   justify-content: space-between;
   align-items: center;
   background: white;
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: 20px 20px 0 0;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -403,7 +404,7 @@
   background-color: #039c92;
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 20px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
