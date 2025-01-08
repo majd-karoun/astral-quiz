@@ -145,7 +145,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
-  const [remainingHints, setRemainingHints] = useState(5);
+  const [remainingHints, setRemainingHints] = useState(3); // Changed from 5 to 3
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -216,7 +216,7 @@ function App() {
       setGameStarted(false);
       setCurrentQuestion(0);
       setPoints(0);
-      setRemainingHints(5);
+      setRemainingHints(3); // Changed from 5 to 3
       setGameOver(false);
       setShowWinner(false);
       setFeedback(null);
@@ -281,7 +281,7 @@ function App() {
     setIsLoading(true);
     setCurrentQuestion(0);
     setPoints(0);
-    setRemainingHints(5);
+    setRemainingHints(3); // Changed from 5 to 3
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
@@ -293,7 +293,7 @@ function App() {
     setGameStarted(false);
     setCurrentQuestion(0);
     setPoints(0);
-    setRemainingHints(5);
+    setRemainingHints(3); // Changed from 5 to 3
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
