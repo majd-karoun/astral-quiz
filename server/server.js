@@ -47,7 +47,7 @@ const constructPrompt = (topic) => {
  - Questions 6-10: Medium (200 points each)
  - Questions 11-13: Hard (500 points each)
  - Questions 14-15: Very Hard (1000 points each)
- - (one random option out of the 4 options is funny in questions 1-3 very easy )
+
  
 For each question, provide:
 1. Main question
