@@ -4,7 +4,7 @@ import './TopicInput.css';
 
 const TOPIC_SUGGESTIONS = [
   // Original topics
-  { text: "Spanish Vocabulary", emoji: "🇪🇸" },
+  { text: "Spanish Basics", emoji: "🇪🇸" },
   { text: "Time Management", emoji: "⏰" },
   { text: "Python Coding", emoji: "💻" },
   { text: "Ui/UX Design", emoji: "🧩" },
@@ -61,9 +61,34 @@ const TopicInput = ({
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
+  const [placeholder, setPlaceholder] = useState('');
   const carouselRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
+  const typewriterText = "Enter a quiz topic...";
+  const inputRef = useRef(null);
+
+  // Typewriter effect function
+  const typeWriter = (text, currentIndex = 0) => {
+    if (currentIndex < text.length) {
+      setPlaceholder(text.substring(0, currentIndex + 1));
+      setTimeout(() => typeWriter(text, currentIndex + 1), 100);
+    }
+  };
+
+  // Start typewriter effect on component mount
+  useEffect(() => {
+    setPlaceholder('');
+    typeWriter(typewriterText);
+  }, []);
+
+  // Reset and start typewriter when topic is clicked
+  const handleTopicClick = (selectedTopic) => {
+    setTopic(selectedTopic);
+    // Clear and restart placeholder animation
+    setPlaceholder('');
+    typeWriter(typewriterText);
+  };
 
   // Check for mobile device
   useEffect(() => {
@@ -151,11 +176,12 @@ const TopicInput = ({
             <label htmlFor="topic">Quiz Topic</label>
             <div className="input-container">
               <input
+                ref={inputRef}
                 id="topic"
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="Choose a topic ..."
+                placeholder={placeholder}
                 className="topic-input"
                 disabled={isLoading}
               />
@@ -176,7 +202,7 @@ const TopicInput = ({
                     key={index}
                     type="button"
                     className="topic-suggestion-button"
-                    onClick={() => setTopic(suggestion.text)}
+                    onClick={() => handleTopicClick(suggestion.text)}
                     disabled={isLoading}
                   >
                     <span className="topic-emoji">{suggestion.emoji}</span>
