@@ -8,7 +8,7 @@ An interactive quiz application that generates personalized questions based on a
 
 ## 🎮 How to Play
 
-1. Enter a topic of your choice or select from suggested topics
+1. Enter a topic 
 2. Provide your OpenAI API key
 3. Answer 15 questions of increasing difficulty
 4. Use hints strategically (3 available per game)
