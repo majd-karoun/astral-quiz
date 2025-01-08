@@ -145,7 +145,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
-  const [remainingHints, setRemainingHints] = useState(3); // Changed from 5 to 3
+  const [remainingHints, setRemainingHints] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -158,6 +158,18 @@ function App() {
     if (index < 10) return 200; // Questions 6-10
     if (index < 13) return 500; // Questions 11-13
     return 1000; // Questions 14-15
+  };
+
+  const saveQuizToHistory = () => {
+    const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    const newQuiz = {
+      topic,
+      score: points,
+      timestamp: Date.now()
+    };
+    
+    const updatedHistory = [newQuiz, ...history].slice(0, 100);
+    localStorage.setItem('quiz_history', JSON.stringify(updatedHistory));
   };
 
   const generateQuestions = async (providedApiKey = null) => {
@@ -213,15 +225,7 @@ function App() {
         localStorage.removeItem('openai_api_key');
         setApiKey('');
       }
-      setGameStarted(false);
-      setCurrentQuestion(0);
-      setPoints(0);
-      setRemainingHints(3); // Changed from 5 to 3
-      setGameOver(false);
-      setShowWinner(false);
-      setFeedback(null);
-      setUsedHints(new Set());
-      setQuestions([]);
+      resetGame();
     } finally {
       setIsLoading(false);
     }
@@ -242,6 +246,7 @@ function App() {
         setTimeout(() => {
           setFeedback(null);
           setShowWinner(true);
+          saveQuizToHistory();
         }, 1000);
       } else {
         setIsTransitioning(true);
@@ -253,6 +258,7 @@ function App() {
       }
     } else {
       setGameOver(true);
+      saveQuizToHistory();
     }
   };
 
@@ -277,29 +283,27 @@ function App() {
     }
   };
 
-  const retryGame = async () => {
-    setIsLoading(true);
+  const resetGame = () => {
+    setGameStarted(false);
     setCurrentQuestion(0);
     setPoints(0);
-    setRemainingHints(3); // Changed from 5 to 3
+    setRemainingHints(3);
     setGameOver(false);
     setShowWinner(false);
     setFeedback(null);
     setUsedHints(new Set());
+    setQuestions([]);
+  };
+
+  const retryGame = async () => {
+    setIsLoading(true);
+    resetGame();
     await generateQuestions();
   };
 
   const startNewGame = () => {
-    setGameStarted(false);
-    setCurrentQuestion(0);
-    setPoints(0);
-    setRemainingHints(3); // Changed from 5 to 3
-    setGameOver(false);
-    setShowWinner(false);
-    setFeedback(null);
-    setUsedHints(new Set());
+    resetGame();
     setTopic('');
-    setQuestions([]);
   };
 
   return (

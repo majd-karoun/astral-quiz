@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Books, CaretRight } from '@phosphor-icons/react';
+import { Books, CaretRight, Trophy, X } from '@phosphor-icons/react';
 import './TopicInput.css';
 
 const TOPIC_SUGGESTIONS = [
-  // Original topics
   { text: "Spanish Basics", emoji: "🇪🇸" },
   { text: "Time Management", emoji: "⏰" },
   { text: "Python Coding", emoji: "💻" },
@@ -50,6 +49,59 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
+const LeaderboardModal = ({ isOpen, onClose }) => {
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+      const sortedHistory = history.sort((a, b) => b.score - a.score);
+      setLeaderboard(sortedHistory);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <div className="modal-title">
+            <Trophy size={24} className="leaderboard-icon" />
+            <h2>Leaderboard</h2>
+          </div>
+          <button className="modal-close" onClick={onClose}>
+            <X size={24} />
+          </button>
+        </div>
+        <div className="leaderboard-list">
+          {leaderboard.length > 0 ? (
+            leaderboard.map((entry, index) => (
+              <div key={entry.timestamp} className="leaderboard-item">
+                <div className="leaderboard-rank">#{index + 1}</div>
+                <div className="leaderboard-info">
+                  <span className="leaderboard-topic">{entry.topic}</span>
+                  <span className="leaderboard-date">
+                    {new Date(entry.timestamp).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="leaderboard-score">
+                  <Trophy size={16} />
+                  <span>{entry.score}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="leaderboard-empty">
+              No quiz records yet. Take a quiz to appear on the leaderboard!
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TopicInput = ({ 
   topic, 
   setTopic, 
@@ -62,6 +114,7 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const carouselRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
@@ -76,19 +129,10 @@ const TopicInput = ({
     }
   };
 
-  // Start typewriter effect on component mount
   useEffect(() => {
     setPlaceholder('');
     typeWriter(typewriterText);
   }, []);
-
-  // Reset and start typewriter when topic is clicked
-  const handleTopicClick = (selectedTopic) => {
-    setTopic(selectedTopic);
-    // Clear and restart placeholder animation
-    setPlaceholder('');
-    typeWriter(typewriterText);
-  };
 
   // Check for mobile device
   useEffect(() => {
@@ -101,13 +145,6 @@ const TopicInput = ({
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Handle API key changes
-  const handleApiKeyChange = (e) => {
-    const newApiKey = e.target.value;
-    setApiKey(newApiKey);
-    localStorage.setItem('openai_api_key', newApiKey);
-  };
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -140,6 +177,18 @@ const TopicInput = ({
     };
   }, [isPaused, isMobile]);
 
+  const handleApiKeyChange = (e) => {
+    const newApiKey = e.target.value;
+    setApiKey(newApiKey);
+    localStorage.setItem('openai_api_key', newApiKey);
+  };
+
+  const handleTopicClick = (selectedTopic) => {
+    setTopic(selectedTopic);
+    setPlaceholder('');
+    typeWriter(typewriterText);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiKeyError('');
@@ -167,11 +216,17 @@ const TopicInput = ({
       <div className="topic-header">
         <Books className="topic-icon" />
         <h1>Astral Quiz</h1>
+        <button 
+          className="leaderboard-button"
+          onClick={() => setIsLeaderboardOpen(true)}
+        >
+          <Trophy size={20} />
+          Leaderboard
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="input-form">
         <div className="input-sections">
-          {/* Topic Input Section */}
           <div className="input-section">
             <label htmlFor="topic">Quiz Topic</label>
             <div className="input-container">
@@ -187,7 +242,6 @@ const TopicInput = ({
               />
             </div>
             
-            {/* Auto-scrolling Topic Suggestions */}
             <div 
               className="topics-carousel-container"
               onMouseEnter={() => !isMobile && setIsPaused(true)}
@@ -213,7 +267,6 @@ const TopicInput = ({
             </div>
           </div>
 
-          {/* API Key Section */}
           <div className="input-section">
             <label htmlFor="apiKey">
               OpenAI API Key
@@ -256,6 +309,11 @@ const TopicInput = ({
           <p className="error-message">{error}</p>
         )}
       </form>
+
+      <LeaderboardModal 
+        isOpen={isLeaderboardOpen} 
+        onClose={() => setIsLeaderboardOpen(false)} 
+      />
     </div>
   );
 };
