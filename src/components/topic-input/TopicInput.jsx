@@ -6,7 +6,7 @@ const TOPIC_SUGGESTIONS = [
   { text: "Spanish Basics", emoji: "🇪🇸" },
   { text: "Time Management", emoji: "⏰" },
   { text: "Python Coding", emoji: "💻" },
-  { text: "Ui/UX Design theory", emoji: "🧩" },
+  { text: "Ui/UX Design", emoji: "🧩" },
   { text: "Creative Writing", emoji: "✍️" },
   { text: "Environmental Science", emoji: "🌍" },
   { text: "Art", emoji: "🎨" },
