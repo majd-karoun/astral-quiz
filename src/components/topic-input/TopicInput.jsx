@@ -27,7 +27,7 @@ const TOPIC_SUGGESTIONS = [
   { text: "Ancient Civilizations", emoji: "🏛️" },
   { text: "Movie Trivia", emoji: "🎬" },
   { text: "Sports Facts", emoji: "⚽" },
-  { text: "Geography Quiz", emoji: "🗺️" },
+  { text: "Geography", emoji: "🗺️" },
   { text: "Space & Planets", emoji: "🪐" },
 
 
