@@ -2,47 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Books, CaretRight, Trophy, X } from '@phosphor-icons/react';
 import './TopicInput.css';
 
-const TOPIC_SUGGESTIONS = [
-  { text: "Spanish Basics", emoji: "🇪🇸" },
-  { text: "Time Management", emoji: "⏰" },
-  { text: "Python Coding", emoji: "💻" },
-  { text: "Creative Writing", emoji: "✍️" },
-  { text: "Environmental Science", emoji: "🌍" },
-  { text: "Art", emoji: "🎨" },
-  { text: "Psychology", emoji: "🧠" },
-  { text: "Japanese Culture", emoji: "🎌" },
-  { text: "Data Science", emoji: "📊" },
-  { text: "Music Theory", emoji: "🎵" },
-  { text: "World History", emoji: "📚" },
-  { text: "Astronomy", emoji: "🌌" },
-  { text: "Artificial Intelligence", emoji: "🤖" },
-  { text: "Nutrition Science", emoji: "🥗" },
-  { text: "Game Development", emoji: "🎮" },
-  { text: "Marine Biology", emoji: "🐋" },
-  { text: "Content Creation", emoji: "🎥" },
-  { text: "Human Anatomy", emoji: "🫀" },
-  { text: "Fun Facts", emoji: "🎯" },
-  { text: "Film Making", emoji: "🎬" },
-  { text: "Machine Learning", emoji: "🧮" },
-  { text: "Ancient Civilizations", emoji: "🏛️" },
-  { text: "Movie Trivia", emoji: "🎬" },
-  { text: "Sports Facts", emoji: "⚽" },
-  { text: "Geography", emoji: "🗺️" },
-  { text: "Space & Planets", emoji: "🪐" },
-
-
-];
-
-// Fisher-Yates shuffle algorithm
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
 const LeaderboardModal = ({ isOpen, onClose }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
@@ -122,7 +81,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
             ))
           ) : (
             <div className="leaderboard-empty">
-              No quiz records yet. Take a quiz to appear on the leaderboard!
+              You have records yet
             </div>
           )}
         </div>
@@ -141,20 +100,16 @@ const TopicInput = ({
 }) => {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
   const [apiKeyError, setApiKeyError] = useState('');
-  const [isPaused, setIsPaused] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const carouselRef = useRef(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [shuffledTopics] = useState(() => shuffleArray(TOPIC_SUGGESTIONS));
-  const typewriterText = "Enter a quiz topic...";
+  const typewriterText = "Enter a quiz topic (e.g., Python Programming, or Fun Facts)...";
   const inputRef = useRef(null);
 
   // Typewriter effect function
   const typeWriter = (text, currentIndex = 0) => {
     if (currentIndex < text.length) {
       setPlaceholder(text.substring(0, currentIndex + 1));
-      setTimeout(() => typeWriter(text, currentIndex + 1), 100);
+      setTimeout(() => typeWriter(text, currentIndex + 1), 50);
     }
   };
 
@@ -163,59 +118,10 @@ const TopicInput = ({
     typeWriter(typewriterText);
   }, []);
 
-  // Check for mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 480);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Auto-scroll functionality
-  useEffect(() => {
-    if (!carouselRef.current || isMobile) return;
-
-    const scrollContainer = carouselRef.current;
-    let scrollInterval;
-
-    const startScrolling = () => {
-      scrollInterval = setInterval(() => {
-        if (!isPaused && scrollContainer) {
-          const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
-          let newScrollPosition = scrollContainer.scrollLeft + 1;
-
-          if (newScrollPosition >= maxScroll) {
-            newScrollPosition = 0;
-          }
-
-          scrollContainer.scrollLeft = newScrollPosition;
-        }
-      }, 30);
-    };
-
-    startScrolling();
-
-    return () => {
-      if (scrollInterval) {
-        clearInterval(scrollInterval);
-      }
-    };
-  }, [isPaused, isMobile]);
-
   const handleApiKeyChange = (e) => {
     const newApiKey = e.target.value;
     setApiKey(newApiKey);
     localStorage.setItem('openai_api_key', newApiKey);
-  };
-
-  const handleTopicClick = (selectedTopic) => {
-    setTopic(selectedTopic);
-    setPlaceholder('');
-    typeWriter(typewriterText);
   };
 
   const handleSubmit = async (e) => {
@@ -269,30 +175,6 @@ const TopicInput = ({
                 className="topic-input"
                 disabled={isLoading}
               />
-            </div>
-            
-            <div 
-              className="topics-carousel-container"
-              onMouseEnter={() => !isMobile && setIsPaused(true)}
-              onMouseLeave={() => !isMobile && setIsPaused(false)}
-            >
-              <div 
-                className="topics-carousel" 
-                ref={carouselRef}
-              >
-                {[...shuffledTopics, ...shuffledTopics].map((suggestion, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="topic-suggestion-button"
-                    onClick={() => handleTopicClick(suggestion.text)}
-                    disabled={isLoading}
-                  >
-                    <span className="topic-emoji">{suggestion.emoji}</span>
-                    {suggestion.text}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
