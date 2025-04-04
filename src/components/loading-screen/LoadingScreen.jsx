@@ -8,7 +8,7 @@ const LoadingScreen = () => {
       <div className="loading-screen">
         <CircleNotch size={80} className="loading-spinner" weight="bold" />
         <h2 className="title-large">Generating Quiz...</h2>
-        <p className="loading-message">The quiz will start as soon as the first question is ready</p>
+       
       </div>
     </div>
   );
