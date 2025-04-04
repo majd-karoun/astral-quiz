@@ -186,7 +186,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch(`https://astral-quiz.onrender.com/api/generate-questions`, {
+      const response = await fetch(`http://localhost:3001/api/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -195,27 +195,87 @@ function App() {
         body: JSON.stringify({ topic })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Error generating questions');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error generating questions');
       }
 
-      if (!data.questions || !Array.isArray(data.questions)) {
-        throw new Error('Invalid response format from server');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let receivedFirstQuestion = false;
+
+      console.log("Starting to read stream from server");
+      let chunkCount = 0;
+      let questionCount = 0;
+      
+      // Create a function to extract and process individual questions from JSON
+      const extractQuestions = (text) => {
+        // Look for individual question objects in the buffer
+        const regex = /{[^{]*"main_question"[^{]*"correct_answer_index"[^{}]*}/g;
+        const matches = text.match(regex);
+        
+        if (matches && matches.length > 0) {
+          for (const match of matches) {
+            try {
+              // Try to parse the individual question
+              const questionObj = JSON.parse(match);
+              
+              // Validate the question object
+              if (questionObj.main_question && 
+                  Array.isArray(questionObj.answer_options) && 
+                  questionObj.answer_options.length === 4 &&
+                  typeof questionObj.correct_answer_index === 'number' &&
+                  questionObj.helpful_hint) {
+                
+                // Transform the question
+                const transformedQuestion = {
+                  id: questionCount + 1,
+                  question: questionObj.main_question,
+                  options: questionObj.answer_options,
+                  correct: questionObj.correct_answer_index,
+                  points: getPointsForQuestion(questionCount),
+                  hint: questionObj.helpful_hint
+                };
+                
+                // Add this question to our questions array
+                setQuestions(prevQuestions => [...prevQuestions, transformedQuestion]);
+                questionCount++;
+                
+                // Start the game as soon as we have the first question
+                if (!receivedFirstQuestion) {
+                  console.log("First question received, starting game immediately");
+                  setGameStarted(true);
+                  receivedFirstQuestion = true;
+                  setIsLoading(false);
+                }
+                
+                // Remove the processed question from the buffer to avoid duplicates
+                buffer = buffer.replace(match, '');
+              }
+            } catch (e) {
+              // Skip invalid JSON fragments
+              console.log("Error parsing question:", e.message);
+            }
+          }
+        }
+      };
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          console.log("Stream complete");
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        chunkCount++;
+        console.log(`Chunk #${chunkCount} received: ${chunk.length} bytes`);
+        buffer += chunk;
+        
+        // Try to extract questions from the buffer
+        extractQuestions(buffer);
       }
-
-      const transformedQuestions = data.questions.map((q, index) => ({
-        id: index + 1,
-        question: q.main_question,
-        options: q.answer_options,
-        correct: q.correct_answer_index,
-        points: getPointsForQuestion(index),
-        hint: q.helpful_hint
-      }));
-
-      setQuestions(transformedQuestions);
-      setGameStarted(true);
     } catch (err) {
       console.error('Error:', err);
       setError(err.message);

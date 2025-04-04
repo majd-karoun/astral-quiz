@@ -90,57 +90,117 @@ app.post('/api/generate-questions', async (req, res) => {
 
     const openai = new OpenAI({ apiKey });
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ 
-        role: "user", 
-        content: constructPrompt(topic)
-      }],
-      model: "gpt-4o-mini",
-      temperature: 0.7,
-      response_format: { type: "json_object" }
-    });
-
-    let parsedData;
     try {
-      parsedData = JSON.parse(completion.choices[0].message.content);
-      
-      if (!parsedData.questions || !Array.isArray(parsedData.questions)) {
-        throw new Error('Invalid response format: missing questions array');
+      // Create a completion with streaming enabled
+      const stream = await openai.chat.completions.create({
+        messages: [{ 
+          role: "user", 
+          content: constructPrompt(topic)
+        }],
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        stream: true,
+        response_format: { type: "json_object" }
+      });
+
+      // Set headers for streaming
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Transfer-Encoding', 'chunked');
+    
+    // Initialize variables to track the state
+    let buffer = '';
+    let questionCount = 0;
+    
+    // Start the response with the opening structure
+    res.write('{"questions":[');
+    console.log("Started streaming response to client");
+    
+    // Process the stream
+    for await (const chunk of stream) {
+      const content = chunk.choices?.[0]?.delta?.content;
+      if (content) {
+        console.log(`Chunk received: ${content.length} characters`);
+        buffer += content;
+        
+        // Try to extract complete questions as they come in
+        try {
+          // Check if we have a complete JSON object with a question
+          if (buffer.includes('"main_question"') && buffer.includes('"correct_answer_index"')) {
+            // Extract question objects from the buffer using a more robust regex
+            const matches = buffer.match(/{[^{]*"main_question"[^{]*"correct_answer_index"[^{}]*}/g);
+            
+            if (matches && matches.length > 0) {
+              for (const match of matches) {
+                try {
+                  // Try to parse the question object
+                  const questionObj = JSON.parse(match);
+                  
+                  // Validate the question object
+                  if (questionObj.main_question && 
+                      Array.isArray(questionObj.answer_options) && 
+                      questionObj.answer_options.length === 4 &&
+                      typeof questionObj.correct_answer_index === 'number' &&
+                      questionObj.helpful_hint) {
+                    
+                    // Send the question to the client
+                    if (questionCount > 0) {
+                      res.write(',');
+                    }
+                    
+                    // Format and send the question
+                    const formattedQuestion = {
+                      main_question: questionObj.main_question,
+                      answer_options: questionObj.answer_options,
+                      correct_answer_index: questionObj.correct_answer_index,
+                      helpful_hint: questionObj.helpful_hint
+                    };
+                    
+                    const questionJson = JSON.stringify(formattedQuestion);
+                    console.log(`Sending question ${questionCount + 1} to client (${questionJson.length} bytes)`);
+                    
+                    // Flush the response immediately to ensure the client receives it
+                    res.write(questionJson);
+                    res.flush && res.flush();
+                    
+                    questionCount++;
+                    
+                    // Remove the processed question from the buffer
+                    buffer = buffer.replace(match, '');
+                  }
+                } catch (e) {
+                  // Skip invalid JSON fragments
+                  console.log("Error parsing question:", e.message);
+                  continue;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Continue collecting more data
+          console.log("Parsing error:", e);
+        }
       }
-
-      parsedData.questions = parsedData.questions.map((q, index) => ({
-        main_question: q.main_question || `Question ${index + 1}`,
-        answer_options: Array.isArray(q.answer_options) && q.answer_options.length === 4 
-          ? q.answer_options 
-          : ['Option A', 'Option B', 'Option C', 'Option D'],
-        correct_answer_index: typeof q.correct_answer_index === 'number' && 
-                            q.correct_answer_index >= 0 && 
-                            q.correct_answer_index <= 3
-          ? q.correct_answer_index
-          : 0,
-        helpful_hint: q.helpful_hint || `Hint ${index + 1}: Think about the related concepts.`
-      }));
-
-      parsedData.questions = parsedData.questions.slice(0, 15);
-      
-    } catch (parseError) {
-      console.error('Parse error:', parseError);
-      return res.status(500).json({ 
-        error: 'Failed to parse OpenAI response',
-        details: parseError.message
+    }
+    
+      // Close the JSON structure
+      res.write(']}');
+      res.end();
+    } catch (streamError) {
+      // Handle streaming errors
+      console.error('OpenAI Streaming Error:', streamError);
+      res.status(500).json({
+        error: 'Failed to generate questions',
+        details: streamError.message
       });
     }
-
-    res.json(parsedData);
-
   } catch (error) {
     console.error('OpenAI API Error:', error);
     
-    if (error.response?.status === 401) {
+    if (error.status === 401 || error.code === 'invalid_api_key') {
       return res.status(401).json({ error: 'Invalid API key' });
     }
     
-    if (error.response?.status === 429) {
+    if (error.status === 429) {
       return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
     }
 
