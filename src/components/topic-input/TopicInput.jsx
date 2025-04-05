@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Books, CaretRight, Trophy, X } from '@phosphor-icons/react';
+import { Books, CaretRight, Trophy, X, Clock } from '@phosphor-icons/react';
 import './TopicInput.css';
 
 const LeaderboardModal = ({ isOpen, onClose }) => {
@@ -85,6 +85,39 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+};
+
+const RecentTopics = ({ onSelectTopic }) => {
+  const [recentTopics, setRecentTopics] = useState([]);
+
+  useEffect(() => {
+    // Get unique topics from quiz history
+    const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
+    const uniqueTopics = [...new Set(history.map(item => item.topic))].slice(0, 5);
+    setRecentTopics(uniqueTopics);
+  }, []);
+
+  if (recentTopics.length === 0) return null;
+
+  return (
+    <div className="recent-topics">
+      <div className="recent-topics-header">
+        <Clock size={16} />
+        <span>Recent Topics</span>
+      </div>
+      <div className="recent-topics-list">
+        {recentTopics.map((topic, index) => (
+          <button
+            key={index}
+            className="topic-chip"
+            onClick={() => onSelectTopic(topic)}
+          >
+            {topic}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -206,6 +239,8 @@ const TopicInput = ({
             )}
           </div>
         </div>
+
+        <RecentTopics onSelectTopic={setTopic} />
 
         <button
           type="submit"

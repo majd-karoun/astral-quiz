@@ -66,7 +66,9 @@ const QuestionCard = ({
   onUseHint,
   feedback,
   isHintUsed,
-  isTransitioning
+  isTransitioning,
+  selectedAnswer,
+  isShowingAnswers
 }) => (
   <>
     <div className="header">
@@ -86,15 +88,24 @@ const QuestionCard = ({
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
       <div className="question">{question.question}</div>
       <div className="options-grid">
-        {question.options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => onAnswer(index)}
-            className="button button-outline"
-          >
-            {option}
-          </button>
-        ))}
+        {question.options.map((option, index) => {
+          const isCorrect = isShowingAnswers && index === question.correct;
+          const isSelected = isShowingAnswers && index === selectedAnswer;
+          
+          return (
+            <button
+              key={index}
+              onClick={() => onAnswer(index)}
+              className={`button button-outline ${
+                isCorrect ? 'correct-answer' : 
+                isSelected ? 'wrong-answer' : ''
+              }`}
+              disabled={isShowingAnswers}
+            >
+              {option}
+            </button>
+          );
+        })}
       </div>
     </div>
     <div className="bottom-container">
@@ -102,7 +113,7 @@ const QuestionCard = ({
         <button 
           onClick={onUseHint} 
           className="button button-outline"
-          disabled={isHintUsed || remainingHints <= 0}
+          disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
         >
           <Lightning size={20} />
           Use Hint ({remainingHints})
@@ -116,6 +127,8 @@ const QuestionCard = ({
                 ? 'feedback-success'
                 : feedback.type === 'hint'
                 ? 'feedback-hint'
+                : feedback.type === 'error'
+                ? 'feedback-error'
                 : 'feedback-info'
             }`}
           >
@@ -149,6 +162,8 @@ function App() {
   const [feedback, setFeedback] = useState(null);
   const [usedHints, setUsedHints] = useState(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isShowingAnswers, setIsShowingAnswers] = useState(false);
 
   const getPointsForQuestion = (index) => {
     if (index < 3) return 50;  // Questions 1-3
@@ -292,6 +307,9 @@ function App() {
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
     const correctAnswer = question.correct;
+    
+    setSelectedAnswer(optionIndex);
+    setIsShowingAnswers(true);
 
     if (optionIndex === correctAnswer) {
       setPoints(prev => prev + question.points);
@@ -300,23 +318,32 @@ function App() {
         message: `Correct! +${question.points} points`
       });
       
-      if (currentQuestion === questions.length - 1) {
-        setTimeout(() => {
+      setTimeout(() => {
+        if (currentQuestion === questions.length - 1) {
           setFeedback(null);
           setShowWinner(true);
           saveQuizToHistory();
-        }, 1000);
-      } else {
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setCurrentQuestion(prev => prev + 1);
-          setFeedback(null);
-          setIsTransitioning(false);
-        }, 1000);
-      }
+        } else {
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setCurrentQuestion(prev => prev + 1);
+            setFeedback(null);
+            setIsTransitioning(false);
+            setSelectedAnswer(null);
+            setIsShowingAnswers(false);
+          }, 500);
+        }
+      }, 2000);
     } else {
-      setGameOver(true);
-      saveQuizToHistory();
+      setFeedback({
+        type: 'error',
+        message: 'Incorrect answer!'
+      });
+      
+      setTimeout(() => {
+        setGameOver(true);
+        saveQuizToHistory();
+      }, 2000);
     }
   };
 
@@ -362,6 +389,8 @@ function App() {
     setFeedback(null);
     setUsedHints(new Set());
     setQuestions([]);
+    setSelectedAnswer(null);
+    setIsShowingAnswers(false);
   };
 
   const retryGame = async () => {
@@ -407,6 +436,8 @@ function App() {
               feedback={feedback}
               isHintUsed={usedHints.has(currentQuestion)}
               isTransitioning={isTransitioning}
+              selectedAnswer={selectedAnswer}
+              isShowingAnswers={isShowingAnswers}
             />
           )}
         </GameCard>

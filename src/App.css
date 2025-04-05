@@ -132,6 +132,40 @@ body {
   color: #039c92;
 }
 
+.button-outline:disabled {
+  background-color: white;
+  color: #4a5568;
+  border-color: #e2e8f0;
+  opacity: 1;
+}
+
+.button-outline.correct-answer {
+  color: #10b981;
+  border-color: #10b981;
+  background-color: white;
+}
+
+.button-outline.wrong-answer {
+  color: #ef4444;
+  border-color: #ef4444;
+  background-color: white;
+}
+
+.button-outline.correct-answer:disabled,
+.button-outline.wrong-answer:disabled {
+  background-color: white;
+}
+
+.button-outline.correct-answer:disabled {
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.button-outline.wrong-answer:disabled {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
 /* Header */
 .header {
   display: flex;
@@ -219,6 +253,11 @@ body {
 
 .feedback-info {
   background-color: #039c92;
+  color: white;
+}
+
+.feedback-error {
+  background-color: #ef4444;
   color: white;
 }
 
