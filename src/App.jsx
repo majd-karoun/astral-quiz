@@ -183,8 +183,27 @@ function App() {
       timestamp: Date.now()
     };
     
-    const updatedHistory = [newQuiz, ...history].slice(0, 100);
-    localStorage.setItem('quiz_history', JSON.stringify(updatedHistory));
+    // Group entries by topic and keep only the highest score for each
+    const groupedHistory = history.reduce((acc, entry) => {
+      if (!acc[entry.topic] || entry.score > acc[entry.topic].score) {
+        acc[entry.topic] = entry;
+      }
+      return acc;
+    }, {});
+    
+    // Convert back to array and add new quiz
+    const currentHistory = Object.values(groupedHistory);
+    const newHistory = [newQuiz, ...currentHistory];
+    
+    // Sort by score descending, then by timestamp descending
+    const sortedHistory = newHistory
+      .sort((a, b) => {
+        if (a.score !== b.score) return b.score - a.score;
+        return b.timestamp - a.timestamp;
+      })
+      .slice(0, 100);
+    
+    localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
   };
 
   const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false) => {

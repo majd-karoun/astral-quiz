@@ -173,6 +173,27 @@ const TopicInput = ({
       return;
     }
 
+    // Limit topic length to 100 characters
+    if (topic.length > 100) {
+      setTopic(topic.slice(0, 100));
+      return;
+    }
+
+    // Check for words longer than 40 characters
+    const words = topic.split(' ');
+    const hasLongWord = words.some(word => word.length > 40);
+    if (hasLongWord) {
+      // Find and truncate the longest word
+      const truncatedWords = words.map(word => {
+        if (word.length > 40) {
+          return word.slice(0, 40);
+        }
+        return word;
+      });
+      setTopic(truncatedWords.join(' '));
+      return;
+    }
+
     if (!hasApiKey) {
       if (!apiKey.trim()) {
         setApiKeyError('OpenAI API Key is required');
@@ -211,7 +232,26 @@ const TopicInput = ({
                 id="topic"
                 type="text"
                 value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length <= 100) {
+                    // Split into words and check each word's length
+                    const words = value.split(' ');
+                    const hasLongWord = words.some(word => word.length > 40);
+                    if (hasLongWord) {
+                      // Find and truncate the longest word
+                      const truncatedWords = words.map(word => {
+                        if (word.length > 40) {
+                          return word.slice(0, 40);
+                        }
+                        return word;
+                      });
+                      setTopic(truncatedWords.join(' '));
+                    } else {
+                      setTopic(value);
+                    }
+                  }
+                }}
                 placeholder={placeholder}
                 className="topic-input"
                 disabled={isLoading}
