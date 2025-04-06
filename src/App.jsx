@@ -68,7 +68,8 @@ const QuestionCard = ({
   isHintUsed,
   isTransitioning,
   selectedAnswer,
-  isShowingAnswers
+  isShowingAnswers,
+  pointsChanged
 }) => (
   <>
     <div className="header">
@@ -78,7 +79,7 @@ const QuestionCard = ({
       </span>
       <span className="header-item score">
         <Target size={24} />
-        <span className="score-number">{points}</span>
+        <span className={`score-number ${pointsChanged ? 'changed' : ''}`}>{points}</span>
       </span>
     </div>
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
@@ -164,6 +165,7 @@ function App() {
   const [questionBatchSize] = useState(3);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
+  const [pointsChanged, setPointsChanged] = useState(false);
 
   const getPointsForQuestion = (index) => {
     if (index < 3) return 50;  // Questions 1-3
@@ -337,7 +339,7 @@ function App() {
     }
   }, [currentQuestion, questions.length, gameStarted]);
 
-  const handleAnswer = (optionIndex) => {
+  const handleAnswer = async (optionIndex) => {
     const correctAnswer = questions[currentQuestion].correct;
     const questionPoints = questions[currentQuestion].points;
 
@@ -346,7 +348,12 @@ function App() {
 
     if (optionIndex === correctAnswer) {
       setPrevPoints(points);
-      setPoints(prev => prev + questionPoints);
+      setPoints(prev => {
+        const newPoints = prev + questionPoints;
+        setPointsChanged(true);
+        setTimeout(() => setPointsChanged(false), 300);
+        return newPoints;
+      });
       setFeedback({
         type: 'success',
         message: `Correct! +${questionPoints} points`
@@ -467,6 +474,7 @@ function App() {
               isTransitioning={isTransitioning}
               selectedAnswer={selectedAnswer}
               isShowingAnswers={isShowingAnswers}
+              pointsChanged={pointsChanged}
             />
           )}
         </GameCard>

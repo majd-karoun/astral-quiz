@@ -270,18 +270,23 @@ body {
 
 .score-number {
   display: inline-block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .score-number.changed {
   animation: scoreBounce 0.3s ease-out;
+  color: #10b981 !important;
 }
 
 @keyframes scoreBounce {
   0% {
     transform: scale(1);
   }
-  50% {
-    transform: scale(1.1);
+  30% {
+    transform: scale(1.2);
+  }
+  60% {
+    transform: scale(0.9);
   }
   100% {
     transform: scale(1);
