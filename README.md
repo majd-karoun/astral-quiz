@@ -44,7 +44,7 @@ An interactive quiz application that generates personalized questions based on a
 
 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/astral-quiz.git
+git clone https://github.com/majd-karoun/astral-quiz.git
 cd astral-quiz
 ```
 
