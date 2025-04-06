@@ -10,9 +10,9 @@ An interactive quiz application that generates personalized questions based on a
 
 1. Enter a topic 
 2. Provide your OpenAI API key
-3. Answer 15 questions of increasing difficulty
+3. Answer questions of increasing difficulty (the quiz continues indefinitely as long as you answer correctly)
 4. Use hints strategically (3 available per game)
-5. Try to achieve the highest score possible
+5. Try to achieve the highest score possible.
    
 
 ## 🔑 API Key

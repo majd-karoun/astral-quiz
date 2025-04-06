@@ -40,13 +40,13 @@ const validateApiKey = (apiKey) => {
   return typeof apiKey === 'string' && apiKey.startsWith('sk-') && apiKey.length > 20;
 };
 
-const constructPrompt = (topic) => {
-  return `Create 15 quiz questions about ${topic} with increasing difficulty levels:
+const constructPrompt = (topic, batchSize = 3) => {
+  return `Create ${batchSize} quiz questions about ${topic} with increasing difficulty levels based on the question number:
  - Questions 1-3: Very Easy (50 points each) 
  - Questions 4-5: Easy (100 points each)
  - Questions 6-10: Medium (200 points each)
  - Questions 11-13: Hard (500 points each)
- - Questions 14-15: Very Hard (1000 points each)
+ - Questions 14+: Very Hard (1000 points each)
 
  
 For each question, provide:
@@ -73,7 +73,7 @@ app.post('/api/generate-questions', async (req, res) => {
   console.log('Received question generation request');
   
   try {
-    const { topic } = req.body;
+    const { topic, startIndex = 0, batchSize = 3 } = req.body;
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
     if (!apiKey) {
@@ -95,7 +95,7 @@ app.post('/api/generate-questions', async (req, res) => {
       const stream = await openai.chat.completions.create({
         messages: [{ 
           role: "user", 
-          content: constructPrompt(topic)
+          content: constructPrompt(topic, batchSize)
         }],
         model: "gpt-4o-mini",
         temperature: 0.7,

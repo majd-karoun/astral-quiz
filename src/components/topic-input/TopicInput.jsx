@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Howl } from 'howler';
 import { Books, CaretRight, Trophy, X, Clock } from '@phosphor-icons/react';
 import './TopicInput.css';
 
@@ -160,6 +161,13 @@ const TopicInput = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiKeyError('');
+    
+    // Play click sound
+    const clickSound = new Howl({
+      src: ['/sounds/click.mp3'],
+      volume: 0.4
+    });
+    clickSound.play();
 
     if (!topic.trim()) {
       return;

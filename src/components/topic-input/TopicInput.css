@@ -17,7 +17,7 @@
 .topic-icon {
   width: 80px;
   height: 80px;
-  color: #039c92;
+  color: #5050AA;
   margin-bottom: 0.5rem;
 }
 
@@ -56,13 +56,13 @@
 
 .api-key-link {
   font-size: 0.75rem;
-  color: #039c92;
+  color: #5050AA;
   text-decoration: none;
 }
 
 .api-key-link:hover {
   text-decoration: underline;
-  color: #026c65;
+  color: #3a3a8c;
 }
 
 .input-container {
@@ -82,8 +82,8 @@
 
 .topic-input:focus {
   outline: none;
-  border-color: #039c92;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #5050AA;
+  box-shadow: 0 0 0 3px rgba(80, 80, 170, 0.1);
 }
 
 .topic-input:disabled {
@@ -97,7 +97,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #039c92;
+  background-color: #5050AA;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -107,7 +107,7 @@
 }
 
 .start-button:hover:not(:disabled) {
-  background-color: #026c65;
+  background-color: #3a3a8c;
 }
 
 .start-button:disabled {
@@ -289,7 +289,7 @@
 
 .leaderboard-rank {
   font-weight: 600;
-  color: #039c92;
+  color: #5050AA;
   width: 3rem;
 }
 
@@ -328,7 +328,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: #039c92;
+  background-color: #5050AA;
   color: white;
   border: none;
   border-radius: 20px;
@@ -341,7 +341,7 @@
 }
 
 .leaderboard-button:hover {
-  background-color: #026c65;
+  background-color: #3a3a8c;
 }
 
 /* Mobile Responsiveness */
@@ -387,6 +387,6 @@
 
 .topic-chip:hover {
   background-color: #E5E7EB;
-  color: #026c65;
-  border: 1px solid #026c65;
+  color: #5050AA;
+  border: 1px solid #5050AA;
 }

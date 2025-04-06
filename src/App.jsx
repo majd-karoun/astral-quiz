@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Question,
   Target,
@@ -74,7 +74,7 @@ const QuestionCard = ({
     <div className="header">
       <span className="header-item">
         <Question size={24} />
-        Question {currentQuestion + 1}/15
+        Question {currentQuestion + 1}
       </span>
       <span className="header-item">
         <Target size={24} />
@@ -152,6 +152,7 @@ function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -162,6 +163,8 @@ function App() {
   const [feedback, setFeedback] = useState(null);
   const [usedHints, setUsedHints] = useState(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoadingMoreQuestions, setIsLoadingMoreQuestions] = useState(false);
+  const [questionBatchSize] = useState(3);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
 
@@ -185,7 +188,7 @@ function App() {
     localStorage.setItem('quiz_history', JSON.stringify(updatedHistory));
   };
 
-  const generateQuestions = async (providedApiKey = null) => {
+  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false) => {
     if (!topic.trim()) {
       setError('Please enter a topic');
       return;
@@ -197,17 +200,27 @@ function App() {
     }
 
     const keyToUse = providedApiKey || apiKey;
-    setIsLoading(true);
+    
+    if (isInitialLoad) {
+      setLoadingProgress(0);
+      setIsLoading(true);
+    } else {
+      setIsLoadingMoreQuestions(true);
+    }
     setError(null);
 
     try {
-      const response = await fetch(`https://astral-quiz.onrender.com/api/generate-questions`, {
+      const response = await fetch(`http://localhost:3001/api/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${keyToUse}`
         },
-        body: JSON.stringify({ topic })
+        body: JSON.stringify({ 
+          topic, 
+          startIndex, 
+          batchSize: questionBatchSize 
+        })
       });
 
       if (!response.ok) {
@@ -260,9 +273,13 @@ function App() {
                 // Start the game as soon as we have the first question
                 if (!receivedFirstQuestion) {
                   console.log("First question received, starting game immediately");
-                  setGameStarted(true);
-                  receivedFirstQuestion = true;
-                  setIsLoading(false);
+                  setLoadingProgress(100);
+                  setTimeout(() => {
+                    setGameStarted(true);
+                    receivedFirstQuestion = true;
+                    setIsLoading(false);
+                  setIsLoadingMoreQuestions(false);
+                  }, 500);
                 }
                 
                 // Remove the processed question from the buffer to avoid duplicates
@@ -286,6 +303,8 @@ function App() {
         const chunk = decoder.decode(value, { stream: true });
         chunkCount++;
         console.log(`Chunk #${chunkCount} received: ${chunk.length} bytes`);
+      // Update loading progress based on chunk count (assuming around 10 chunks for first question)
+      setLoadingProgress(Math.min(chunkCount * 10, 90));
         buffer += chunk;
         
         // Try to extract questions from the buffer
@@ -301,8 +320,25 @@ function App() {
       resetGame();
     } finally {
       setIsLoading(false);
+      setIsLoadingMoreQuestions(false);
+      setLoadingProgress(0);
     }
   };
+
+  // Check if we need to load more questions
+  useEffect(() => {
+    // If we're approaching the end of our current questions, fetch more
+    // Only fetch if we have at least one question and we're not already loading
+    if (gameStarted && 
+        questions.length > 0 && 
+        currentQuestion >= questions.length - 2 && 
+        !isLoadingMoreQuestions && 
+        !isLoading && 
+        !gameOver && 
+        !showWinner) {
+      fetchQuestions(null, questions.length, false);
+    }
+  }, [currentQuestion, questions.length, gameStarted]);
 
   const handleAnswer = (optionIndex) => {
     const question = questions[currentQuestion];
@@ -319,20 +355,16 @@ function App() {
       });
       
       setTimeout(() => {
-        if (currentQuestion === questions.length - 1) {
+        // In infinite mode, we never reach the "end" of questions
+        // We just keep going as long as the player gets answers right
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentQuestion(prev => prev + 1);
           setFeedback(null);
-          setShowWinner(true);
-          saveQuizToHistory();
-        } else {
-          setIsTransitioning(true);
-          setTimeout(() => {
-            setCurrentQuestion(prev => prev + 1);
-            setFeedback(null);
-            setIsTransitioning(false);
-            setSelectedAnswer(null);
-            setIsShowingAnswers(false);
-          }, 500);
-        }
+          setIsTransitioning(false);
+          setSelectedAnswer(null);
+          setIsShowingAnswers(false);
+        }, 500);
       }, 2000);
     } else {
       setFeedback({
@@ -391,12 +423,13 @@ function App() {
     setQuestions([]);
     setSelectedAnswer(null);
     setIsShowingAnswers(false);
+    setIsLoadingMoreQuestions(false);
   };
 
   const retryGame = async () => {
     setIsLoading(true);
     resetGame();
-    await generateQuestions();
+    await fetchQuestions(null, 0, true);
   };
 
   const startNewGame = () => {
@@ -412,7 +445,7 @@ function App() {
             <TopicInput
               topic={topic}
               setTopic={setTopic}
-              generateQuestions={generateQuestions}
+              generateQuestions={() => fetchQuestions(null, 0, true)}
               isLoading={isLoading}
               error={error}
               hasApiKey={!!apiKey}
@@ -420,9 +453,7 @@ function App() {
           )}
         </GameCard>
 
-        <GameCard show={isLoading}>
-          {isLoading && <LoadingScreen />}
-        </GameCard>
+        {isLoading && <LoadingScreen progress={loadingProgress} />}
 
         <GameCard show={gameStarted && !isLoading && !gameOver && !showWinner}>
           {gameStarted && !isLoading && questions[currentQuestion] && (
