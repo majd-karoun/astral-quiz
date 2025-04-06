@@ -248,9 +248,41 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: #5050AA;
+  transition: all 0.3s ease;
+}
+
+.header-item.score {
+  font-size: 24px;
+}
+
+.header-item.score .score-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #5050AA;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score-number {
+  display: inline-block;
+}
+
+.score-number.changed {
+  animation: scoreBounce 0.3s ease-out;
+}
+
+@keyframes scoreBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Question and Options */
@@ -393,8 +425,6 @@ body {
   margin-top: 8px;
   animation: slideInFade 0.3s ease-out;
 }
-
-
 
 /* Animations */
 @keyframes spin {

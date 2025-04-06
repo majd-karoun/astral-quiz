@@ -76,13 +76,9 @@ const QuestionCard = ({
         <Question size={24} />
         Question {currentQuestion + 1}
       </span>
-      <span className="header-item">
+      <span className="header-item score">
         <Target size={24} />
-        Score: {points}
-      </span>
-      <span className="header-item">
-        <Lightning size={24} />
-        Hints: {remainingHints}
+        <span className="score-number">{points}</span>
       </span>
     </div>
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
@@ -157,6 +153,7 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
+  const [prevPoints, setPrevPoints] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
@@ -341,17 +338,18 @@ function App() {
   }, [currentQuestion, questions.length, gameStarted]);
 
   const handleAnswer = (optionIndex) => {
-    const question = questions[currentQuestion];
-    const correctAnswer = question.correct;
-    
+    const correctAnswer = questions[currentQuestion].correct;
+    const questionPoints = questions[currentQuestion].points;
+
     setSelectedAnswer(optionIndex);
     setIsShowingAnswers(true);
 
     if (optionIndex === correctAnswer) {
-      setPoints(prev => prev + question.points);
+      setPrevPoints(points);
+      setPoints(prev => prev + questionPoints);
       setFeedback({
         type: 'success',
-        message: `Correct! +${question.points} points`
+        message: `Correct! +${questionPoints} points`
       });
       
       setTimeout(() => {
