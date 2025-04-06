@@ -14,7 +14,7 @@ import LoadingScreen from './components/loading-screen/LoadingScreen';
 import './App.css';
 
 const GameCard = ({ children, show }) => (
-  <div className={`card-wrapper ${show ? 'card-visible' : ''}`}>
+  <div className={`card-wrapper ${show ? 'card-visible' : 'card-hidden'}`}>
     <div className="card">
       {children}
     </div>
@@ -210,7 +210,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch(`https://astral-quiz.onrender.com/api/generate-questions`, {
+      const response = await fetch(`http://localhost:3001/api/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

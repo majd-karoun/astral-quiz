@@ -47,13 +47,14 @@ const constructPrompt = (topic, batchSize = 3) => {
  - Questions 6-10: Medium (200 points each)
  - Questions 11-13: Hard (500 points each)
  - Questions 14+: Very Hard (1000 points each)
-
+ 
  
 For each question, provide:
 1. Main question
 2. Four answer options (a, b, c, d)
 3. Correct answer index (0-3)
 4. A helpful hint that gives a clue without revealing the answer directly
+5. use emojis with questions and answers.
 
 Format as a JSON object with this structure:
 {
