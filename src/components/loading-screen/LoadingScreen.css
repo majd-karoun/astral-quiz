@@ -21,7 +21,7 @@
   font-weight: 700;
   margin: 0;
   text-align: center;
-  color: white;
+  color: #ffffff;
 }
 
 .progress-bar {
@@ -46,7 +46,3 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
-
-
-
-
