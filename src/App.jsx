@@ -167,11 +167,11 @@ function App() {
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
   const [pointsChanged, setPointsChanged] = useState(false);
 
-  const getPointsForQuestion = (index) => {
-    if (index < 3) return 50;  // Questions 1-3
-    if (index < 5) return 100; // Questions 4-5
-    if (index < 10) return 200; // Questions 6-10
-    if (index < 13) return 500; // Questions 11-13
+  const getPointsForQuestion = (questionNumber) => {
+    if (questionNumber <= 3) return 50;  // Questions 1-3
+    if (questionNumber <= 5) return 100; // Questions 4-5
+    if (questionNumber <= 10) return 200; // Questions 6-10
+    if (questionNumber <= 13) return 500; // Questions 11-13
     return 1000; // Questions 14-15
   };
 
@@ -261,7 +261,7 @@ function App() {
                   question: questionObj.main_question,
                   options: questionObj.answer_options,
                   correct: questionObj.correct_answer_index,
-                  points: getPointsForQuestion(questionCount),
+                  points: getPointsForQuestion(questionCount + 1),
                   hint: questionObj.helpful_hint
                 };
                 
@@ -341,7 +341,8 @@ function App() {
 
   const handleAnswer = async (optionIndex) => {
     const correctAnswer = questions[currentQuestion].correct;
-    const questionPoints = questions[currentQuestion].points;
+    const questionNumber = currentQuestion + 1; // Convert index to question number
+    const questionPoints = getPointsForQuestion(questionNumber);
 
     setSelectedAnswer(optionIndex);
     setIsShowingAnswers(true);
