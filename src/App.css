@@ -222,14 +222,15 @@ body {
   background-color: white;
 }
 
-.button-outline.correct-answer:disabled,
-.button-outline.wrong-answer:disabled {
-  background-color: white;
-}
-
 .button-outline.correct-answer:disabled {
   color: #10b981;
   border-color: #10b981;
+  animation: blinkBorder 1s ease-in-out 3;
+}
+
+@keyframes blinkBorder {
+  0%, 100% { border-color: #10b981; }
+  50% { border-color: #ffffff; }
 }
 
 .button-outline.wrong-answer:disabled {
@@ -274,8 +275,9 @@ body {
 }
 
 .score-number.changed {
-  animation: scoreBounce 0.3s ease-out;
+  animation: scoreBounce 0.6s ease-out;
   color: #10b981 !important;
+  transform-origin: center;
 }
 
 @keyframes scoreBounce {
@@ -283,7 +285,7 @@ body {
     transform: scale(1);
   }
   30% {
-    transform: scale(1.2);
+    transform: scale(1.5);
   }
   60% {
     transform: scale(0.9);
