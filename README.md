@@ -1,65 +1,64 @@
 # Astral Quiz
-An interactive quiz application that generates personalized questions based on any topic using OpenAI's GPT models. This application creates engaging, difficulty-progressive quizzes with automated hints and scoring system.
+Eine interaktive Quizanwendung, die personalisierte Fragen zu jedem Thema mit den GPT-Modellen von OpenAI erstellt. Diese Anwendung erstellt spannende, sich steigernde Quizfragen mit automatischen Hinweisen und Punktesystem.
 
 [Live Demo](https://astral-quiz.netlify.app) 🚀
 
 ![Astral Quiz Interface](./screenshot.png)
 
 
-## 🎮 How to Play
+## 🎮 Wie man spielt
 
-1. Enter a topic 
-2. Provide your OpenAI API key
-3. Answer questions of increasing difficulty (the quiz continues indefinitely as long as you answer correctly)
-4. Use hints strategically (3 available per game)
-5. Try to achieve the highest score possible.
+1. Gib ein Thema ein
+2. Gib deinen OpenAI API-Schlüssel ein
+3. Beantworte Fragen mit steigendem Schwierigkeitsgrad (Das Quiz läuft unendlich weiter, solange du die Fragen richtig beantwortest)
+4. Verwende die Hinweise strategisch (3 pro Spiel verfügbar)
+5. Versuche, die höchste Punktzahl zu erreichen.
    
 
-## 🔑 API Key
+## 🔑 API-Schlüssel
 
-- You'll need your own OpenAI API key to generate questions
-- Your OpenAI account needs to have available credit
-- Questions are generated using GPT 4o-mini model
+- Du benötigst deinen eigenen OpenAI API-Schlüssel, um Fragen zu generieren
+- Dein OpenAI-Konto muss verfügbare Kreditpunkte haben
+- Fragen werden mit dem GPT 4o-mini Modell generiert
 
 
-
-## 💻 Tech Stack
+## 💻 Technische Stack
 ### Frontend
-- **React.js**: Frontend framework
-- **Vite**: Build tool and development server
-- **@phosphor-icons/react**: Icon library
-- **CSS**: Custom styling with responsive design
+- **React.js**: Frontend-Framework
+- **Vite**: Build-Tool und Entwicklungsserver
+- **@phosphor-icons/react**: Icon-Bibliothek
+- **CSS**: Benutzerdefinierte Responsive Design
 
 ### Backend
-- **Node.js**: Runtime environment
-- **Express.js**: Web application framework
-- **OpenAI API**: For generating quiz questions
-- **CORS**: Cross-Origin Resource Sharing support
+- **Node.js**: Runtime-Umgebung
+- **Express.js**: Webanwendungsframework
+- **OpenAI API**: Für die Generierung von Quizfragen
+- **CORS**: Cross-Origin Resource Sharing Unterstützung
 
 ### Deployment
-- **Frontend**: Hosted on Netlify
-- **Backend**: Hosted on Render.com
+- **Frontend**: Hosted auf Netlify
+- **Backend**: Hosted auf Fly.io
 
-## 🚀 Getting Started
+## 🚀 Einstieg
 
-1. Clone the repository
+1. Klonen Sie das Repository
 ```bash
 git clone https://github.com/majd-karoun/astral-quiz.git
 cd astral-quiz
 ```
 
-2. Install dependencies
+2. Installieren Sie die Abhängigkeiten
 ```bash
-# Install frontend dependencies
+# Installieren Sie die Frontend-Abhängigkeiten
 cd client
 npm install
 
-# Install backend dependencies
+# Installieren Sie die Backend-Abhängigkeiten
 cd ../server
 npm install
 ```
 
-3. Set up environment variables
+3. Setzen Sie die Umgebungsvariablen
 
 Frontend (.env):
 ```bash
@@ -72,20 +71,19 @@ PORT=3001
 NODE_ENV=development
 ```
 
-4. Run the development servers
+4. Starten Sie die Entwicklungsserver
 ```bash
-# Run backend
+# Starten Sie den Backend-Server
 cd server
 node server.js
 
-# Run frontend in a new terminal
+# Starten Sie den Frontend-Server in einem neuen Terminal
 cd client
 npm run dev
 ```
 
 
-
-## 🛠️ Application Structure
+## 🛠️ Anwendungsstruktur
 
 ### Frontend
 ```
@@ -107,13 +105,10 @@ server/
 ```
 
 
+## 🤝 Beitrag Leisten
 
-
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Forken Sie das Repository
+2. Erstellen Sie einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
+3. Commiten Sie Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
+4. Pushen Sie den Branch (`git push origin feature/AmazingFeature`)
+5. Erstellen Sie einen Pull Request

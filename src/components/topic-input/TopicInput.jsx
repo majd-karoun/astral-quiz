@@ -57,7 +57,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
         <div className="modal-header">
           <div className="modal-title">
             <Trophy size={24} className="leaderboard-icon" />
-            <h2>Leaderboard</h2>
+            <h2>Bestenliste</h2>
           </div>
           <button className="modal-close" onClick={handleClose}>
             <X size={24} />
@@ -82,7 +82,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
             ))
           ) : (
             <div className="leaderboard-empty">
-              You have records yet
+              Du hast noch keine Aufzeichnungen
             </div>
           )}
         </div>
@@ -95,10 +95,30 @@ const RecentTopics = ({ onSelectTopic }) => {
   const [recentTopics, setRecentTopics] = useState([]);
 
   useEffect(() => {
-    // Get unique topics from quiz history
+    // Get quiz history and sort by timestamp (most recent first)
     const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
-    const uniqueTopics = [...new Set(history.map(item => item.topic))].slice(0, 5);
-    setRecentTopics(uniqueTopics);
+    
+    // Create a map to track the latest timestamp for each topic
+    const topicTimestamps = {};
+    history.forEach(item => {
+      if (!topicTimestamps[item.topic] || item.timestamp > topicTimestamps[item.topic]) {
+        topicTimestamps[item.topic] = item.timestamp;
+      }
+    });
+    
+    // Get unique topics ordered by their latest timestamp
+    const topicsWithTimestamps = Object.keys(topicTimestamps).map(topic => ({
+      topic,
+      timestamp: topicTimestamps[topic]
+    }));
+    
+    // Sort by timestamp (most recent first) and take the first 20
+    const sortedTopics = topicsWithTimestamps
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 20)
+      .map(item => item.topic);
+    
+    setRecentTopics(sortedTopics);
   }, []);
 
   if (recentTopics.length === 0) return null;
@@ -107,7 +127,7 @@ const RecentTopics = ({ onSelectTopic }) => {
     <div className="recent-topics">
       <div className="recent-topics-header">
         <Clock size={16} />
-        <span>Recent Topics</span>
+        <span>Deine letzten Themen</span>
       </div>
       <div className="recent-topics-list">
         {recentTopics.map((topic, index) => (
@@ -136,14 +156,14 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const typewriterText = "Enter a quiz topic (e.g., Python Programming, or Fun Facts)...";
+  const typewriterText = "Trage hier ein Quizthema ein (z.B. Ki oder lustige Fakten)...";
   const inputRef = useRef(null);
 
   // Typewriter effect function
   const typeWriter = (text, currentIndex = 0) => {
     if (currentIndex < text.length) {
       setPlaceholder(text.substring(0, currentIndex + 1));
-      setTimeout(() => typeWriter(text, currentIndex + 1), 50);
+      setTimeout(() => typeWriter(text, currentIndex + 1), 20);
     }
   };
 
@@ -196,11 +216,11 @@ const TopicInput = ({
 
     if (!hasApiKey) {
       if (!apiKey.trim()) {
-        setApiKeyError('OpenAI API Key is required');
+        setApiKeyError('OpenAI API-Schlüssel ist erforderlich');
         return;
       }
       if (!apiKey.startsWith('sk-')) {
-        setApiKeyError('Invalid API Key format');
+        setApiKeyError('Ungültiges API-Schlüssel-Format');
         return;
       }
     }
@@ -218,14 +238,14 @@ const TopicInput = ({
           onClick={() => setIsLeaderboardOpen(true)}
         >
           <Trophy size={20} />
-          Leaderboard
+          Bestenliste
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="input-form">
         <div className="input-sections">
           <div className="input-section">
-            <label htmlFor="topic">Quiz Topic</label>
+            <label htmlFor="topic">Quiz-Thema</label>
             <div className="input-container">
               <input
                 ref={inputRef}
@@ -261,14 +281,14 @@ const TopicInput = ({
 
           <div className="input-section">
             <label htmlFor="apiKey">
-              OpenAI API Key
+              OpenAI API-Schlüssel
               <a 
                 href="https://platform.openai.com/api-keys"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="api-key-link"
               >
-                Get your API key here
+                API-Schlüssel holen
               </a>
             </label>
             <div className="input-container">
@@ -296,7 +316,7 @@ const TopicInput = ({
           disabled={isLoading || !topic.trim() || !apiKey.trim()}
         >
           <CaretRight className="button-icon" />
-          <span>Start Quiz</span>
+          <span>Quiz starten</span>
         </button>
 
         {error && (

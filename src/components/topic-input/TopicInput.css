@@ -371,8 +371,18 @@
 
 .recent-topics-list {
   display: flex;
-  flex-wrap: wrap;
+  white-space: nowrap;
+  overflow-x: auto;
   gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.recent-topics-list::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
 }
 
 .topic-chip {

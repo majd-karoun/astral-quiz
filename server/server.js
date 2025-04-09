@@ -3,8 +3,22 @@ const cors = require('cors');
 const OpenAI = require('openai');
 const app = express();
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS with specific configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests from your frontend origin
+    if (!origin || origin === 'http://localhost:5173') { 
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Rate limiting setup
@@ -41,29 +55,52 @@ const validateApiKey = (apiKey) => {
 };
 
 const constructPrompt = (topic, batchSize = 3) => {
-  return `Create ${batchSize} quiz questions about ${topic} with increasing difficulty levels based on the question number:
- - Questions 1-3: Very Easy (50 points each) 
- - Questions 4-5: Easy (100 points each)
- - Questions 6-10: Medium (200 points each)
- - Questions 11-13: Hard (500 points each)
- - Questions 14+: Very Hard (1000 points each)
+  return `Erstelle ${batchSize} Quizfragen über ${topic} mit steigendem Schwierigkeitsgrad basierend auf der Fragennummer:
+ - Fragen 1-3: Sehr einfach 
+ - Fragen 4-5: Einfach 
+ - Fragen 6-10: Mittel 
+ - Fragen 11-13: Schwer 
+ - Fragen 14-15: Sehr schwer 
  
  
-For each question, provide:
-1. Main question
-2. Four answer options (a, b, c, d)
-3. Correct answer index (0-3)
-4. A helpful hint that gives a clue without revealing the answer directly
-5. use emojis with questions and answers.
+Für jede Frage gibst du:
+1. Hauptfrage
+2. Vier Antwortmöglichkeiten (a, b, c, d)
+3. Korrekte Antwortnummer (0-3)
+4. Einen hilfreichen Hinweis, der einen Tipp gibt, ohne die Antwort direkt zu verraten
+5. Verwenden Sie Emojis in Fragen und Antworten.
 
-Format as a JSON object with this structure:
+Formatiere die Ausgabe als JSON-Objekt mit dieser Struktur:
 {
-  "questions": [
+  "fragen": [
     {
-      "main_question": "string",
-      "answer_options": ["string", "string", "string", "string"],
-      "correct_answer_index": number,
-      "helpful_hint": "string"
+      "hauptfrage": "string",
+      "antwortoptionen": ["string", "string", "string", "string"],
+      "richtige_antwortnummer": number,
+      "hilfreicher_hinweis": "string"
+    }
+  ]
+}`;
+};
+
+const constructVeryHardPrompt = (topic, batchSize = 5) => {
+  return `Erstelle ${batchSize} SEHR SCHWERE Quizfragen über ${topic}. Diese sollten extrem schwierige Fragen (1000 Punkte pro Frage) für Experten sein, die bereits 15 progressiv schwierige Fragen beantwortet haben.
+
+Für jede Frage gibst du:
+1. Hauptfrage
+2. Vier Antwortmöglichkeiten (a, b, c, d)
+3. Korrekte Antwortnummer (0-3)
+4. Einen hilfreichen Hinweis, der einen Tipp gibt, ohne die Antwort direkt zu verraten
+5. Verwenden Sie Emojis in Fragen und Antworten.
+
+Formatiere die Ausgabe als JSON-Objekt mit dieser Struktur:
+{
+  "fragen": [
+    {
+      "hauptfrage": "string",
+      "antwortoptionen": ["string", "string", "string", "string"],
+      "richtige_antwortnummer": number,
+      "hilfreicher_hinweis": "string"
     }
   ]
 }`;
@@ -71,10 +108,8 @@ Format as a JSON object with this structure:
 
 // Main question generation endpoint
 app.post('/api/generate-questions', async (req, res) => {
-  console.log('Received question generation request');
-  
   try {
-    const { topic, startIndex = 0, batchSize = 3 } = req.body;
+    const { topic, startIndex = 0, batchSize = 3, isVeryHardMode = false } = req.body;
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
     if (!apiKey) {
@@ -89,14 +124,16 @@ app.post('/api/generate-questions', async (req, res) => {
       return res.status(400).json({ error: 'Valid topic is required' });
     }
 
-    const openai = new OpenAI({ apiKey });
+    const openai = new OpenAI({ 
+     
+      apiKey });
 
     try {
       // Create a completion with streaming enabled
       const stream = await openai.chat.completions.create({
         messages: [{ 
           role: "user", 
-          content: constructPrompt(topic, batchSize)
+          content: isVeryHardMode ? constructVeryHardPrompt(topic, batchSize) : constructPrompt(topic, batchSize)
         }],
         model: "gpt-4o-mini",
         temperature: 0.7,
@@ -113,22 +150,20 @@ app.post('/api/generate-questions', async (req, res) => {
     let questionCount = 0;
     
     // Start the response with the opening structure
-    res.write('{"questions":[');
-    console.log("Started streaming response to client");
+    res.write('{"fragen":[');
     
     // Process the stream
     for await (const chunk of stream) {
       const content = chunk.choices?.[0]?.delta?.content;
       if (content) {
-        console.log(`Chunk received: ${content.length} characters`);
         buffer += content;
         
         // Try to extract complete questions as they come in
         try {
           // Check if we have a complete JSON object with a question
-          if (buffer.includes('"main_question"') && buffer.includes('"correct_answer_index"')) {
+          if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
             // Extract question objects from the buffer using a more robust regex
-            const matches = buffer.match(/{[^{]*"main_question"[^{]*"correct_answer_index"[^{}]*}/g);
+            const matches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
             
             if (matches && matches.length > 0) {
               for (const match of matches) {
@@ -137,11 +172,11 @@ app.post('/api/generate-questions', async (req, res) => {
                   const questionObj = JSON.parse(match);
                   
                   // Validate the question object
-                  if (questionObj.main_question && 
-                      Array.isArray(questionObj.answer_options) && 
-                      questionObj.answer_options.length === 4 &&
-                      typeof questionObj.correct_answer_index === 'number' &&
-                      questionObj.helpful_hint) {
+                  if (questionObj.hauptfrage && 
+                      Array.isArray(questionObj.antwortoptionen) && 
+                      questionObj.antwortoptionen.length === 4 &&
+                      typeof questionObj.richtige_antwortnummer === 'number' &&
+                      questionObj.hilfreicher_hinweis) {
                     
                     // Send the question to the client
                     if (questionCount > 0) {
@@ -150,14 +185,15 @@ app.post('/api/generate-questions', async (req, res) => {
                     
                     // Format and send the question
                     const formattedQuestion = {
-                      main_question: questionObj.main_question,
-                      answer_options: questionObj.answer_options,
-                      correct_answer_index: questionObj.correct_answer_index,
-                      helpful_hint: questionObj.helpful_hint
+                      hauptfrage: questionObj.hauptfrage,
+                      antwortoptionen: questionObj.antwortoptionen,
+                      richtige_antwortnummer: questionObj.richtige_antwortnummer,
+                      hilfreicher_hinweis: questionObj.hilfreicher_hinweis
                     };
                     
                     const questionJson = JSON.stringify(formattedQuestion);
-                    console.log(`Sending question ${questionCount + 1} to client (${questionJson.length} bytes)`);
+                    // Only log the question content
+                    console.log(`Question content: ${questionObj.hauptfrage}`);
                     
                     // Flush the response immediately to ensure the client receives it
                     res.write(questionJson);
@@ -170,15 +206,12 @@ app.post('/api/generate-questions', async (req, res) => {
                   }
                 } catch (e) {
                   // Skip invalid JSON fragments
-                  console.log("Error parsing question:", e.message);
-                  continue;
                 }
               }
             }
           }
         } catch (e) {
           // Continue collecting more data
-          console.log("Parsing error:", e);
         }
       }
     }
@@ -230,7 +263,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => {  
   console.log(`Server running on port ${PORT}`);
 });
