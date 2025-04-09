@@ -42,13 +42,13 @@ Eine interaktive Quizanwendung, die personalisierte Fragen zu jedem Thema mit de
 
 ## 🚀 Einstieg
 
-1. Klonen Sie das Repository
+1. Klone das Repository
 ```bash
 git clone https://github.com/majd-karoun/astral-quiz.git
 cd astral-quiz
 ```
 
-2. Installieren Sie die Abhängigkeiten
+2. Installiere die Abhängigkeiten
 ```bash
 # Installiere Frontend-Abhängigkeiten
 cd client
