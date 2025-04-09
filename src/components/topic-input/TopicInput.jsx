@@ -127,7 +127,7 @@ const RecentTopics = ({ onSelectTopic }) => {
     <div className="recent-topics">
       <div className="recent-topics-header">
         <Clock size={16} />
-        <span>Deine letzten Themen</span>
+        <span>letzten Themen</span>
       </div>
       <div className="recent-topics-list">
         {recentTopics.map((topic, index) => (
