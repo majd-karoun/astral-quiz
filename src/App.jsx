@@ -114,7 +114,7 @@ const QuestionCard = ({
           disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
         >
           <Lightning size={20} />
-          Hinweis verwenden ({remainingHints})
+          Hinweis ({remainingHints})
         </button>
       </div>
       <div className="feedback-container">
