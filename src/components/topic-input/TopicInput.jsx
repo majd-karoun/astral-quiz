@@ -228,6 +228,21 @@ const TopicInput = ({
     generateQuestions(hasApiKey ? null : apiKey);
   };
 
+  // Handle Enter key press in the topic input
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // Check if the form is valid and not loading
+      if (!isLoading && topic.trim() && apiKey.trim()) {
+        e.preventDefault(); // Prevent default Enter behavior (like newline)
+        handleSubmit(e); // Trigger the form submission
+      }
+      // If form is not valid, Enter should do nothing special
+      else {
+         e.preventDefault(); // Prevent default Enter behavior even if invalid
+      }
+    }
+  };
+
   return (
     <div className="topic-screen">
       <div className="topic-header">
@@ -275,6 +290,7 @@ const TopicInput = ({
                 placeholder={placeholder}
                 className="topic-input"
                 disabled={isLoading}
+                onKeyDown={handleKeyDown} // Add the keydown handler here
               />
             </div>
           </div>
