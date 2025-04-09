@@ -5,18 +5,11 @@ const app = express();
 
 // Enable CORS with specific configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests from your frontend origin
-    if (!origin || origin === 'http://localhost:5173' || origin === 'https://astral-quiz.netlify.app') { 
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['http://localhost:5173', 'https://astral-quiz.netlify.app'],
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false
-};
+}
 
 app.use(cors(corsOptions));
 app.use(express.json());
