@@ -19,7 +19,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -100,7 +100,7 @@ body {
 .card-visible {
   display: block;
   opacity: 1;
-  transform: translate(-50%, -50%) translateY(0);
+  transform: translate(-50%, -50%) translateY(-15px); /* Moved up by 15px */
   z-index: 2;
 }
 
