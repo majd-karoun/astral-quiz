@@ -12,7 +12,7 @@ Eine interaktive Quizanwendung, die personalisierte Fragen zu jedem Thema mit de
 2. Trage deinen OpenAI-API-Schlüssel ein.
 3. Beantworte Fragen mit steigendem Schwierigkeitsgrad.
 (Das Quiz läuft unendlich weiter, solange du die Fragen richtig beantwortest.)
-4. Nutze die Hinweise strategisch (3 pro Spiel verfügbar).
+4. Nutze die Hinweise strategisch (3 pro Spiel).
 5. Versuche, die höchste Punktzahl zu erreichen.
    
 
