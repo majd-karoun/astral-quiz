@@ -72,7 +72,7 @@ PORT=3001
 NODE_ENV=development
 ```
 
-4. Starten Sie die Entwicklungsserver
+4. Starte Entwicklungsserver
 ```bash
 # Starte den Backend-Server
 cd server
