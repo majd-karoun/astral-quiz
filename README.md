@@ -8,8 +8,8 @@ Eine interaktive Quizanwendung, die personalisierte Fragen zu jedem Thema mit de
 
 ## 🎮 Wie man spielt
 
-1. Gib ein Thema ein
-2. Gib deinen OpenAI API-Schlüssel ein
+1. Thema wählen.
+2. OpenAI API-Schlüssel ausfühlen.
 3. Beantworte Fragen mit steigendem Schwierigkeitsgrad (Das Quiz läuft unendlich weiter, solange du die Fragen richtig beantwortest)
 4. Verwende die Hinweise strategisch (3 pro Spiel verfügbar)
 5. Versuche, die höchste Punktzahl zu erreichen.
