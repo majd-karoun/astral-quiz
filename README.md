@@ -50,11 +50,11 @@ cd astral-quiz
 
 2. Installieren Sie die Abhängigkeiten
 ```bash
-# Installieren Sie die Frontend-Abhängigkeiten
+# Installiere Frontend-Abhängigkeiten
 cd client
 npm install
 
-# Installieren Sie die Backend-Abhängigkeiten
+# Installiere Backend-Abhängigkeiten
 cd ../server
 npm install
 ```
@@ -74,11 +74,11 @@ NODE_ENV=development
 
 4. Starten Sie die Entwicklungsserver
 ```bash
-# Starten Sie den Backend-Server
+# Starte den Backend-Server
 cd server
 node server.js
 
-# Starten Sie den Frontend-Server in einem neuen Terminal
+# Starte den Frontend-Server in einem neuen Terminal
 cd client
 npm run dev
 ```
@@ -108,8 +108,8 @@ server/
 
 ## 🤝 Beitrag Leisten
 
-1. Forken Sie das Repository
-2. Erstellen Sie einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
-3. Commiten Sie Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
-4. Pushen Sie den Branch (`git push origin feature/AmazingFeature`)
-5. Erstellen Sie einen Pull Request
+1. Forke das Repository
+2. Erstelle einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
+3. Commite Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
+4. Push den Branch (`git push origin feature/AmazingFeature`)
+5. Erstelle einen Pull Request
