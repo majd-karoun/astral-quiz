@@ -147,7 +147,7 @@ const QuestionCard = ({
 
 function App() {
   const [topic, setTopic] = useState('');
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
+  const [apiKey, setApiKey] = useState(() => sessionStorage.getItem('openai_api_key') || localStorage.getItem('openai_api_key') || '');
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -220,185 +220,368 @@ function App() {
       return;
     }
 
-    if (providedApiKey) {
-      setApiKey(providedApiKey);
-      localStorage.setItem('openai_api_key', providedApiKey);
-    }
-
-    const keyToUse = providedApiKey || apiKey;
-    
-    if (isInitialLoad) {
-      setLoadingProgress(0);
-      setIsLoading(true);
-    } else {
-      setIsLoadingMoreQuestions(true);
-    }
-    setError(null);
-
-    // Erstellen Sie eine neue AbortController-Instanz
-    const controller = new AbortController();
-    setAbortController(controller);
-
-    try {
-      const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
+    // First check if there's an API key in the input field
+    const apiKeyFromInput = document.getElementById('apiKey')?.value;
+    if (apiKeyFromInput) {
+      setApiKey(apiKeyFromInput);
+      sessionStorage.setItem('openai_api_key', apiKeyFromInput);
+      localStorage.setItem('openai_api_key', apiKeyFromInput);
+      const keyToUse = apiKeyFromInput;
       
-      const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${keyToUse}`
-        },
-        body: JSON.stringify({ 
-          topic, 
-          startIndex, 
-          batchSize,
-          isVeryHardMode
-        }),
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Fehler beim Generieren von Fragen');
+      if (isInitialLoad) {
+        setLoadingProgress(0);
+        setIsLoading(true);
+      } else {
+        setIsLoadingMoreQuestions(true);
       }
+      setError(null);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      
-      let buffer = '';
-      let chunkCount = 0;
-      let receivedFirstQuestion = false;
-      let questionCount = 0;
-      
-      // Für den initialen Ladevorgang setzen wir ein höheres Ziel (15 Fragen)
-      const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
-      
-      // Erstellen Sie einen separaten Zähler nur für diesen Stapel
-      let batchQuestionCount = 0;
-      
-      const processStreamChunk = async () => {
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) {
-            break;
-          }
-          
-          const chunk = decoder.decode(value, { stream: true });
-          chunkCount++;
-          
-          // Aktualisieren Sie den Ladevorgang basierend auf Chunks für die erste Frage
-          if (isInitialLoad && !receivedFirstQuestion) {
-            // Für den initialen Ladevorgang skalieren wir basierend auf Chunks, bis wir die erste Frage erhalten
-            const progressValue = Math.min(chunkCount * 10, 90);
-            setLoadingProgress(progressValue);
-          }
-          
-          buffer += chunk;
-          
-          // Versuchen Sie, vollständige Fragen zu extrahieren
-          try {
-            if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
-              const questionMatches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
-              
-              if (questionMatches && questionMatches.length > 0) {
-                for (const match of questionMatches) {
-                  try {
-                    const questionObj = JSON.parse(match);
-                    
-                    // Validieren Sie die Frageobjektstruktur
-                    if (questionObj.hauptfrage && 
-                        Array.isArray(questionObj.antwortoptionen) && 
-                        questionObj.antwortoptionen.length === 4 &&
-                        typeof questionObj.richtige_antwortnummer === 'number' &&
-                        questionObj.hilfreicher_hinweis) {
+      // Create a new AbortController instance
+      const controller = new AbortController();
+      setAbortController(controller);
+
+      try {
+        const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
+        
+        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${keyToUse}`
+          },
+          body: JSON.stringify({ 
+            topic, 
+            startIndex, 
+            batchSize,
+            isVeryHardMode
+          }),
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Fehler beim Generieren von Fragen');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        let buffer = '';
+        let chunkCount = 0;
+        let receivedFirstQuestion = false;
+        let questionCount = 0;
+        
+        // Für den initialen Ladevorgang setzen wir ein höheres Ziel (15 Fragen)
+        const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
+        
+        // Erstellen Sie einen separaten Zähler nur für diesen Stapel
+        let batchQuestionCount = 0;
+        
+        const processStreamChunk = async () => {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break;
+            }
+            
+            const chunk = decoder.decode(value, { stream: true });
+            chunkCount++;
+            
+            // Aktualisieren Sie den Ladevorgang basierend auf Chunks für die erste Frage
+            if (isInitialLoad && !receivedFirstQuestion) {
+              // Für den initialen Ladevorgang skalieren wir basierend auf Chunks, bis wir die erste Frage erhalten
+              const progressValue = Math.min(chunkCount * 10, 90);
+              setLoadingProgress(progressValue);
+            }
+            
+            buffer += chunk;
+            
+            // Versuchen Sie, vollständige Fragen zu extrahieren
+            try {
+              if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
+                const questionMatches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
+                
+                if (questionMatches && questionMatches.length > 0) {
+                  for (const match of questionMatches) {
+                    try {
+                      const questionObj = JSON.parse(match);
                       
-                      // Transformieren und fügen Sie die Frage unserem Zustand hinzu
-                      const transformedQuestion = {
-                        hauptfrage: questionObj.hauptfrage,
-                        antwortoptionen: questionObj.antwortoptionen,
-                        richtige_antwortnummer: questionObj.richtige_antwortnummer,
-                        hilfreicher_hinweis: questionObj.hilfreicher_hinweis
-                      };
-                      
-                      // Protokollieren Sie die empfangene Frage
-                      console.log(`Frage ${startIndex + questionCount + 1} erhalten:`, questionObj.hauptfrage);
-                      
-                      // Fügen Sie diese Frage unserem Fragenarray hinzu
-                      setQuestions(prevQuestions => {
-                        // Wenn dies ein sehr schwerer Fragenstapel ist (startIndex > 0), stellen Sie sicher, dass wir genügend Platz haben
-                        if (isVeryHardMode && startIndex > 0) {
-                          // Stellen Sie sicher, dass wir genügend Platz für diese Frage haben
-                          const newQuestions = [...prevQuestions];
-                          // Wenn wir an einem Index hinzufügen müssen, der über die aktuelle Länge hinausgeht, füllen Sie mit Platzhaltern
-                          while (newQuestions.length <= startIndex + questionCount) {
-                            newQuestions.push(null);
+                      // Validieren Sie die Frageobjektstruktur
+                      if (questionObj.hauptfrage && 
+                          Array.isArray(questionObj.antwortoptionen) && 
+                          questionObj.antwortoptionen.length === 4 &&
+                          typeof questionObj.richtige_antwortnummer === 'number' &&
+                          questionObj.hilfreicher_hinweis) {
+                        
+                        // Transformieren und fügen Sie die Frage unserem Zustand hinzu
+                        const transformedQuestion = {
+                          hauptfrage: questionObj.hauptfrage,
+                          antwortoptionen: questionObj.antwortoptionen,
+                          richtige_antwortnummer: questionObj.richtige_antwortnummer,
+                          hilfreicher_hinweis: questionObj.hilfreicher_hinweis
+                        };
+                        
+                        // Protokollieren Sie die empfangene Frage
+                        console.log(`Frage ${startIndex + questionCount + 1} erhalten:`, questionObj.hauptfrage);
+                        
+                        // Fügen Sie diese Frage unserem Fragenarray hinzu
+                        setQuestions(prevQuestions => {
+                          // Wenn dies ein sehr schwerer Fragenstapel ist (startIndex > 0), stellen Sie sicher, dass wir genügend Platz haben
+                          if (isVeryHardMode && startIndex > 0) {
+                            // Stellen Sie sicher, dass wir genügend Platz für diese Frage haben
+                            const newQuestions = [...prevQuestions];
+                            // Wenn wir an einem Index hinzufügen müssen, der über die aktuelle Länge hinausgeht, füllen Sie mit Platzhaltern
+                            while (newQuestions.length <= startIndex + questionCount) {
+                              newQuestions.push(null);
+                            }
+                            // Platzieren Sie die Frage an der genauen Position
+                            newQuestions[startIndex + questionCount] = transformedQuestion;
+                            return newQuestions;
                           }
-                          // Platzieren Sie die Frage an der genauen Position
-                          newQuestions[startIndex + questionCount] = transformedQuestion;
-                          return newQuestions;
-                        }
-                        // Andernfalls fügen Sie einfach hinzu
-                        return [...prevQuestions, transformedQuestion];
-                      });
-                      
-                      questionCount++;
-                      batchQuestionCount++;
-                      
-                      // Starten Sie das Spiel, sobald wir die erste Frage haben
-                      if (isInitialLoad && !receivedFirstQuestion) {
-                        setLoadingProgress(100);
-                        setTimeout(() => {
-                          setGameStarted(true);
-                          receivedFirstQuestion = true;
-                          setIsLoading(false);
+                          // Andernfalls fügen Sie einfach hinzu
+                          return [...prevQuestions, transformedQuestion];
+                        });
+                        
+                        questionCount++;
+                        batchQuestionCount++;
+                        
+                        // Starten Sie das Spiel, sobald wir die erste Frage haben
+                        if (isInitialLoad && !receivedFirstQuestion) {
+                          setLoadingProgress(100);
+                          setTimeout(() => {
+                            setGameStarted(true);
+                            receivedFirstQuestion = true;
+                            setIsLoading(false);
+                            setIsLoadingMoreQuestions(false);
+                          }, 500);
+                        } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
+                          // Für den sehr schweren Modus sind wir fertig, nachdem wir alle angeforderten Fragen erhalten haben
                           setIsLoadingMoreQuestions(false);
-                        }, 500);
-                      } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                        // Für den sehr schweren Modus sind wir fertig, nachdem wir alle angeforderten Fragen erhalten haben
-                        setIsLoadingMoreQuestions(false);
-                      } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                        // Für andere Fragenstapel
-                        setIsLoadingMoreQuestions(false);
-                        receivedFirstQuestion = true;
+                        } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
+                          // Für andere Fragenstapel
+                          setIsLoadingMoreQuestions(false);
+                          receivedFirstQuestion = true;
+                        }
+                        
+                        // Entfernen Sie die verarbeitete Frage aus dem Puffer
+                        buffer = buffer.replace(match, '');
                       }
-                      
-                      // Entfernen Sie die verarbeitete Frage aus dem Puffer
-                      buffer = buffer.replace(match, '');
+                    } catch (e) {
+                      // Überspringen Sie ungültige JSON-Fragmente
                     }
-                  } catch (e) {
-                    // Überspringen Sie ungültige JSON-Fragmente
                   }
                 }
               }
+            } catch (e) {
+              // Überspringen Sie Parsenfehler
             }
-          } catch (e) {
-            // Überspringen Sie Parsenfehler
           }
+        };
+        
+        await processStreamChunk();
+      } catch (err) {
+        console.error('Fehler:', err);
+        
+        // Setzen Sie das Spiel nicht zurück, wenn dies ein AbortError ist (wenn der Benutzer falsch geantwortet hat)
+        if (err.name === 'AbortError') {
+          setIsLoading(false);
+          setIsLoadingMoreQuestions(false);
+          return;
         }
-      };
-      
-      await processStreamChunk();
-    } catch (err) {
-      console.error('Fehler:', err);
-      
-      // Setzen Sie das Spiel nicht zurück, wenn dies ein AbortError ist (wenn der Benutzer falsch geantwortet hat)
-      if (err.name === 'AbortError') {
+        
+        setError(err.message);
+        if (err.message.includes('API-Schlüssel')) {
+          sessionStorage.removeItem('openai_api_key');
+          localStorage.removeItem('openai_api_key');
+          setApiKey('');
+        }
+        resetGame();
+      } finally {
         setIsLoading(false);
         setIsLoadingMoreQuestions(false);
-        return;
+        setLoadingProgress(0);
       }
+    } else {
+      // If no key in input, fall back to storage
+      const keyToUse = providedApiKey || apiKey;
       
-      setError(err.message);
-      if (err.message.includes('API-Schlüssel')) {
-        localStorage.removeItem('openai_api_key');
-        setApiKey('');
+      if (isInitialLoad) {
+        setLoadingProgress(0);
+        setIsLoading(true);
+      } else {
+        setIsLoadingMoreQuestions(true);
       }
-      resetGame();
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMoreQuestions(false);
-      setLoadingProgress(0);
+      setError(null);
+
+      // Create a new AbortController instance
+      const controller = new AbortController();
+      setAbortController(controller);
+
+      try {
+        const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
+        
+        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${keyToUse}`
+          },
+          body: JSON.stringify({ 
+            topic, 
+            startIndex, 
+            batchSize,
+            isVeryHardMode
+          }),
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Fehler beim Generieren von Fragen');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        let buffer = '';
+        let chunkCount = 0;
+        let receivedFirstQuestion = false;
+        let questionCount = 0;
+        
+        // Für den initialen Ladevorgang setzen wir ein höheres Ziel (15 Fragen)
+        const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
+        
+        // Erstellen Sie einen separaten Zähler nur für diesen Stapel
+        let batchQuestionCount = 0;
+        
+        const processStreamChunk = async () => {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break;
+            }
+            
+            const chunk = decoder.decode(value, { stream: true });
+            chunkCount++;
+            
+            // Aktualisieren Sie den Ladevorgang basierend auf Chunks für die erste Frage
+            if (isInitialLoad && !receivedFirstQuestion) {
+              // Für den initialen Ladevorgang skalieren wir basierend auf Chunks, bis wir die erste Frage erhalten
+              const progressValue = Math.min(chunkCount * 10, 90);
+              setLoadingProgress(progressValue);
+            }
+            
+            buffer += chunk;
+            
+            // Versuchen Sie, vollständige Fragen zu extrahieren
+            try {
+              if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
+                const questionMatches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
+                
+                if (questionMatches && questionMatches.length > 0) {
+                  for (const match of questionMatches) {
+                    try {
+                      const questionObj = JSON.parse(match);
+                      
+                      // Validieren Sie die Frageobjektstruktur
+                      if (questionObj.hauptfrage && 
+                          Array.isArray(questionObj.antwortoptionen) && 
+                          questionObj.antwortoptionen.length === 4 &&
+                          typeof questionObj.richtige_antwortnummer === 'number' &&
+                          questionObj.hilfreicher_hinweis) {
+                        
+                        // Transformieren und fügen Sie die Frage unserem Zustand hinzu
+                        const transformedQuestion = {
+                          hauptfrage: questionObj.hauptfrage,
+                          antwortoptionen: questionObj.antwortoptionen,
+                          richtige_antwortnummer: questionObj.richtige_antwortnummer,
+                          hilfreicher_hinweis: questionObj.hilfreicher_hinweis
+                        };
+                        
+                        // Protokollieren Sie die empfangene Frage
+                        console.log(`Frage ${startIndex + questionCount + 1} erhalten:`, questionObj.hauptfrage);
+                        
+                        // Fügen Sie diese Frage unserem Fragenarray hinzu
+                        setQuestions(prevQuestions => {
+                          // Wenn dies ein sehr schwerer Fragenstapel ist (startIndex > 0), stellen Sie sicher, dass wir genügend Platz haben
+                          if (isVeryHardMode && startIndex > 0) {
+                            // Stellen Sie sicher, dass wir genügend Platz für diese Frage haben
+                            const newQuestions = [...prevQuestions];
+                            // Wenn wir an einem Index hinzufügen müssen, der über die aktuelle Länge hinausgeht, füllen Sie mit Platzhaltern
+                            while (newQuestions.length <= startIndex + questionCount) {
+                              newQuestions.push(null);
+                            }
+                            // Platzieren Sie die Frage an der genauen Position
+                            newQuestions[startIndex + questionCount] = transformedQuestion;
+                            return newQuestions;
+                          }
+                          // Andernfalls fügen Sie einfach hinzu
+                          return [...prevQuestions, transformedQuestion];
+                        });
+                        
+                        questionCount++;
+                        batchQuestionCount++;
+                        
+                        // Starten Sie das Spiel, sobald wir die erste Frage haben
+                        if (isInitialLoad && !receivedFirstQuestion) {
+                          setLoadingProgress(100);
+                          setTimeout(() => {
+                            setGameStarted(true);
+                            receivedFirstQuestion = true;
+                            setIsLoading(false);
+                            setIsLoadingMoreQuestions(false);
+                          }, 500);
+                        } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
+                          // Für den sehr schweren Modus sind wir fertig, nachdem wir alle angeforderten Fragen erhalten haben
+                          setIsLoadingMoreQuestions(false);
+                        } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
+                          // Für andere Fragenstapel
+                          setIsLoadingMoreQuestions(false);
+                          receivedFirstQuestion = true;
+                        }
+                        
+                        // Entfernen Sie die verarbeitete Frage aus dem Puffer
+                        buffer = buffer.replace(match, '');
+                      }
+                    } catch (e) {
+                      // Überspringen Sie ungültige JSON-Fragmente
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              // Überspringen Sie Parsenfehler
+            }
+          }
+        };
+        
+        await processStreamChunk();
+      } catch (err) {
+        console.error('Fehler:', err);
+        
+        // Setzen Sie das Spiel nicht zurück, wenn dies ein AbortError ist (wenn der Benutzer falsch geantwortet hat)
+        if (err.name === 'AbortError') {
+          setIsLoading(false);
+          setIsLoadingMoreQuestions(false);
+          return;
+        }
+        
+        setError(err.message);
+        if (err.message.includes('API-Schlüssel')) {
+          sessionStorage.removeItem('openai_api_key');
+          localStorage.removeItem('openai_api_key');
+          setApiKey('');
+        }
+        resetGame();
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMoreQuestions(false);
+        setLoadingProgress(0);
+      }
     }
   };
 
