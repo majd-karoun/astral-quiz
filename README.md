@@ -59,7 +59,7 @@ cd ../server
 npm install
 ```
 
-3. Setzen Sie die Umgebungsvariablen
+3. Setze die Umgebungsvariablen
 
 Frontend (.env):
 ```bash
