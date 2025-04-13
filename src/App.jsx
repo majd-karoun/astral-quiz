@@ -243,7 +243,7 @@ function App() {
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
         
-        const response = await fetch(`http://localhost:8080/api/generate-questions`, {
+        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
           method: 'POST',
           mode: 'cors',
           credentials: 'include',
