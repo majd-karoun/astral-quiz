@@ -48,22 +48,21 @@ const validateApiKey = (apiKey) => {
 };
 
 const constructPrompt = (topic, batchSize = 3) => {
-  return `Erstelle ${batchSize} Quizfragen über ${topic} mit steigendem Schwierigkeitsgrad basierend auf der Fragennummer:
- - Fragen 1-3: Sehr einfach 
- - Fragen 4-5: Einfach 
- - Fragen 6-10: Mittel 
- - Fragen 11-13: Schwer 
- - Fragen 14-15: Sehr schwer 
- 
- 
-Für jede Frage gibst du:
-1. Hauptfrage
-2. Vier Antwortmöglichkeiten (a, b, c, d)
-3. Korrekte Antwortnummer (0-3)
-4. Einen hilfreichen Hinweis, der einen Tipp gibt, ohne die Antwort direkt zu verraten
-5. Verwenden Sie Emojis in Fragen und Antworten.
+  return `Create ${batchSize} quiz questions about ${topic} with increasing difficulty based on the question number:
+ - Questions 1-3: Very Easy
+ - Questions 4-5: Easy
+ - Questions 6-10: Medium
+ - Questions 11-13: Hard
+ - Questions 14-15: Very Hard
 
-Formatiere die Ausgabe als JSON-Objekt mit dieser Struktur:
+For each question, provide:
+1. Main question
+2. Four answer options (a, b, c, d)
+3. Correct answer number (0-3)
+4. A helpful hint that gives a tip without revealing the answer directly
+5. Use emojis in questions and answers.
+
+Format the output as a JSON object with this structure:
 {
   "fragen": [
     {
@@ -77,16 +76,16 @@ Formatiere die Ausgabe als JSON-Objekt mit dieser Struktur:
 };
 
 const constructVeryHardPrompt = (topic, batchSize = 5) => {
-  return `Erstelle ${batchSize} SEHR SCHWERE Quizfragen über ${topic}. Diese sollten extrem schwierige Fragen (1000 Punkte pro Frage) für Experten sein, die bereits 15 progressiv schwierige Fragen beantwortet haben.
+  return `Create ${batchSize} VERY HARD quiz questions about ${topic}. These should be extremely difficult questions (1000 points per question) for experts who have already answered 15 progressively difficult questions.
 
-Für jede Frage gibst du:
-1. Hauptfrage
-2. Vier Antwortmöglichkeiten (a, b, c, d)
-3. Korrekte Antwortnummer (0-3)
-4. Einen hilfreichen Hinweis, der einen Tipp gibt, ohne die Antwort direkt zu verraten
-5. Verwenden Sie Emojis in Fragen und Antworten.
+For each question, provide:
+1. Main question
+2. Four answer options (a, b, c, d)
+3. Correct answer number (0-3)
+4. A helpful hint that gives a tip without revealing the answer directly
+5. Use emojis in questions and answers.
 
-Formatiere die Ausgabe als JSON-Objekt mit dieser Struktur:
+Format the output as a JSON object with this structure:
 {
   "fragen": [
     {

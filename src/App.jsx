@@ -24,16 +24,16 @@ const GameCard = ({ children, show }) => (
 const WinnerCard = ({ points, onRetry, onNewGame }) => (
   <div className="result-screen">
     <Trophy size={64} className="result-icon winner" />
-    <h2 className="title-large">Glückwunsch! Du hast gewonnen!</h2>
-    <p className="score">Punktzahl: {points}</p>
+    <h2 className="title-large">Congratulations! You won!</h2>
+    <p className="score">Score: {points}</p>
     <div className="button-group">
       <button className="button" onClick={onRetry}>
         <Repeat size={24} />
-        Nochmal versuchen
+        Try again
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        Ein anderes Thema wählen
+        Choose another topic
       </button>
     </div>
   </div>
@@ -42,16 +42,16 @@ const WinnerCard = ({ points, onRetry, onNewGame }) => (
 const GameOverCard = ({ points, onRetry, onNewGame }) => (
   <div className="result-screen">
     <X size={64} className="result-icon game-over" />
-    <h2 className="title-large">Spiel vorbei!</h2>
-    <p className="score">Punktzahl: {points}</p>
+    <h2 className="title-large">Game Over!</h2>
+    <p className="score">Score: {points}</p>
     <div className="button-group">
       <button className="button" onClick={onRetry}>
         <Repeat size={24} />
-        Nochmal versuchen
+        Try again
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        Ein anderes Thema wählen
+        Choose another topic
       </button>
     </div>
   </div>
@@ -75,7 +75,7 @@ const QuestionCard = ({
     <div className="header">
       <span className="header-item">
         <Question size={24} />
-        Frage {currentQuestion + 1}
+        Question {currentQuestion + 1}
       </span>
       <span className="header-item score">
         <Target size={24} />
@@ -114,7 +114,7 @@ const QuestionCard = ({
           disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
         >
           <Lightning size={20} />
-          Hinweis ({remainingHints})
+          Hint ({remainingHints})
         </button>
       </div>
       <div className="feedback-container">
@@ -176,11 +176,11 @@ function App() {
   const gameOverSound = new Audio('/sounds/game-over.mp3');
 
   const getPointsForQuestion = (questionNumber) => {
-    if (questionNumber <= 3) return 50;  // Fragen 1-3
-    if (questionNumber <= 5) return 100; // Fragen 4-5
-    if (questionNumber <= 10) return 200; // Fragen 6-10
-    if (questionNumber <= 13) return 500; // Fragen 11-13
-    return 1000; // Fragen 14+ (einschließlich aller sehr schweren Fragen)
+    if (questionNumber <= 3) return 50;  // Questions 1-3
+    if (questionNumber <= 5) return 100; // Questions 4-5
+    if (questionNumber <= 10) return 200; // Questions 6-10
+    if (questionNumber <= 13) return 500; // Questions 11-13
+    return 1000; // Questions 14+ (including all very hard questions)
   };
 
   const saveQuizToHistory = () => {
@@ -191,7 +191,7 @@ function App() {
       timestamp: Date.now()
     };
     
-    // Gruppieren Sie Einträge nach Thema und behalten Sie nur die höchste Punktzahl für jedes
+    // Group entries by topic and keep only the highest score for each
     const groupedHistory = history.reduce((acc, entry) => {
       if (!acc[entry.topic] || entry.score > acc[entry.topic].score) {
         acc[entry.topic] = entry;

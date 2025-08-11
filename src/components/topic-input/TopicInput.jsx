@@ -57,7 +57,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
         <div className="modal-header">
           <div className="modal-title">
             <Trophy size={24} className="leaderboard-icon" />
-            <h2>Bestenliste</h2>
+            <h2>Leaderboard</h2>
           </div>
           <button className="modal-close" onClick={handleClose}>
             <X size={24} />
@@ -82,7 +82,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
             ))
           ) : (
             <div className="leaderboard-empty">
-              Du hast noch keine Aufzeichnungen
+              You have no records yet
             </div>
           )}
         </div>
@@ -127,7 +127,7 @@ const RecentTopics = ({ onSelectTopic }) => {
     <div className="recent-topics">
       <div className="recent-topics-header">
         <Clock size={16} />
-        <span>letzten Themen</span>
+        <span>Recent Topics</span>
       </div>
       <div className="recent-topics-list">
         {recentTopics.map((topic, index) => (
@@ -156,7 +156,7 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const typewriterText = "Trage hier ein Quizthema ein (z.B. Ki oder lustige Fakten)...";
+  const typewriterText = "Enter a quiz topic here (e.g., AI or fun facts)...";
   const inputRef = useRef(null);
 
   // Typewriter effect function
@@ -216,11 +216,11 @@ const TopicInput = ({
 
     if (!hasApiKey) {
       if (!apiKey.trim()) {
-        setApiKeyError('OpenAI API-Schlüssel ist erforderlich');
+        setApiKeyError('OpenAI API key is required');
         return;
       }
       if (!apiKey.startsWith('sk-')) {
-        setApiKeyError('Ungültiges API-Schlüssel-Format');
+        setApiKeyError('Invalid API key format');
         return;
       }
     }
@@ -253,14 +253,14 @@ const TopicInput = ({
           onClick={() => setIsLeaderboardOpen(true)}
         >
           <Trophy size={20} />
-          Bestenliste
+          Leaderboard
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="input-form">
         <div className="input-sections">
           <div className="input-section">
-            <label htmlFor="topic">Quiz-Thema</label>
+            <label htmlFor="topic">Quiz Topic</label>
             <div className="input-container">
               <input
                 ref={inputRef}
@@ -297,14 +297,14 @@ const TopicInput = ({
 
           <div className="input-section">
             <label htmlFor="apiKey">
-              OpenAI API-Schlüssel
+              OpenAI API Key
               <a 
                 href="https://platform.openai.com/api-keys"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="api-key-link"
               >
-                API-Schlüssel holen
+                Get API Key
               </a>
             </label>
             <div className="input-container">
@@ -332,7 +332,7 @@ const TopicInput = ({
           disabled={isLoading || !topic.trim() || !apiKey.trim()}
         >
           <CaretRight className="button-icon" />
-          <span>Quiz starten</span>
+          <span>Start Quiz</span>
         </button>
 
         {error && (

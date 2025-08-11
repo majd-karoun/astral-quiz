@@ -18,7 +18,7 @@ const LoadingScreen = ({ progress = 0 }) => {
 
   return (
     <div className="simple-loading-screen">
-      <h2 className="title-large">Quiz wird erstellt...</h2>
+      <h2 className="title-large">Creating quiz...</h2>
       <div className="progress-bar">
         <div 
           className="progress-fill" 

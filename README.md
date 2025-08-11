@@ -1,65 +1,66 @@
 # Astral Quiz
-Eine interaktive Quizanwendung, die personalisierte Fragen zu jedem Thema mit den GPT-Modellen von OpenAI erstellt. Diese Anwendung erstellt spannende, sich steigernde Quizfragen mit automatischen Hinweisen und Punktesystem.
+An interactive quiz application that generates personalized questions on any topic using OpenAI's GPT models. This application creates exciting, progressively difficult quiz questions with an automatic hint and scoring system.
 
 [Live Demo](https://astral-quiz.netlify.app) 🚀
 
 ![Astral Quiz Interface](./screenshot.png)
 
 
-## 🎮 Wie man spielt
+## 🎮 How to Play
 
-1. Wähle ein Thema.
-2. Trage deinen OpenAI-API-Schlüssel ein.
-3. Beantworte Fragen mit steigendem Schwierigkeitsgrad.
-(Das Quiz läuft unendlich weiter, solange du die Fragen richtig beantwortest.)
-4. Nutze die Hinweise strategisch (3 pro Spiel).
-5. Versuche, die höchste Punktzahl zu erreichen.
-   
-
-## 🔑 API-Schlüssel
-
-- Du benötigst deinen eigenen OpenAI API-Schlüssel, um Fragen zu generieren
-- Dein OpenAI-Konto muss verfügbare Kreditpunkte haben
-- Fragen werden mit dem GPT 4o-mini Modell generiert
+1. Choose a topic.
+2. Enter your OpenAI API key.
+3. Answer questions with increasing difficulty.
+   (The quiz continues indefinitely as long as you answer correctly.)
+4. Use hints strategically (3 per game).
+5. Try to achieve the highest score.
 
 
-## 💻 Technische Stack
+## 🔑 API Key
+
+- You need your own OpenAI API key to generate questions.
+- Your OpenAI account must have available credits.
+- Questions are generated using the GPT-4o-mini model.
+
+
+## 💻 Tech Stack
 ### Frontend
-- **React.js**: Frontend-Framework
-- **Vite**: Build-Tool und Entwicklungsserver
-- **@phosphor-icons/react**: Icon-Bibliothek
-- **CSS**: Benutzerdefinierte Responsive Design
+- **React.js**: Frontend framework
+- **Vite**: Build tool and development server
+- **@phosphor-icons/react**: Icon library
+- **CSS**: Custom responsive design
 
 ### Backend
-- **Node.js**: Runtime-Umgebung
-- **Express.js**: Webanwendungsframework
-- **OpenAI API**: Für die Generierung von Quizfragen
-- **CORS**: Cross-Origin Resource Sharing Unterstützung
+- **Node.js**: Runtime environment
+- **Express.js**: Web application framework
+- **OpenAI API**: For generating quiz questions
+- **CORS**: Cross-Origin Resource Sharing support
 
 ### Deployment
-- **Frontend**: Hosted auf Netlify
-- **Backend**: Hosted auf Fly.io
+- **Frontend**: Hosted on Netlify
+- **Backend**: Hosted on Fly.io
 
-## 🚀 Einstieg
 
-1. Klone das Repository
+## 🚀 Getting Started
+
+1. Clone the repository
 ```bash
 git clone https://github.com/majd-karoun/astral-quiz.git
 cd astral-quiz
 ```
 
-2. Installiere die Abhängigkeiten
+2. Install dependencies
 ```bash
-# Installiere Frontend-Abhängigkeiten
+# Install frontend dependencies
 cd client
 npm install
 
-# Installiere Backend-Abhängigkeiten
+# Install backend dependencies
 cd ../server
 npm install
 ```
 
-3. Setze die Umgebungsvariablen
+3. Set up environment variables
 
 Frontend (.env):
 ```bash
@@ -72,19 +73,19 @@ PORT=3001
 NODE_ENV=development
 ```
 
-4. Starte Entwicklungsserver
+4. Start the development servers
 ```bash
-# Starte den Backend-Server
+# Start the backend server
 cd server
 node server.js
 
-# Starte den Frontend-Server in einem neuen Terminal
+# Start the frontend server in a new terminal
 cd client
 npm run dev
 ```
 
 
-## 🛠️ Anwendungsstruktur
+## 🛠️ Application Structure
 
 ### Frontend
 ```
@@ -106,10 +107,10 @@ server/
 ```
 
 
-## 🤝 Beitrag Leisten
+## 🤝 Contributing
 
-1. Forke das Repository
-2. Erstelle einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
-3. Commite Ihre Änderungen (`git commit -m 'Add some AmazingFeature'`)
-4. Push den Branch (`git push origin feature/AmazingFeature`)
-5. Erstelle einen Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
