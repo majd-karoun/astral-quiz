@@ -33,7 +33,7 @@ const WinnerCard = ({ points, onRetry, onNewGame }) => (
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        New Game
+        New Topic
       </button>
     </div>
   </div>
@@ -51,7 +51,7 @@ const GameOverCard = ({ points, onRetry, onNewGame }) => (
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        New Game
+        New Topic
       </button>
     </div>
   </div>
