@@ -268,7 +268,9 @@ const TopicInput = ({
               <input
                 ref={inputRef}
                 id="topic"
+                name="quiz-topic"
                 type="text"
+                autoComplete="off"
                 value={topic}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -322,6 +324,7 @@ const TopicInput = ({
               <input
                 id="apiKey"
                 type="password"
+                autoComplete="new-password"
                 value={apiKey}
                 onChange={handleApiKeyChange}
                 placeholder="sk-..."
