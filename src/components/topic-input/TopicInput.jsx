@@ -152,7 +152,10 @@ const TopicInput = ({
   error, 
   hasApiKey 
 }) => {
-  const [apiKey, setApiKey] = useState(sessionStorage.getItem('openai_api_key') || '');
+  const [apiKey, setApiKey] = useState(() => {
+    // First check localStorage, then sessionStorage
+    return localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
+  });
   const [apiKeyError, setApiKeyError] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
@@ -197,7 +200,11 @@ const TopicInput = ({
   }, []);
 
   const handleApiKeyChange = (e) => {
-    setApiKey(e.target.value);
+    const newKey = e.target.value;
+    setApiKey(newKey);
+    // Save to both storages when changed
+    localStorage.setItem('openai_api_key', newKey);
+    sessionStorage.setItem('openai_api_key', newKey);
     setApiKeyError('');
   };
 

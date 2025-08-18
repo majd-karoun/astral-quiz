@@ -146,7 +146,10 @@ const QuestionCard = ({
 
 function App() {
   const [topic, setTopic] = useState('');
-  const [apiKey, setApiKey] = useState(() => sessionStorage.getItem('openai_api_key') || localStorage.getItem('openai_api_key') || '');
+  const [apiKey, setApiKey] = useState(() => {
+    // First check localStorage, then sessionStorage
+    return localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
+  });
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -224,8 +227,10 @@ function App() {
     const apiKeyFromInput = document.getElementById('apiKey')?.value;
     if (apiKeyFromInput) {
       setApiKey(apiKeyFromInput);
-      sessionStorage.setItem('openai_api_key', apiKeyFromInput);
+      // Always save to localStorage for persistence
       localStorage.setItem('openai_api_key', apiKeyFromInput);
+      // Also save to sessionStorage for the current session
+      sessionStorage.setItem('openai_api_key', apiKeyFromInput);
       const keyToUse = apiKeyFromInput;
       
       if (isInitialLoad) {
@@ -754,6 +759,14 @@ function App() {
   const startNewGame = () => {
     resetGame();
     setTopic('');
+  };
+
+  const handleApiKeyChange = (e) => {
+    const newKey = e.target.value;
+    setApiKey(newKey);
+    // Save to both storages when changed
+    localStorage.setItem('openai_api_key', newKey);
+    sessionStorage.setItem('openai_api_key', newKey);
   };
 
   useEffect(() => {
