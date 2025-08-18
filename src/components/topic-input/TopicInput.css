@@ -413,18 +413,59 @@
   margin-bottom: 0.5rem;
   color: #4B5563;
   font-size: 0.875rem;
-
 }
 
-.recent-topics-list {
- display: flex;
+.recent-topics {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.recent-topics-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #4B5563;
+  font-size: 0.875rem;
+  padding: 0 1rem;
+}
+
+.topics-grid {
+  display: flex;
+  flex-wrap: nowrap;
   overflow-x: auto;
   gap: 0.5rem;
-  padding-bottom: 0.25rem;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  padding: 0.5rem 1rem 0.75rem 1rem;
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+  white-space: nowrap;
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.topics-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.topic-chip {
+  flex: 0 0 auto;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #4b5563;
+  transition: background-color 0.2s;
+}
+
+.topic-chip:hover {
+  background: #e5e7eb;
 }
 
 .recent-topics-list::-webkit-scrollbar {
