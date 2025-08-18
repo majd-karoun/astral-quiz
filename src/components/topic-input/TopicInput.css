@@ -68,17 +68,54 @@
 .input-container {
   position: relative;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: stretch;
+  border-radius: 0.5rem;
+  overflow: hidden;
+ 
+  width: 100%;
 }
 
 .topic-input {
-  width: 100%;
+  flex: 1;
   padding: 0.75rem 1rem;
-  border: 1px solid #D1D5DB;
-  border-radius: 0.5rem;
+  border: none;
   font-size: 0.875rem;
   transition: all 0.2s;
   background: white;
   color: #000000;
+  min-width: 0;
+  outline: none;
+}
+
+.model-select {
+  padding: 0 2.5rem 0 0.75rem;
+  border: 2px solid;
+  border-radius: 12px;
+  background-color: #D1D5DB;
+  color: #1F2937;
+  font-size: 0.875rem;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-width: 120px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231F2937' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: #5050AA;
+  box-shadow: 0 0 0 3px rgba(80, 80, 170, 0.1);
+}
+
+.model-select:disabled {
+  background-color: #F3F4F6;
+  cursor: not-allowed;
 }
 
 .topic-input:focus {
@@ -354,10 +391,19 @@
   .topic-header {
     margin-top: 2rem;
   }
+
+  .input-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .model-select {
+    height: 50px;
+  }
 }
 
 .recent-topics {
   margin-bottom: 1rem;
+  align-self: start;
 }
 
 .recent-topics-header {
@@ -367,11 +413,11 @@
   margin-bottom: 0.5rem;
   color: #4B5563;
   font-size: 0.875rem;
+
 }
 
 .recent-topics-list {
-  display: flex;
-  white-space: nowrap;
+ display: flex;
   overflow-x: auto;
   gap: 0.5rem;
   padding-bottom: 0.25rem;
@@ -386,6 +432,7 @@
 }
 
 .topic-chip {
+  margin-right: 0.5rem;
   background-color: #F3F4F6;
   border: 1px solid #E5E7EB;
   border-radius: 1rem;
@@ -394,6 +441,7 @@
   color: #37513d;
   cursor: pointer;
   transition: all 0.2s;
+  
 }
 
 .topic-chip:hover {

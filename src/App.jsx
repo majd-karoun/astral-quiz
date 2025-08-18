@@ -33,7 +33,7 @@ const WinnerCard = ({ points, onRetry, onNewGame }) => (
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        Choose another topic
+        New Game
       </button>
     </div>
   </div>
@@ -51,7 +51,7 @@ const GameOverCard = ({ points, onRetry, onNewGame }) => (
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
-        Choose another topic
+        New Game
       </button>
     </div>
   </div>
@@ -79,16 +79,15 @@ const QuestionCard = ({
       </span>
       <span className="header-item score">
         <Target size={24} />
-        <span className={`score-number ${pointsChanged ? 'changed' : ''}`}>{points}</span>
+        Score: <span className={`score-number ${pointsChanged ? 'changed' : ''}`}>{points}</span>
       </span>
     </div>
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
-      <div className="question">{question.hauptfrage}</div>
+      <div className="question">{question.mainQuestion}</div>
       <div className="options-grid">
-        {question.antwortoptionen.map((option, index) => {
-          const isCorrect = isShowingAnswers && index === question.richtige_antwortnummer;
+        {question.answerOptions.map((option, index) => {
+          const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
           const isSelected = isShowingAnswers && index === selectedAnswer;
-          const isCorrectAnswer = index === question.richtige_antwortnummer;
           
           return (
             <button
@@ -199,11 +198,11 @@ function App() {
       return acc;
     }, {});
     
-    // Konvertieren Sie zurück in ein Array und fügen Sie den neuen Quiz hinzu
+    // Convert back to an array and add the new quiz
     const currentHistory = Object.values(groupedHistory);
     const newHistory = [newQuiz, ...currentHistory];
     
-    // Sortieren Sie nach Punktzahl absteigend, dann nach Zeitstempel absteigend
+    // Sort by score descending, then by timestamp descending
     const sortedHistory = newHistory
       .sort((a, b) => {
         if (a.score !== b.score) return b.score - a.score;
@@ -214,9 +213,10 @@ function App() {
     localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
   };
 
-  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false) => {
+  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {
+    console.log('Fetching questions with model:', model);
     if (!topic.trim()) {
-      setError('Bitte gib ein Thema ein');
+      setError('Please enter a topic');
       return;
     }
 
@@ -242,7 +242,7 @@ function App() {
 
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-        
+
         const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
           method: 'POST',
           mode: 'cors',
@@ -255,14 +255,15 @@ function App() {
             topic, 
             startIndex, 
             batchSize,
-            isVeryHardMode
+            isVeryHardMode,
+            model
           }),
           signal: controller.signal
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Fehler beim Generieren von Fragen');
+          throw new Error(errorData.error || 'Error generating questions');
         }
 
         const reader = response.body.getReader();
@@ -273,10 +274,10 @@ function App() {
         let receivedFirstQuestion = false;
         let questionCount = 0;
         
-        // Für den initialen Ladevorgang setzen wir ein höheres Ziel (15 Fragen)
+        // For the initial load, we set a higher target (15 questions)
         const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
         
-        // Erstellen Sie einen separaten Zähler nur für diesen Stapel
+        // Create a separate counter just for this batch
         let batchQuestionCount = 0;
         
         const processStreamChunk = async () => {
@@ -289,65 +290,65 @@ function App() {
             const chunk = decoder.decode(value, { stream: true });
             chunkCount++;
             
-            // Aktualisieren Sie den Ladevorgang basierend auf Chunks für die erste Frage
+            // Update loading progress based on chunks for the first question
             if (isInitialLoad && !receivedFirstQuestion) {
-              // Für den initialen Ladevorgang skalieren wir basierend auf Chunks, bis wir die erste Frage erhalten
+              // For the initial load, we scale based on chunks until we receive the first question
               const progressValue = Math.min(chunkCount * 10, 90);
               setLoadingProgress(progressValue);
             }
             
             buffer += chunk;
             
-            // Versuchen Sie, vollständige Fragen zu extrahieren
+            // Try to extract complete questions
             try {
-              if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
-                const questionMatches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
+              if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
+                const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
                 
                 if (questionMatches && questionMatches.length > 0) {
                   for (const match of questionMatches) {
                     try {
                       const questionObj = JSON.parse(match);
                       
-                      // Validieren Sie die Frageobjektstruktur
-                      if (questionObj.hauptfrage && 
-                          Array.isArray(questionObj.antwortoptionen) && 
-                          questionObj.antwortoptionen.length === 4 &&
-                          typeof questionObj.richtige_antwortnummer === 'number' &&
-                          questionObj.hilfreicher_hinweis) {
+                      // Validate the question object structure
+                      if (questionObj.mainQuestion && 
+                          Array.isArray(questionObj.answerOptions) && 
+                          questionObj.answerOptions.length === 4 &&
+                          typeof questionObj.correctAnswerIndex === 'number' &&
+                          questionObj.helpfulHint) {
                         
-                        // Transformieren und fügen Sie die Frage unserem Zustand hinzu
+                        // Transform and add the question to our state
                         const transformedQuestion = {
-                          hauptfrage: questionObj.hauptfrage,
-                          antwortoptionen: questionObj.antwortoptionen,
-                          richtige_antwortnummer: questionObj.richtige_antwortnummer,
-                          hilfreicher_hinweis: questionObj.hilfreicher_hinweis
+                          mainQuestion: questionObj.mainQuestion,
+                          answerOptions: questionObj.answerOptions,
+                          correctAnswerIndex: questionObj.correctAnswerIndex,
+                          helpfulHint: questionObj.helpfulHint
                         };
                         
-                        // Protokollieren Sie die empfangene Frage
-                        console.log(`Frage ${startIndex + questionCount + 1} erhalten:`, questionObj.hauptfrage);
+                        // Log the received question
+                        console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
                         
-                        // Fügen Sie diese Frage unserem Fragenarray hinzu
+                        // Add this question to our questions array
                         setQuestions(prevQuestions => {
-                          // Wenn dies ein sehr schwerer Fragenstapel ist (startIndex > 0), stellen Sie sicher, dass wir genügend Platz haben
+                          // If this is a very hard question batch (startIndex > 0), make sure we have enough space
                           if (isVeryHardMode && startIndex > 0) {
-                            // Stellen Sie sicher, dass wir genügend Platz für diese Frage haben
+                            // Make sure we have enough space for this question
                             const newQuestions = [...prevQuestions];
-                            // Wenn wir an einem Index hinzufügen müssen, der über die aktuelle Länge hinausgeht, füllen Sie mit Platzhaltern
+                            // If we need to add at an index beyond the current length, fill with placeholders
                             while (newQuestions.length <= startIndex + questionCount) {
                               newQuestions.push(null);
                             }
-                            // Platzieren Sie die Frage an der genauen Position
+                            // Place the question at the exact position
                             newQuestions[startIndex + questionCount] = transformedQuestion;
                             return newQuestions;
                           }
-                          // Andernfalls fügen Sie einfach hinzu
+                          // Otherwise, just add
                           return [...prevQuestions, transformedQuestion];
                         });
                         
                         questionCount++;
                         batchQuestionCount++;
                         
-                        // Starten Sie das Spiel, sobald wir die erste Frage haben
+                        // Start the game as soon as we have the first question
                         if (isInitialLoad && !receivedFirstQuestion) {
                           setLoadingProgress(100);
                           setTimeout(() => {
@@ -357,34 +358,34 @@ function App() {
                             setIsLoadingMoreQuestions(false);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                          // Für den sehr schweren Modus sind wir fertig, nachdem wir alle angeforderten Fragen erhalten haben
+                          // For very hard mode, we are done after receiving all requested questions
                           setIsLoadingMoreQuestions(false);
                         } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                          // Für andere Fragenstapel
+                          // For other question batches
                           setIsLoadingMoreQuestions(false);
                           receivedFirstQuestion = true;
                         }
                         
-                        // Entfernen Sie die verarbeitete Frage aus dem Puffer
+                        // Remove the processed question from the buffer
                         buffer = buffer.replace(match, '');
                       }
                     } catch (e) {
-                      // Überspringen Sie ungültige JSON-Fragmente
+                      // Skip invalid JSON fragments
                     }
                   }
                 }
               }
             } catch (e) {
-              // Überspringen Sie Parsenfehler
+              // Skip parsing errors
             }
           }
         };
         
         await processStreamChunk();
       } catch (err) {
-        console.error('Fehler:', err);
+        console.error('Error:', err);
         
-        // Setzen Sie das Spiel nicht zurück, wenn dies ein AbortError ist (wenn der Benutzer falsch geantwortet hat)
+        // Don't reset the game if this is an AbortError (when the user answered incorrectly)
         if (err.name === 'AbortError') {
           setIsLoading(false);
           setIsLoadingMoreQuestions(false);
@@ -392,7 +393,7 @@ function App() {
         }
         
         setError(err.message);
-        if (err.message.includes('API-Schlüssel')) {
+        if (err.message.includes('API key')) {
           sessionStorage.removeItem('openai_api_key');
           localStorage.removeItem('openai_api_key');
           setApiKey('');
@@ -421,8 +422,8 @@ function App() {
 
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-        
-        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+        // https://server-cold-hill-2617.fly.dev
+        const response = await fetch(`http://localhost:8080/api/generate-questions`, {
           method: 'POST',
           mode: 'cors',
           credentials: 'include',
@@ -434,14 +435,15 @@ function App() {
             topic, 
             startIndex, 
             batchSize,
-            isVeryHardMode
+            isVeryHardMode,
+            model
           }),
           signal: controller.signal
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Fehler beim Generieren von Fragen');
+          throw new Error(errorData.error || 'Error generating questions');
         }
 
         const reader = response.body.getReader();
@@ -452,10 +454,10 @@ function App() {
         let receivedFirstQuestion = false;
         let questionCount = 0;
         
-        // Für den initialen Ladevorgang setzen wir ein höheres Ziel (15 Fragen)
+        // For the initial load, we set a higher target (15 questions)
         const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
         
-        // Erstellen Sie einen separaten Zähler nur für diesen Stapel
+        // Create a separate counter just for this batch
         let batchQuestionCount = 0;
         
         const processStreamChunk = async () => {
@@ -468,65 +470,65 @@ function App() {
             const chunk = decoder.decode(value, { stream: true });
             chunkCount++;
             
-            // Aktualisieren Sie den Ladevorgang basierend auf Chunks für die erste Frage
+            // Update loading progress based on chunks for the first question
             if (isInitialLoad && !receivedFirstQuestion) {
-              // Für den initialen Ladevorgang skalieren wir basierend auf Chunks, bis wir die erste Frage erhalten
+              // For the initial load, we scale based on chunks until we receive the first question
               const progressValue = Math.min(chunkCount * 10, 90);
               setLoadingProgress(progressValue);
             }
             
             buffer += chunk;
             
-            // Versuchen Sie, vollständige Fragen zu extrahieren
+            // Try to extract complete questions
             try {
-              if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
-                const questionMatches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
+              if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
+                const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
                 
                 if (questionMatches && questionMatches.length > 0) {
                   for (const match of questionMatches) {
                     try {
                       const questionObj = JSON.parse(match);
                       
-                      // Validieren Sie die Frageobjektstruktur
-                      if (questionObj.hauptfrage && 
-                          Array.isArray(questionObj.antwortoptionen) && 
-                          questionObj.antwortoptionen.length === 4 &&
-                          typeof questionObj.richtige_antwortnummer === 'number' &&
-                          questionObj.hilfreicher_hinweis) {
+                      // Validate the question object structure
+                      if (questionObj.mainQuestion && 
+                          Array.isArray(questionObj.answerOptions) && 
+                          questionObj.answerOptions.length === 4 &&
+                          typeof questionObj.correctAnswerIndex === 'number' &&
+                          questionObj.helpfulHint) {
                         
-                        // Transformieren und fügen Sie die Frage unserem Zustand hinzu
+                        // Transform and add the question to our state
                         const transformedQuestion = {
-                          hauptfrage: questionObj.hauptfrage,
-                          antwortoptionen: questionObj.antwortoptionen,
-                          richtige_antwortnummer: questionObj.richtige_antwortnummer,
-                          hilfreicher_hinweis: questionObj.hilfreicher_hinweis
+                          mainQuestion: questionObj.mainQuestion,
+                          answerOptions: questionObj.answerOptions,
+                          correctAnswerIndex: questionObj.correctAnswerIndex,
+                          helpfulHint: questionObj.helpfulHint
                         };
                         
-                        // Protokollieren Sie die empfangene Frage
-                        console.log(`Frage ${startIndex + questionCount + 1} erhalten:`, questionObj.hauptfrage);
+                        // Log the received question
+                        console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
                         
-                        // Fügen Sie diese Frage unserem Fragenarray hinzu
+                        // Add this question to our questions array
                         setQuestions(prevQuestions => {
-                          // Wenn dies ein sehr schwerer Fragenstapel ist (startIndex > 0), stellen Sie sicher, dass wir genügend Platz haben
+                          // If this is a very hard question batch (startIndex > 0), make sure we have enough space
                           if (isVeryHardMode && startIndex > 0) {
-                            // Stellen Sie sicher, dass wir genügend Platz für diese Frage haben
+                            // Make sure we have enough space for this question
                             const newQuestions = [...prevQuestions];
-                            // Wenn wir an einem Index hinzufügen müssen, der über die aktuelle Länge hinausgeht, füllen Sie mit Platzhaltern
+                            // If we need to add at an index beyond the current length, fill with placeholders
                             while (newQuestions.length <= startIndex + questionCount) {
                               newQuestions.push(null);
                             }
-                            // Platzieren Sie die Frage an der genauen Position
+                            // Place the question at the exact position
                             newQuestions[startIndex + questionCount] = transformedQuestion;
                             return newQuestions;
                           }
-                          // Andernfalls fügen Sie einfach hinzu
+                          // Otherwise, just add
                           return [...prevQuestions, transformedQuestion];
                         });
                         
                         questionCount++;
                         batchQuestionCount++;
                         
-                        // Starten Sie das Spiel, sobald wir die erste Frage haben
+                        // Start the game as soon as we have the first question
                         if (isInitialLoad && !receivedFirstQuestion) {
                           setLoadingProgress(100);
                           setTimeout(() => {
@@ -536,34 +538,34 @@ function App() {
                             setIsLoadingMoreQuestions(false);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                          // Für den sehr schweren Modus sind wir fertig, nachdem wir alle angeforderten Fragen erhalten haben
+                          // For very hard mode, we are done after receiving all requested questions
                           setIsLoadingMoreQuestions(false);
                         } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                          // Für andere Fragenstapel
+                          // For other question batches
                           setIsLoadingMoreQuestions(false);
                           receivedFirstQuestion = true;
                         }
                         
-                        // Entfernen Sie die verarbeitete Frage aus dem Puffer
+                        // Remove the processed question from the buffer
                         buffer = buffer.replace(match, '');
                       }
                     } catch (e) {
-                      // Überspringen Sie ungültige JSON-Fragmente
+                      // Skip invalid JSON fragments
                     }
                   }
                 }
               }
             } catch (e) {
-              // Überspringen Sie Parsenfehler
+              // Skip parsing errors
             }
           }
         };
         
         await processStreamChunk();
       } catch (err) {
-        console.error('Fehler:', err);
+        console.error('Error:', err);
         
-        // Setzen Sie das Spiel nicht zurück, wenn dies ein AbortError ist (wenn der Benutzer falsch geantwortet hat)
+        // Don't reset the game if this is an AbortError (when the user answered incorrectly)
         if (err.name === 'AbortError') {
           setIsLoading(false);
           setIsLoadingMoreQuestions(false);
@@ -571,7 +573,7 @@ function App() {
         }
         
         setError(err.message);
-        if (err.message.includes('API-Schlüssel')) {
+        if (err.message.includes('API key')) {
           sessionStorage.removeItem('openai_api_key');
           localStorage.removeItem('openai_api_key');
           setApiKey('');
@@ -585,36 +587,36 @@ function App() {
     }
   };
 
-  // Überprüfen Sie, ob wir weitere Fragen laden müssen
+  // Check if we need to load more questions
   useEffect(() => {
-    // Laden Sie sehr schwere Fragen, wenn der Spieler Frage 10 erreicht
+    // Load very hard questions when the player reaches question 10
     if (gameStarted && 
-        currentQuestion === 9 && // Hat gerade Frage 10 beantwortet
+        currentQuestion === 9 && // Just answered question 10
         !isLoadingMoreQuestions && 
         !isLoading && 
         !loadedVeryHardQuestions && 
         !gameOver && 
         !showWinner) {
       setLoadedVeryHardQuestions(true);
-      // Generieren Sie Fragen 16-20 (sehr schwer)
+      // Generate questions 16-20 (very hard)
       fetchQuestions(null, 15, false, true);
     }
     
-    // Wenn der Spieler Frage 15 erreicht, laden Sie 5 weitere sehr schwere Fragen
+    // If the player reaches question 15, load 5 more very hard questions
     if (gameStarted && 
-        currentQuestion === 14 && // Hat gerade Frage 15 beantwortet
+        currentQuestion === 14 && // Just answered question 15
         !isLoadingMoreQuestions && 
         !isLoading && 
         !gameOver && 
         !showWinner) {
-      // Generieren Sie Fragen 21-25 (sehr schwer)
+      // Generate questions 21-25 (very hard)
       fetchQuestions(null, 20, false, true);
     }
     
-    // Laden Sie weitere sehr schwere Fragenstapel alle 5 Fragen nach Frage 15
+    // Load more very hard question batches every 5 questions after question 15
     if (gameStarted &&
         currentQuestion >= 15 &&
-        (currentQuestion - 15) % 5 === 4 &&  // Fragen 19, 24, 29 usw. (um sich auf 20, 25, 30 vorzubereiten)
+        (currentQuestion - 15) % 5 === 4 &&  // Questions 19, 24, 29, etc. (to prepare for 20, 25, 30)
         !isLoadingMoreQuestions &&
         !isLoading &&
         !gameOver &&
@@ -625,15 +627,15 @@ function App() {
   }, [currentQuestion, gameStarted, isLoading, isLoadingMoreQuestions, gameOver, showWinner, loadedVeryHardQuestions]);
 
   const handleAnswer = async (optionIndex) => {
-    const correctAnswer = questions[currentQuestion].richtige_antwortnummer;
-    const questionNumber = currentQuestion + 1; // Konvertieren Sie den Index in eine Fragezahl
+    const correctAnswer = questions[currentQuestion].correctAnswerIndex;
+    const questionNumber = currentQuestion + 1; // Convert index to question number
     const questionPoints = getPointsForQuestion(questionNumber);
 
     setSelectedAnswer(optionIndex);
     setIsShowingAnswers(true);
 
     if (optionIndex === correctAnswer) {
-      // Spielen Sie den Soundeffekt für die richtige Antwort ab
+      // Play the sound effect for the correct answer
       scoreUpSound.play();
       
       setPrevPoints(points);
@@ -645,12 +647,12 @@ function App() {
       });
       setFeedback({
         type: 'success',
-        message: `Richtig! +${questionPoints} Punkte`
+        message: 'Correct answer! You received ' + questionPoints + ' points!'
       });
-      
+            
       setTimeout(() => {
-        // Im Endlosmodus erreichen wir nie das "Ende" der Fragen
-        // Wir machen einfach weiter, solange der Spieler richtig antwortet
+        // In endless mode, we never reach the "end" of the questions
+        // We just keep going as long as the player answers correctly
         setIsTransitioning(true);
         setTimeout(() => {
           setCurrentQuestion(prev => prev + 1);
@@ -661,26 +663,26 @@ function App() {
         }, 500);
       }, 1000);
     } else {
-      // Spielen Sie den Soundeffekt für die falsche Antwort ab
+      // Play the sound effect for the incorrect answer
       gameOverSound.play();
       
-      // Stornieren Sie alle laufenden Anforderungen
+      // Cancel any ongoing requests
       if (abortController) {
         try {
           abortController.abort();
         } catch (e) {
-          console.error("Fehler beim Abbrechen der Anforderung:", e);
+          console.error("Error canceling request:", e);
         }
         setAbortController(null);
       }
       
-      // Stellen Sie sicher, dass die Ladezustände zurückgesetzt werden
+      // Make sure the loading states are reset
       setIsLoading(false);
       setIsLoadingMoreQuestions(false);
       
       setFeedback({
         type: 'error',
-        message: 'Falsche Antwort!'
+        message: 'Wrong answer!'
       });
       
       setTimeout(() => {
@@ -691,20 +693,20 @@ function App() {
   };
 
   const useHint = () => {
-    // Gehen Sie zurück, wenn die Bedingungen nicht erfüllt sind
+    // Return if conditions are not met
     if (!questions[currentQuestion] || 
         usedHints.has(currentQuestion) || 
         remainingHints <= 0) {
       return;
     }
   
-    const currentHint = questions[currentQuestion].hilfreicher_hinweis;
+    const currentHint = questions[currentQuestion].helpfulHint;
     
-    // Setzen Sie das Feedback zuerst
+    // Set feedback first
     if (!currentHint || currentHint.trim() === '') {
       setFeedback({
         type: 'hint',
-        message: 'Kein Hinweis verfügbar für diese Frage'
+        message: 'No hint available for this question'
       });
     } else {
       setFeedback({
@@ -713,7 +715,7 @@ function App() {
       });
     }
     
-    // Aktualisieren Sie dann die Hinweiszustände
+    // Then, update hint states
     setUsedHints(prev => {
       const newSet = new Set(prev);
       newSet.add(currentQuestion);
@@ -723,7 +725,7 @@ function App() {
     setRemainingHints(prev => Math.max(0, prev - 1));
   };
   const resetGame = () => {
-    // Stornieren Sie alle laufenden Anforderungen
+    // Cancel any ongoing requests
     if (abortController) {
       abortController.abort();
       setAbortController(null);
@@ -755,11 +757,11 @@ function App() {
   };
 
   useEffect(() => {
-    // Wenn die aktuelle Frage null oder ein Platzhalter ist, versuchen Sie, zur nächsten zu wechseln
+    // If the current question is null or a placeholder, try to move to the next one
     if (gameStarted && 
         questions.length > currentQuestion && 
         (!questions[currentQuestion] || questions[currentQuestion].isPlaceholder)) {
-      // Versuchen Sie, zur nächsten Frage zu wechseln
+      // Try to move to the next question
       setCurrentQuestion(prev => prev + 1);
     }
   }, [currentQuestion, questions, gameStarted]);
@@ -772,7 +774,7 @@ function App() {
             <TopicInput
               topic={topic}
               setTopic={setTopic}
-              generateQuestions={() => fetchQuestions(null, 0, true, false)}
+              generateQuestions={(apiKey, model) => fetchQuestions(apiKey, 0, true, false, model)}
               isLoading={isLoading}
               error={error}
               hasApiKey={!!apiKey}

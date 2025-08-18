@@ -129,10 +129,10 @@ const RecentTopics = ({ onSelectTopic }) => {
         <Clock size={16} />
         <span>Recent Topics</span>
       </div>
-      <div className="recent-topics-list">
-        {recentTopics.map((topic, index) => (
-          <button
-            key={index}
+      <div className="topics-grid">
+        {recentTopics.map(topic => (
+          <button 
+            key={topic} 
             className="topic-chip"
             onClick={() => onSelectTopic(topic)}
           >
@@ -152,37 +152,58 @@ const TopicInput = ({
   error, 
   hasApiKey 
 }) => {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || '');
+  const [apiKey, setApiKey] = useState(sessionStorage.getItem('openai_api_key') || '');
   const [apiKeyError, setApiKeyError] = useState('');
-  const [placeholder, setPlaceholder] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const typewriterText = "Enter a quiz topic here (e.g., AI or fun facts)...";
+  const [placeholder, setPlaceholder] = useState('');
+  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const inputRef = useRef(null);
 
-  // Typewriter effect function
-  const typeWriter = (text, currentIndex = 0) => {
-    if (currentIndex < text.length) {
-      setPlaceholder(text.substring(0, currentIndex + 1));
-      setTimeout(() => typeWriter(text, currentIndex + 1), 20);
-    }
-  };
+  useEffect(() => {
+    const placeholders = [
+      'History of the Roman Empire',
+      'Quantum Physics for Beginners',
+      'The Works of Leonardo da Vinci',
+      'Deep Sea Marine Biology',
+      'The French Revolution'
+    ];
+    let currentIndex = 0;
+    let letterIndex = 0;
+    let currentPlaceholder = '';
+
+    const typeWriter = () => {
+      if (letterIndex < placeholders[currentIndex].length) {
+        currentPlaceholder += placeholders[currentIndex].charAt(letterIndex);
+        setPlaceholder(currentPlaceholder);
+        letterIndex++;
+        setTimeout(typeWriter, 50);
+      } else {
+        setTimeout(() => {
+          letterIndex = 0;
+          currentPlaceholder = '';
+          currentIndex = (currentIndex + 1) % placeholders.length;
+          typeWriter();
+        }, 3000);
+      }
+    };
+
+    typeWriter();
+  }, []);
 
   useEffect(() => {
-    setPlaceholder('');
-    typeWriter(typewriterText);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   }, []);
 
   const handleApiKeyChange = (e) => {
-    const newApiKey = e.target.value;
-    setApiKey(newApiKey);
-    localStorage.setItem('openai_api_key', newApiKey);
+    setApiKey(e.target.value);
+    setApiKeyError('');
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setApiKeyError('');
-    
-    // Play click sound
+
     const clickSound = new Howl({
       src: ['/sounds/click.mp3'],
       volume: 0.4
@@ -193,30 +214,9 @@ const TopicInput = ({
       return;
     }
 
-    // Limit topic length to 100 characters
-    if (topic.length > 100) {
-      setTopic(topic.slice(0, 100));
-      return;
-    }
-
-    // Check for words longer than 40 characters
-    const words = topic.split(' ');
-    const hasLongWord = words.some(word => word.length > 40);
-    if (hasLongWord) {
-      // Find and truncate the longest word
-      const truncatedWords = words.map(word => {
-        if (word.length > 40) {
-          return word.slice(0, 40);
-        }
-        return word;
-      });
-      setTopic(truncatedWords.join(' '));
-      return;
-    }
-
     if (!hasApiKey) {
       if (!apiKey.trim()) {
-        setApiKeyError('OpenAI API key is required');
+        setApiKeyError('API key is required');
         return;
       }
       if (!apiKey.startsWith('sk-')) {
@@ -225,20 +225,16 @@ const TopicInput = ({
       }
     }
     
-    generateQuestions(hasApiKey ? null : apiKey);
+    generateQuestions(hasApiKey ? null : apiKey, selectedModel);
   };
 
-  // Handle Enter key press in the topic input
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      // Check if the form is valid and not loading
       if (!isLoading && topic.trim() && apiKey.trim()) {
-        e.preventDefault(); // Prevent default Enter behavior (like newline)
-        handleSubmit(e); // Trigger the form submission
-      }
-      // If form is not valid, Enter should do nothing special
-      else {
-         e.preventDefault(); // Prevent default Enter behavior even if invalid
+        e.preventDefault();
+        handleSubmit(e);
+      } else {
+         e.preventDefault();
       }
     }
   };
@@ -270,11 +266,9 @@ const TopicInput = ({
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value.length <= 100) {
-                    // Split into words and check each word's length
                     const words = value.split(' ');
                     const hasLongWord = words.some(word => word.length > 40);
                     if (hasLongWord) {
-                      // Find and truncate the longest word
                       const truncatedWords = words.map(word => {
                         if (word.length > 40) {
                           return word.slice(0, 40);
@@ -290,8 +284,18 @@ const TopicInput = ({
                 placeholder={placeholder}
                 className="topic-input"
                 disabled={isLoading}
-                onKeyDown={handleKeyDown} // Add the keydown handler here
+                onKeyDown={handleKeyDown}
+
               />
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="model-select"
+                disabled={isLoading}
+              >
+                <option value="gpt-4o-mini">GPT-4 (faster)</option>
+                <option value="gpt-5-mini">GPT-5 (smarter)</option>
+              </select>
             </div>
           </div>
 

@@ -20,7 +20,7 @@ An interactive quiz application that generates personalized questions on any top
 
 - You need your own OpenAI API key to generate questions.
 - Your OpenAI account must have available credits.
-- Questions are generated using the GPT-4o-mini model.
+- Questions are generated using the GPT-4o-mini or GPT-5-mini model.  
 
 
 ## 💻 Tech Stack

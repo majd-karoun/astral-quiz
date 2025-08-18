@@ -60,16 +60,16 @@ For each question, provide:
 2. Four answer options (a, b, c, d)
 3. Correct answer number (0-3)
 4. A helpful hint that gives a tip without revealing the answer directly
-5. Use emojis in questions and answers.
+5. Use an emoji at the end of each question sentence (after question mark).
 
 Format the output as a JSON object with this structure:
 {
-  "fragen": [
+  "questions": [
     {
-      "hauptfrage": "string",
-      "antwortoptionen": ["string", "string", "string", "string"],
-      "richtige_antwortnummer": number,
-      "hilfreicher_hinweis": "string"
+      "mainQuestion": "string",
+      "answerOptions": ["string", "string", "string", "string"],
+      "correctAnswerIndex": number,
+      "helpfulHint": "string"
     }
   ]
 }`;
@@ -83,16 +83,16 @@ For each question, provide:
 2. Four answer options (a, b, c, d)
 3. Correct answer number (0-3)
 4. A helpful hint that gives a tip without revealing the answer directly
-5. Use emojis in questions and answers.
+5. Use an emoji at the end of each question sentence (after question mark).
 
 Format the output as a JSON object with this structure:
 {
-  "fragen": [
+  "questions": [
     {
-      "hauptfrage": "string",
-      "antwortoptionen": ["string", "string", "string", "string"],
-      "richtige_antwortnummer": number,
-      "hilfreicher_hinweis": "string"
+      "mainQuestion": "string",
+      "answerOptions": ["string", "string", "string", "string"],
+      "correctAnswerIndex": number,
+      "helpfulHint": "string"
     }
   ]
 }`;
@@ -101,7 +101,8 @@ Format the output as a JSON object with this structure:
 // Main question generation endpoint
 app.post('/api/generate-questions', async (req, res) => {
   try {
-    const { topic, startIndex = 0, batchSize = 3, isVeryHardMode = false } = req.body;
+    const { topic, startIndex = 0, batchSize = 3, isVeryHardMode = false, model = 'gpt-4o-mini' } = req.body;
+    console.log('Using model:', model);
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
     if (!apiKey) {
@@ -127,8 +128,8 @@ app.post('/api/generate-questions', async (req, res) => {
           role: "user", 
           content: isVeryHardMode ? constructVeryHardPrompt(topic, batchSize) : constructPrompt(topic, batchSize)
         }],
-        model: "gpt-4o-mini",
-        temperature: 0.7,
+        model: model,
+        
         stream: true,
         response_format: { type: "json_object" }
       });
@@ -142,7 +143,7 @@ app.post('/api/generate-questions', async (req, res) => {
     let questionCount = 0;
     
     // Start the response with the opening structure
-    res.write('{"fragen":[');
+    res.write('{"questions":[');
     
     // Process the stream
     for await (const chunk of stream) {
@@ -153,9 +154,9 @@ app.post('/api/generate-questions', async (req, res) => {
         // Try to extract complete questions as they come in
         try {
           // Check if we have a complete JSON object with a question
-          if (buffer.includes('"hauptfrage"') && buffer.includes('"richtige_antwortnummer"')) {
+          if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
             // Extract question objects from the buffer using a more robust regex
-            const matches = buffer.match(/{[^{]*"hauptfrage"[^{]*"richtige_antwortnummer"[^{}]*}/g);
+            const matches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
             
             if (matches && matches.length > 0) {
               for (const match of matches) {
@@ -164,11 +165,11 @@ app.post('/api/generate-questions', async (req, res) => {
                   const questionObj = JSON.parse(match);
                   
                   // Validate the question object
-                  if (questionObj.hauptfrage && 
-                      Array.isArray(questionObj.antwortoptionen) && 
-                      questionObj.antwortoptionen.length === 4 &&
-                      typeof questionObj.richtige_antwortnummer === 'number' &&
-                      questionObj.hilfreicher_hinweis) {
+                  if (questionObj.mainQuestion && 
+                      Array.isArray(questionObj.answerOptions) && 
+                      questionObj.answerOptions.length === 4 &&
+                      typeof questionObj.correctAnswerIndex === 'number' &&
+                      questionObj.helpfulHint) {
                     
                     // Send the question to the client
                     if (questionCount > 0) {
@@ -177,15 +178,15 @@ app.post('/api/generate-questions', async (req, res) => {
                     
                     // Format and send the question
                     const formattedQuestion = {
-                      hauptfrage: questionObj.hauptfrage,
-                      antwortoptionen: questionObj.antwortoptionen,
-                      richtige_antwortnummer: questionObj.richtige_antwortnummer,
-                      hilfreicher_hinweis: questionObj.hilfreicher_hinweis
+                      mainQuestion: questionObj.mainQuestion,
+                      answerOptions: questionObj.answerOptions,
+                      correctAnswerIndex: questionObj.correctAnswerIndex,
+                      helpfulHint: questionObj.helpfulHint
                     };
                     
                     const questionJson = JSON.stringify(formattedQuestion);
                     // Only log the question content
-                    console.log(`Question content: ${questionObj.hauptfrage}`);
+                    console.log(`Question content: ${questionObj.mainQuestion}`);
                     
                     // Flush the response immediately to ensure the client receives it
                     res.write(questionJson);
