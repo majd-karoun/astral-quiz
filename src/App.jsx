@@ -37,7 +37,6 @@ function App() {
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
   const [pointsChanged, setPointsChanged] = useState(false);
   const [abortController, setAbortController] = useState(null);
-  const [isRequestAborted, setIsRequestAborted] = useState(false);
   const [isGameOverExiting, setIsGameOverExiting] = useState(false);
   
   // Create audio elements for sound effects
@@ -83,462 +82,209 @@ function App() {
     localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
   };
 
-  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini', topicOverride = null) => {
+  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {
     console.log('Fetching questions with model:', model);
     
-    // Always get the current topic from the input field to ensure we have the latest value
-    const topicFromInput = document.getElementById('topic')?.value;
-    const topicToUse = topicOverride || topicFromInput || topic;
-    if (!topicToUse.trim()) {
+    // Get the current topic from the input field to ensure we have the latest value
+    const topicFromInput = document.getElementById('topic')?.value || topic;
+    if (!topicFromInput.trim()) {
       setError('Please enter a topic');
       return;
     }
 
-    // First check if there's an API key in the input field
+    // Determine which API key to use
     const apiKeyFromInput = document.getElementById('apiKey')?.value;
+    let keyToUse;
+    
     if (apiKeyFromInput) {
       setApiKey(apiKeyFromInput);
-      // Always save to localStorage for persistence
       localStorage.setItem('openai_api_key', apiKeyFromInput);
-      // Also save to sessionStorage for the current session
       sessionStorage.setItem('openai_api_key', apiKeyFromInput);
-      const keyToUse = apiKeyFromInput;
-      
-      if (isInitialLoad) {
-        setLoadingProgress(0);
-        setIsLoading(true);
-      } else {
-        setIsLoadingMoreQuestions(true);
-      }
-      setError(null);
-
-      // Create a new AbortController instance
-      const controller = new AbortController();
-      setAbortController(controller);
-      setIsRequestAborted(false);
-
-      try {
-        const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
-          method: 'POST',
-          mode: 'cors',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${keyToUse}`
-          },
-          body: JSON.stringify({ 
-            topic: topicToUse, 
-            startIndex, 
-            batchSize,
-            isVeryHardMode,
-            model
-          }),
-          signal: controller.signal
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Error generating questions');
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        
-        let buffer = '';
-        let chunkCount = 0;
-        let receivedFirstQuestion = false;
-        let questionCount = 0;
-        
-        // For the initial load, we set a higher target (15 questions)
-        const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
-        
-        // Create a separate counter just for this batch
-        let batchQuestionCount = 0;
-        
-        const processStreamChunk = async () => {
-          while (true) {
-            // Check if the request was aborted before reading
-            if (controller.signal.aborted || isRequestAborted) {
-              try {
-                await reader.cancel();
-              } catch (e) {
-                // Ignore cancel errors
-              }
-              break;
-            }
-            
-            const { value, done } = await reader.read();
-            if (done) {
-              break;
-            }
-            
-            // Check again after reading
-            if (controller.signal.aborted || isRequestAborted) {
-              try {
-                await reader.cancel();
-              } catch (e) {
-                // Ignore cancel errors
-              }
-              break;
-            }
-            
-            const chunk = decoder.decode(value, { stream: true });
-            chunkCount++;
-            
-            // Update loading progress based on chunks for the first question
-            if (isInitialLoad && !receivedFirstQuestion) {
-              // For the initial load, we scale based on chunks until we receive the first question
-              const progressValue = Math.min(chunkCount * 10, 90);
-              setLoadingProgress(progressValue);
-            }
-            
-            buffer += chunk;
-            
-            // Try to extract complete questions
-            try {
-              if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
-                const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
-                
-                if (questionMatches && questionMatches.length > 0) {
-                  for (const match of questionMatches) {
-                    // Check if aborted before processing each question
-                    if (controller.signal.aborted || isRequestAborted) {
-                      break;
-                    }
-                    
-                    try {
-                      const questionObj = JSON.parse(match);
-                      
-                      // Validate the question object structure
-                      if (questionObj.mainQuestion && 
-                          Array.isArray(questionObj.answerOptions) && 
-                          questionObj.answerOptions.length === 4 &&
-                          typeof questionObj.correctAnswerIndex === 'number' &&
-                          questionObj.helpfulHint) {
-                        
-                        // Check if aborted before adding to state
-                        if (controller.signal.aborted || isRequestAborted) {
-                          break;
-                        }
-                        
-                        // Transform and add the question to our state
-                        const transformedQuestion = {
-                          mainQuestion: questionObj.mainQuestion,
-                          answerOptions: questionObj.answerOptions,
-                          correctAnswerIndex: questionObj.correctAnswerIndex,
-                          helpfulHint: questionObj.helpfulHint
-                        };
-                        
-                        // Add this question to our questions array
-                        setQuestions(prevQuestions => {
-                          // Always just append questions sequentially
-                          const newQuestions = [...prevQuestions, transformedQuestion];
-                          // Log the received question with correct numbering
-                          console.log(`Question ${newQuestions.length} received:`, questionObj.mainQuestion);
-                          return newQuestions;
-                        });
-                        
-                        questionCount++;
-                        batchQuestionCount++;
-                        
-                        // Start the game as soon as we have the first question
-                        if (isInitialLoad && !receivedFirstQuestion) {
-                          setLoadingProgress(100);
-                          setTimeout(() => {
-                            setGameStarted(true);
-                            setIsQuestionsCardEntering(true);
-                            receivedFirstQuestion = true;
-                            setIsLoading(false);
-                            setIsLoadingMoreQuestions(false);
-                            // Remove entering state after animation completes
-                            setTimeout(() => setIsQuestionsCardEntering(false), 800);
-                          }, 500);
-                        } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                          // For very hard mode, we are done after receiving all requested questions
-                          setIsLoadingMoreQuestions(false);
-                        } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                          // For other question batches
-                          setIsLoadingMoreQuestions(false);
-                          receivedFirstQuestion = true;
-                        }
-                        
-                        // Remove the processed question from the buffer
-                        buffer = buffer.replace(match, '');
-                      }
-                    } catch (e) {
-                      // Skip invalid JSON fragments
-                    }
-                  }
-                }
-              }
-            } catch (e) {
-              // Skip parsing errors
-            }
-          }
-        };
-        
-        await processStreamChunk();
-      } catch (err) {
-        console.error('Error:', err);
-        
-        // Don't reset the game if this is an AbortError (when the user answered incorrectly)
-        if (err.name === 'AbortError') {
-          setIsLoading(false);
-          setIsLoadingMoreQuestions(false);
-          return;
-        }
-        
-        setError(err.message);
-        if (err.message.includes('API key')) {
-          sessionStorage.removeItem('openai_api_key');
-          localStorage.removeItem('openai_api_key');
-          setApiKey('');
-        }
-        resetGame();
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMoreQuestions(false);
-        setLoadingProgress(0);
-      }
+      keyToUse = apiKeyFromInput;
     } else {
-      // If no key in input, fall back to storage
-      const keyToUse = providedApiKey || apiKey;
-      
-      if (isInitialLoad) {
-        setLoadingProgress(0);
-        setIsLoading(true);
-      } else {
-        setIsLoadingMoreQuestions(true);
+      keyToUse = providedApiKey || apiKey;
+    }
+    
+    if (isInitialLoad) {
+      setLoadingProgress(0);
+      setIsLoading(true);
+    } else {
+      setIsLoadingMoreQuestions(true);
+    }
+    setError(null);
+
+    // Create a new AbortController instance
+    const controller = new AbortController();
+    setAbortController(controller);
+
+    try {
+      const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
+      const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${keyToUse}`
+        },
+        body: JSON.stringify({ 
+          topic: topicFromInput, 
+          startIndex, 
+          batchSize,
+          isVeryHardMode,
+          model
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error generating questions');
       }
-      setError(null);
 
-      // Create a new AbortController instance
-      const controller = new AbortController();
-      setAbortController(controller);
-//https://server-cold-hill-2617.fly.dev
-      try {
-        const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
-          method: 'POST',
-          mode: 'cors',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${keyToUse}`
-          },
-          body: JSON.stringify({ 
-            topic: topicToUse, 
-            startIndex, 
-            batchSize,
-            isVeryHardMode,
-            model
-          }),
-          signal: controller.signal
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Error generating questions');
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        
-        let buffer = '';
-        let chunkCount = 0;
-        let receivedFirstQuestion = false;
-        let questionCount = 0;
-        
-        // For the initial load, we set a higher target (15 questions)
-        const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
-        
-        // Create a separate counter just for this batch
-        let batchQuestionCount = 0;
-        
-        const processStreamChunk = async () => {
-          while (true) {
-            // Check if the request was aborted before reading
-            if (controller.signal.aborted || isRequestAborted) {
-              try {
-                await reader.cancel();
-              } catch (e) {
-                // Ignore cancel errors
-              }
-              break;
-            }
-            
-            const { value, done } = await reader.read();
-            if (done) {
-              break;
-            }
-            
-            // Check again after reading
-            if (controller.signal.aborted || isRequestAborted) {
-              try {
-                await reader.cancel();
-              } catch (e) {
-                // Ignore cancel errors
-              }
-              break;
-            }
-            
-            const chunk = decoder.decode(value, { stream: true });
-            chunkCount++;
-            
-            // Update loading progress based on chunks for the first question
-            if (isInitialLoad && !receivedFirstQuestion) {
-              // For the initial load, we scale based on chunks until we receive the first question
-              const progressValue = Math.min(chunkCount * 10, 90);
-              setLoadingProgress(progressValue);
-            }
-            
-            buffer += chunk;
-            
-            // Try to extract complete questions
-            try {
-              if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
-                const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
-                
-                if (questionMatches && questionMatches.length > 0) {
-                  for (const match of questionMatches) {
-                    // Check if aborted before processing each question
-                    if (controller.signal.aborted || isRequestAborted) {
-                      break;
-                    }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
+      let buffer = '';
+      let chunkCount = 0;
+      let receivedFirstQuestion = false;
+      let questionCount = 0;
+      
+      // For the initial load, we set a higher target (15 questions)
+      const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
+      
+      // Create a separate counter just for this batch
+      let batchQuestionCount = 0;
+      
+      const processStreamChunk = async () => {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+          
+          const chunk = decoder.decode(value, { stream: true });
+          chunkCount++;
+          
+          // Update loading progress based on chunks for the first question
+          if (isInitialLoad && !receivedFirstQuestion) {
+            // For the initial load, we scale based on chunks until we receive the first question
+            const progressValue = Math.min(chunkCount * 10, 90);
+            setLoadingProgress(progressValue);
+          }
+          
+          buffer += chunk;
+          
+          // Try to extract complete questions
+          try {
+            if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
+              const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
+              
+              if (questionMatches && questionMatches.length > 0) {
+                for (const match of questionMatches) {
+                  try {
+                    const questionObj = JSON.parse(match);
                     
-                    try {
-                      const questionObj = JSON.parse(match);
+                    // Validate the question object structure
+                    if (questionObj.mainQuestion && 
+                        Array.isArray(questionObj.answerOptions) && 
+                        questionObj.answerOptions.length === 4 &&
+                        typeof questionObj.correctAnswerIndex === 'number' &&
+                        questionObj.helpfulHint) {
                       
-                      // Validate the question object structure
-                      if (questionObj.mainQuestion && 
-                          Array.isArray(questionObj.answerOptions) && 
-                          questionObj.answerOptions.length === 4 &&
-                          typeof questionObj.correctAnswerIndex === 'number' &&
-                          questionObj.helpfulHint) {
-                        
-                        // Check if aborted before adding to state
-                        if (controller.signal.aborted || isRequestAborted) {
-                          break;
-                        }
-                        
-                        // Transform and add the question to our state
-                        const transformedQuestion = {
-                          mainQuestion: questionObj.mainQuestion,
-                          answerOptions: questionObj.answerOptions,
-                          correctAnswerIndex: questionObj.correctAnswerIndex,
-                          helpfulHint: questionObj.helpfulHint
-                        };
-                        
-                        // Add this question to our questions array
-                        setQuestions(prevQuestions => {
-                          // Always just append questions sequentially
-                          const newQuestions = [...prevQuestions, transformedQuestion];
-                          // Log the received question with correct numbering
-                          console.log(`Question ${newQuestions.length} received:`, questionObj.mainQuestion);
-                          return newQuestions;
-                        });
-                        
-                        questionCount++;
-                        batchQuestionCount++;
-                        
-                        // Start the game as soon as we have the first question
-                        if (isInitialLoad && !receivedFirstQuestion) {
-                          setLoadingProgress(100);
-                          setTimeout(() => {
-                            setGameStarted(true);
-                            setIsQuestionsCardEntering(true);
-                            receivedFirstQuestion = true;
-                            setIsLoading(false);
-                            setIsLoadingMoreQuestions(false);
-                            // Remove entering state after animation completes
-                            setTimeout(() => setIsQuestionsCardEntering(false), 800);
-                          }, 500);
-                        } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                          // For very hard mode, we are done after receiving all requested questions
-                          setIsLoadingMoreQuestions(false);
-                        } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                          // For other question batches
-                          setIsLoadingMoreQuestions(false);
+                      // Transform and add the question to our state
+                      const transformedQuestion = {
+                        mainQuestion: questionObj.mainQuestion,
+                        answerOptions: questionObj.answerOptions,
+                        correctAnswerIndex: questionObj.correctAnswerIndex,
+                        helpfulHint: questionObj.helpfulHint
+                      };
+                      
+                      // Log the received question
+                      console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
+                      
+                      // Add this question to our questions array
+                      setQuestions(prevQuestions => {
+                        // Always just append questions sequentially
+                        return [...prevQuestions, transformedQuestion];
+                      });
+                      
+                      questionCount++;
+                      batchQuestionCount++;
+                      
+                      // Start the game as soon as we have the first question
+                      if (isInitialLoad && !receivedFirstQuestion) {
+                        setLoadingProgress(100);
+                        setTimeout(() => {
+                          setGameStarted(true);
+                          setIsQuestionsCardEntering(true);
                           receivedFirstQuestion = true;
-                        }
-                        
-                        // Remove the processed question from the buffer
-                        buffer = buffer.replace(match, '');
+                          setIsLoading(false);
+                          setIsLoadingMoreQuestions(false);
+                          // Remove entering state after animation completes
+                          setTimeout(() => setIsQuestionsCardEntering(false), 800);
+                        }, 500);
+                      } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
+                        // For very hard mode, we are done after receiving all requested questions
+                        setIsLoadingMoreQuestions(false);
+                      } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
+                        // For other question batches
+                        setIsLoadingMoreQuestions(false);
+                        receivedFirstQuestion = true;
                       }
-                    } catch (e) {
-                      // Skip invalid JSON fragments
+                      
+                      // Remove the processed question from the buffer
+                      buffer = buffer.replace(match, '');
                     }
+                  } catch (e) {
+                    // Skip invalid JSON fragments
                   }
                 }
               }
-            } catch (e) {
-              // Skip parsing errors
             }
+          } catch (e) {
+            // Skip parsing errors
           }
-        };
-        
-        await processStreamChunk();
-      } catch (err) {
-        console.error('Error:', err);
-        
-        // Don't reset the game if this is an AbortError (when the user answered incorrectly)
-        if (err.name === 'AbortError') {
-          setIsLoading(false);
-          setIsLoadingMoreQuestions(false);
-          return;
         }
-        
-        setError(err.message);
-        if (err.message.includes('API key')) {
-          sessionStorage.removeItem('openai_api_key');
-          localStorage.removeItem('openai_api_key');
-          setApiKey('');
-        }
-        resetGame();
-      } finally {
+      };
+      
+      await processStreamChunk();
+    } catch (err) {
+      console.error('Error:', err);
+      
+      // Don't reset the game if this is an AbortError (when the user answered incorrectly)
+      if (err.name === 'AbortError') {
         setIsLoading(false);
         setIsLoadingMoreQuestions(false);
-        setLoadingProgress(0);
+        return;
       }
+      
+      setError(err.message);
+      if (err.message.includes('API key')) {
+        sessionStorage.removeItem('openai_api_key');
+        localStorage.removeItem('openai_api_key');
+        setApiKey('');
+      }
+      resetGame();
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMoreQuestions(false);
+      setLoadingProgress(0);
     }
   };
-
-  // Check if we need to load more questions
-  useEffect(() => {
-    // Load very hard questions when the player reaches question 10
-    if (gameStarted && 
-        currentQuestion === 9 &&  // Load very hard questions when game starts
-        !isLoading && 
-        !loadedVeryHardQuestions && 
-        !gameOver) {
-      setLoadedVeryHardQuestions(true);
-      // Generate questions 16-20 (very hard)
-      fetchQuestions(null, 15, false, true);
-    }
-
-    // Load more very hard questions when needed
-    if (gameStarted && 
-        currentQuestion >= 15 && 
-        !isLoadingMoreQuestions && 
-        !isLoading && 
-        !gameOver) {
-      // Generate questions 21-25 (very hard)
-      fetchQuestions(null, 20, false, true);
-    }
-  }, [gameStarted, isLoading, currentQuestion, gameOver, loadedVeryHardQuestions]);
 
   // Check if we need to load more questions (when we're 5 questions away from the end)
   useEffect(() => {
     if (gameStarted && 
+        questions.length >= 15 && // Only start loading more after initial 15 questions are loaded
         currentQuestion + 5 >= questions.length && 
         !isLoadingMoreQuestions && 
         !isLoading && 
         !gameOver) {
-      const nextStart = Math.floor((currentQuestion + 1) / 5) * 5 + 15;
+      const nextStart = questions.length;
       fetchQuestions(null, nextStart, false, true);
     }
-  }, [currentQuestion, gameStarted, isLoading, isLoadingMoreQuestions, gameOver, loadedVeryHardQuestions]);
+  }, [currentQuestion, gameStarted, isLoading, isLoadingMoreQuestions, gameOver, questions.length]);
 
   const handleAnswer = async (selectedOption) => {
     if (isTransitioning || isShowingAnswers) return;
@@ -593,7 +339,6 @@ function App() {
       // Cancel any ongoing requests
       if (abortController) {
         try {
-          setIsRequestAborted(true);
           abortController.abort();
         } catch (e) {
           console.error("Error canceling request:", e);
@@ -688,7 +433,6 @@ function App() {
     setPointsChanged(false);
     setIsTopicInputExiting(false);
     setIsGameOverExiting(false);
-    setIsRequestAborted(false);
   };
 
     // Retry the current game with new questions
@@ -709,7 +453,6 @@ function App() {
     setIsShowingAnswers(false);
     setPointsChanged(false);
     setIsGameOverExiting(false);
-    setIsRequestAborted(false);
     
     // Generate new questions for the same topic with the selected model
     const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
@@ -732,7 +475,6 @@ function App() {
     
     // Reset state and fetch questions
     setIsTopicInputExiting(false);
-    // Don't pass topic override - let fetchQuestions read from the input field directly
     await fetchQuestions(apiKey, 0, true, false, model);
   };
 
