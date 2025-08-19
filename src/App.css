@@ -24,6 +24,7 @@ body {
   position: relative;
   z-index: 1;
   padding: 1rem;
+  
 }
 
 /* Astral Background */
@@ -82,10 +83,6 @@ body {
   padding: 20px;
   box-sizing: border-box;
   margin: 0 auto;
-  color: #4a5568;
-  border-color: #e2e8f0;
-  opacity: 1;
-
 }
 
 
@@ -100,7 +97,6 @@ body {
   gap: 24px;
   text-align: center;
   padding: 24px 0;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .result-icon {

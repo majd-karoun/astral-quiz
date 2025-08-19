@@ -604,7 +604,7 @@ function App() {
 
   const startNewGame = async () => {
     setIsGameOverExiting(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     setCurrentQuestion(0);
     setPoints(0);
@@ -626,7 +626,7 @@ function App() {
     // Retry the current game with new questions
     const retryGame = async () => {
     setIsGameOverExiting(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     setCurrentQuestion(0);
     setPoints(0);
@@ -669,7 +669,7 @@ function App() {
   return (
     <div className="app-wrapper">
       <div className="container">
-        {!gameStarted && !isLoading && !gameOver && !isTopicInputExiting && (
+        {!gameStarted && !isLoading && !gameOver && !isTopicInputExiting && !isGameOverExiting && (
           <TopicInput
             topic={topic}
             setTopic={setTopic}
@@ -680,7 +680,7 @@ function App() {
           />
         )}
 
-        {isLoading && <LoadingScreen progress={loadingProgress} />}
+        {isLoading && !isGameOverExiting && <LoadingScreen progress={loadingProgress} />}
 
         {gameStarted && !isLoading && !gameOver && questions[currentQuestion] && !questions[currentQuestion].isPlaceholder && (
           <QuestionsCard

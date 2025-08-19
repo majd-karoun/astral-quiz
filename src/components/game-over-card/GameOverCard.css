@@ -42,15 +42,11 @@
 @keyframes dramaticExit {
   0% {
     opacity: 1;
-    transform: scale(1) translateY(0) rotateX(0deg);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(0.95) translateY(-10px) rotateX(-5deg);
+    transform: scale(1) translateY(0);
   }
   100% {
     opacity: 0;
-    transform: scale(0.8) translateY(40px) rotateX(15deg);
+    transform: scale(0.95) translateY(20px);
   }
 }
 
