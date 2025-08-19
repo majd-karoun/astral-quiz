@@ -1,12 +1,52 @@
-.body{
-  font-family:  'Roboto' , sans-serif;
-  
+/* Topic Card */
+.topic-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: min(600px, 90vw);
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.98) translateY(10px);
+  animation: scaleIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  will-change: transform, opacity;
+  box-sizing: border-box;
 }
 
-.topic-screen {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
+.topic-card.exiting {
+  animation: scaleOut 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+  pointer-events: none;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+}
+
+.topic-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .topic-header {
@@ -37,12 +77,14 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  
 }
 
 .input-section {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+ 
 }
 
 .input-section label {
@@ -73,10 +115,12 @@
   border-radius: 0.5rem;
   gap: 10px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .topic-input {
   flex: 1;
+  border-radius: 20px;
   padding: 0.75rem 1rem;
   border: none;
   font-size: 0.875rem;
@@ -85,12 +129,15 @@
   color: #000000;
   min-width: 0;
   outline: none;
+  border: 2px solid #D1D5DB;
+  box-sizing: border-box;
+  min-width: 200px;
 }
 
 .model-select {
   padding: 0 2.5rem 0 0.75rem;
   border: 2px solid;
-  border-radius: 12px;
+  border-radius: 20px;
   background-color: #D1D5DB;
   color: #1F2937;
   font-size: 0.875rem;
@@ -98,13 +145,14 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  min-width: 150px;
+  min-width: 120px;
   flex-shrink: 0;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231F2937' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1em;
   padding-right: 2.5rem;
+  box-sizing: border-box;
 }
 
 .model-select:focus {
@@ -119,9 +167,10 @@
 }
 
 .topic-input:focus {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-color: #007AFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
   outline: none;
-  border-color: #5050AA;
-  box-shadow: 0 0 0 3px rgba(80, 80, 170, 0.1);
 }
 
 .topic-input:disabled {
@@ -146,6 +195,12 @@
 
 .start-button:hover:not(:disabled) {
   background-color: #3a3a8c;
+}
+
+/* iOS-like tap feedback */
+.start-button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
 }
 
 .start-button:disabled {
@@ -194,7 +249,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: 5vh 5vw;
   background-color: transparent;
   opacity: 0;
   visibility: hidden;
@@ -212,9 +267,9 @@
 .modal-content {
   background: white;
   border-radius: 20px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 70vh;
+  width: 100%;
+  max-width: min(500px, 90vw);
+  height: 80vh;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transform: scale(0.95);
   opacity: 0;
@@ -383,22 +438,55 @@
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 480px) {
-  .topic-screen {
+@media (max-width: 640px) {
+  .topic-card {
+    max-width: 95vw;
     padding: 1rem;
   }
 
   .topic-header {
-    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .topic-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .topic-header h1 {
+    font-size: 1.25rem;
   }
 
   .input-container {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
+  
+  .topic-input {
+    min-width: unset;
+    width: 100%;
+  }
+  
   .model-select {
+    min-width: unset;
+    width: 100%;
     height: 50px;
-    margin-top: 10px;
+  }
+
+  .leaderboard-button {
+    position: static;
+    margin-top: 1rem;
+    align-self: center;
+  }
+
+  .input-sections {
+    gap: 1rem;
+  }
+
+  .start-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
   }
 }
 

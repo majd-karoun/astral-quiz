@@ -1,0 +1,219 @@
+.game-over-card {
+  background: rgb(249, 249, 249);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  width: 450px;
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.8) translateY(40px) rotateX(15deg);
+  animation: dramaticEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  will-change: transform, opacity;
+}
+
+.game-over-card.exiting {
+  animation: dramaticExit 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+  pointer-events: none;
+}
+
+@keyframes dramaticEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px) rotateX(15deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05) translateY(-10px) rotateX(5deg);
+  }
+  75% {
+    opacity: 0.95;
+    transform: scale(0.98) translateY(5px) rotateX(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0deg);
+  }
+}
+
+@keyframes dramaticExit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0deg);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95) translateY(-10px) rotateX(-5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px) rotateX(15deg);
+  }
+}
+
+.game-over-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.game-over-icon {
+  color: #ef4444;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transform: scale(0.5) rotate(-180deg);
+  animation: iconSpinIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 0.3s;
+}
+
+.game-over-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(30px) scale(0.8);
+  animation: titleSlideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 0.5s;
+}
+
+.game-over-score {
+  font-size: 1.25rem;
+  color: #4b5563;
+  margin: 0 0 1rem 0;
+  opacity: 0;
+  transform: translateX(-50px);
+  animation: scoreSlideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 0.7s;
+}
+
+.game-over-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: buttonsSlideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation-delay: 0.9s;
+}
+
+.game-over-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  background-color: #5050AA;
+  color: white;
+  font-size: 1rem;
+  min-width: 140px;
+  transform: scale(1);
+  position: relative;
+  overflow: hidden;
+}
+
+.game-over-button:hover {
+  background-color: #5050AA;
+}
+
+.game-over-button.outline {
+  background-color: transparent;
+  border: 2px solid #d0cdcd;
+  color: #4b5563;
+}
+
+.game-over-button.outline:hover {
+  background-color: rgba(181, 178, 243, 0.1);
+  background-color: #f9fafb;
+  border-color: #5050AA;
+  color: #5050AA;
+}
+
+/* Content Animation Keyframes */
+@keyframes iconSpinIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-180deg);
+  }
+  70% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes titleSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scoreSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes buttonsSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button ripple effect */
+.game-over-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.game-over-button:active::before {
+  width: 300px;
+  height: 300px;
+}

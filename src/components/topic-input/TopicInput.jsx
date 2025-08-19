@@ -159,8 +159,14 @@ const TopicInput = ({
   const [apiKeyError, setApiKeyError] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const [selectedModel, setSelectedModel] = useState(() => {
+    // Use sessionStorage to persist model selection during session but not across refreshes
+    return sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
+  });
+  const [isExiting, setIsExiting] = useState(false);
   const inputRef = useRef(null);
+  const formRef = useRef(null);
+  const cardRef = useRef(null);
 
   useEffect(() => {
     const placeholders = [
@@ -212,7 +218,7 @@ const TopicInput = ({
     setApiKeyError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const clickSound = new Howl({
@@ -236,6 +242,23 @@ const TopicInput = ({
       }
     }
     
+    // Start exit animation
+    setIsExiting(true);
+    
+    // Wait for animation to complete before generating questions
+    await new Promise(resolve => {
+      if (cardRef.current) {
+        const onAnimationEnd = () => {
+          cardRef.current.removeEventListener('animationend', onAnimationEnd);
+          resolve();
+        };
+        cardRef.current.addEventListener('animationend', onAnimationEnd, { once: true });
+      } else {
+        setTimeout(resolve, 350); // Fallback if ref isn't available
+      }
+    });
+    
+    // Generate questions after animation completes
     generateQuestions(hasApiKey ? null : apiKey, selectedModel);
   };
 
@@ -251,117 +274,128 @@ const TopicInput = ({
   };
 
   return (
-    <div className="topic-screen">
-      <div className="topic-header">
-        <Books className="topic-icon" />
-        <h1>Astral Quiz</h1>
-        <button 
-          className="leaderboard-button"
-          onClick={() => setIsLeaderboardOpen(true)}
-        >
-          <Trophy size={20} />
-          Leaderboard
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="input-form">
-        <div className="input-sections">
-          <div className="input-section">
-            <label htmlFor="topic">Quiz Topic</label>
-            <div className="input-container">
-              <input
-                ref={inputRef}
-                id="topic"
-                name="quiz-topic"
-                type="text"
-                autoComplete="off"
-                value={topic}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value.length <= 100) {
-                    const words = value.split(' ');
-                    const hasLongWord = words.some(word => word.length > 40);
-                    if (hasLongWord) {
-                      const truncatedWords = words.map(word => {
-                        if (word.length > 40) {
-                          return word.slice(0, 40);
-                        }
-                        return word;
-                      });
-                      setTopic(truncatedWords.join(' '));
-                    } else {
-                      setTopic(value);
-                    }
-                  }
-                }}
-                placeholder={placeholder}
-                className="topic-input"
-                disabled={isLoading}
-                onKeyDown={handleKeyDown}
-
-              />
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="model-select"
-                disabled={isLoading}
-              >
-                <option value="gpt-4o-mini">GPT-4 (faster)</option>
-                <option value="gpt-5-mini">GPT-5 (smarter)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="input-section">
-            <label htmlFor="apiKey">
-              OpenAI API Key
-              <a 
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="api-key-link"
-              >
-                Get API Key
-              </a>
-            </label>
-            <div className="input-container">
-              <input
-                id="apiKey"
-                type="password"
-                autoComplete="new-password"
-                value={apiKey}
-                onChange={handleApiKeyChange}
-                placeholder="sk-..."
-                className="topic-input"
-                disabled={isLoading}
-              />
-            </div>
-            {apiKeyError && (
-              <p className="error-message">{apiKeyError}</p>
-            )}
-          </div>
+    <div 
+      ref={cardRef}
+      className={`topic-card ${isExiting ? 'exiting' : ''}`}
+      style={{
+        '--ios-tap-highlight': 'rgba(0, 122, 255, 0.1)'
+      }}
+    >
+      <div className="topic-content">
+        <div className="topic-header">
+          <Books className="topic-icon" weight="duotone" />
+          <h1>Astral Quiz</h1>
+          <button 
+            className="leaderboard-button"
+            onClick={() => setIsLeaderboardOpen(true)}
+          >
+            <Trophy size={20} />
+            Leaderboard
+          </button>
         </div>
 
-        <RecentTopics onSelectTopic={setTopic} />
+        <form onSubmit={handleSubmit} className="input-form" ref={formRef}>
+          <div className="input-sections">
+            <div className="input-section">
+              <label htmlFor="topic">Quiz Topic</label>
+              <div className="input-container">
+                <input
+                  ref={inputRef}
+                  id="topic"
+                  name="quiz-topic"
+                  type="text"
+                  autoComplete="off"
+                  value={topic}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.length <= 100) {
+                      const words = value.split(' ');
+                      const hasLongWord = words.some(word => word.length > 40);
+                      if (hasLongWord) {
+                        const truncatedWords = words.map(word => {
+                          if (word.length > 40) {
+                            return word.slice(0, 40);
+                          }
+                          return word;
+                        });
+                        setTopic(truncatedWords.join(' '));
+                      } else {
+                        setTopic(value);
+                      }
+                    }
+                  }}
+                  placeholder={placeholder}
+                  className="topic-input"
+                  disabled={isLoading}
+                  onKeyDown={handleKeyDown}
+                />
+                <select
+                  value={selectedModel}
+                  onChange={(e) => {
+                    const newModel = e.target.value;
+                    setSelectedModel(newModel);
+                    sessionStorage.setItem('selected_model', newModel);
+                  }}
+                  className="model-select"
+                  disabled={isLoading}
+                >
+                  <option value="gpt-4o-mini">GPT-4 (faster)</option>
+                  <option value="gpt-5-mini">GPT-5 (smarter)</option>
+                </select>
+              </div>
+            </div>
 
-        <button
-          type="submit"
-          className={`start-button ${(!topic.trim() || !apiKey.trim()) ? 'disabled' : ''}`}
-          disabled={isLoading || !topic.trim() || !apiKey.trim()}
-        >
-          <CaretRight className="button-icon" />
-          <span>Start Quiz</span>
-        </button>
+            <div className="input-section">
+              <label htmlFor="apiKey">
+                OpenAI API Key
+                <a 
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="api-key-link"
+                >
+                  Get API Key
+                </a>
+              </label>
+              <div className="input-container">
+                <input
+                  id="apiKey"
+                  type="password"
+                  autoComplete="new-password"
+                  value={apiKey}
+                  onChange={handleApiKeyChange}
+                  placeholder="sk-..."
+                  className="topic-input"
+                  disabled={isLoading}
+                />
+              </div>
+              {apiKeyError && (
+                <p className="error-message">{apiKeyError}</p>
+              )}
+            </div>
+          </div>
 
-        {error && (
-          <p className="error-message">{error}</p>
-        )}
-      </form>
+          <RecentTopics onSelectTopic={setTopic} />
 
-      <LeaderboardModal 
-        isOpen={isLeaderboardOpen} 
-        onClose={() => setIsLeaderboardOpen(false)} 
-      />
+          <button
+            type="submit"
+            className={`start-button ${(!topic.trim() || !apiKey.trim()) ? 'disabled' : ''}`}
+            disabled={isLoading || !topic.trim() || !apiKey.trim()}
+          >
+            <CaretRight className="button-icon" />
+            <span>Start Quiz</span>
+          </button>
+
+          {error && (
+            <p className="error-message">{error}</p>
+          )}
+        </form>
+
+        <LeaderboardModal 
+          isOpen={isLeaderboardOpen} 
+          onClose={() => setIsLeaderboardOpen(false)} 
+        />
+      </div>
     </div>
   );
 };

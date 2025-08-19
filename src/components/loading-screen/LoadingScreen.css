@@ -8,10 +8,15 @@
   align-items: center;
   justify-content: center;
   gap: 32px;
-  width: 100%;
-  max-width: 400px;
+  width: 450px;
+  max-width: 800px;
+  padding: 2rem;
   background: transparent;
+  border-radius: 12px;
   z-index: 10;
+  box-sizing: border-box;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 
@@ -21,7 +26,8 @@
   font-weight: 700;
   margin: 0;
   text-align: center;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.4) !important;
+
 }
 
 .progress-bar {
@@ -40,6 +46,11 @@
   background: white;
   border-radius: 2px;
   transition: width 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes progress {

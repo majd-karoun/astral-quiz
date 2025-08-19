@@ -1,148 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Question,
-  Target,
-  Lightning,
-  Repeat,
-  X,
-  Check,
-  CaretRight,
-  Trophy
-} from '@phosphor-icons/react';
+import { Repeat, CaretRight } from '@phosphor-icons/react';
 import TopicInput from './components/topic-input/TopicInput';
 import LoadingScreen from './components/loading-screen/LoadingScreen';
+import QuestionsCard from './components/questions-card/QuestionsCard';
+import GameOverCard from './components/game-over-card/GameOverCard';
 import './App.css';
 
-const GameCard = ({ children, show }) => (
-  <div className={`card-wrapper ${show ? 'card-visible' : 'card-hidden'}`}>
-    <div className="card">
-      {children}
-    </div>
-  </div>
-);
-
-const WinnerCard = ({ points, onRetry, onNewGame }) => (
-  <div className="result-screen">
-    <Trophy size={64} className="result-icon winner" />
-    <h2 className="title-large">Congratulations! You won!</h2>
-    <p className="score">Score: {points}</p>
-    <div className="button-group">
-      <button className="button" onClick={onRetry}>
-        <Repeat size={24} />
-        Try Again
-      </button>
-      <button className="button button-outline" onClick={onNewGame}>
-        <CaretRight size={24} />
-        New Topic
-      </button>
-    </div>
-  </div>
-);
-
-const GameOverCard = ({ points, onRetry, onNewGame }) => (
-  <div className="result-screen">
-    <X size={64} className="result-icon game-over" />
-    <h2 className="title-large">Game Over!</h2>
-    <p className="score">Score: {points}</p>
-    <div className="button-group">
-      <button className="button" onClick={onRetry}>
-        <Repeat size={24} />
-        Try again
-      </button>
-      <button className="button button-outline" onClick={onNewGame}>
-        <CaretRight size={24} />
-        New Topic
-      </button>
-    </div>
-  </div>
-);
-
-const QuestionCard = ({ 
-  currentQuestion,
-  points,
-  remainingHints,
-  question,
-  onAnswer,
-  onUseHint,
-  feedback,
-  isHintUsed,
-  isTransitioning,
-  selectedAnswer,
-  isShowingAnswers,
-  pointsChanged
-}) => (
-  <>
-    <div className="header">
-      <span className="header-item">
-        <Question size={24} />
-        Question {currentQuestion + 1}
-      </span>
-      <span className="header-item score">
-        <Target size={24} />
-        Score: <span className={`score-number ${pointsChanged ? 'changed' : ''}`}>{points}</span>
-      </span>
-    </div>
-    <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
-      <div className="question">{question.mainQuestion}</div>
-      <div className="options-grid">
-        {question.answerOptions.map((option, index) => {
-          const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
-          const isSelected = isShowingAnswers && index === selectedAnswer;
-          
-          return (
-            <button
-              key={index}
-              onClick={() => onAnswer(index)}
-              className={`button button-outline ${
-                isCorrect ? 'correct-answer' : 
-                isSelected ? 'wrong-answer' : ''
-              }`}
-              disabled={isShowingAnswers}
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-    <div className="bottom-container">
-      <div className="help-options">
-        <button 
-          onClick={onUseHint} 
-          className="button button-outline"
-          disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
-        >
-          <Lightning size={20} />
-          Hint ({remainingHints})
-        </button>
-      </div>
-      <div className="feedback-container">
-        {feedback && (
-          <div
-            className={`feedback ${
-              feedback.type === 'success'
-                ? 'feedback-success'
-                : feedback.type === 'hint'
-                ? 'feedback-hint'
-                : feedback.type === 'error'
-                ? 'feedback-error'
-                : 'feedback-info'
-            }`}
-          >
-            {feedback.type === 'success' ? (
-              <Check size={20} />
-            ) : feedback.type === 'hint' ? (
-              <Lightning size={20} />
-            ) : (
-              <CaretRight size={20} />
-            )}
-            {feedback.message}
-          </div>
-        )}
-      </div>
-    </div>
-  </>
-);
 
 function App() {
   const [topic, setTopic] = useState('');
@@ -155,15 +18,17 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [isTopicInputExiting, setIsTopicInputExiting] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
   const [prevPoints, setPrevPoints] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
   const [gameOver, setGameOver] = useState(false);
-  const [showWinner, setShowWinner] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [usedHints, setUsedHints] = useState(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isQuestionsCardExiting, setIsQuestionsCardExiting] = useState(false);
+  const [isQuestionsCardEntering, setIsQuestionsCardEntering] = useState(false);
   const [isLoadingMoreQuestions, setIsLoadingMoreQuestions] = useState(false);
   const [questionBatchSize] = useState(15);
   const [veryHardQuestionBatchSize] = useState(5);
@@ -172,6 +37,7 @@ function App() {
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
   const [pointsChanged, setPointsChanged] = useState(false);
   const [abortController, setAbortController] = useState(null);
+  const [isGameOverExiting, setIsGameOverExiting] = useState(false);
   
   // Create audio elements for sound effects
   const scoreUpSound = new Audio('/sounds/score-up.mp3');
@@ -247,8 +113,8 @@ function App() {
 
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-
-        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+        // https://server-cold-hill-2617.fly.dev
+        const response = await fetch(`http://localhost:8080/api/generate-questions`, {
           method: 'POST',
           mode: 'cors',
           credentials: 'include',
@@ -334,19 +200,7 @@ function App() {
                         
                         // Add this question to our questions array
                         setQuestions(prevQuestions => {
-                          // If this is a very hard question batch (startIndex > 0), make sure we have enough space
-                          if (isVeryHardMode && startIndex > 0) {
-                            // Make sure we have enough space for this question
-                            const newQuestions = [...prevQuestions];
-                            // If we need to add at an index beyond the current length, fill with placeholders
-                            while (newQuestions.length <= startIndex + questionCount) {
-                              newQuestions.push(null);
-                            }
-                            // Place the question at the exact position
-                            newQuestions[startIndex + questionCount] = transformedQuestion;
-                            return newQuestions;
-                          }
-                          // Otherwise, just add
+                          // Always just append questions sequentially
                           return [...prevQuestions, transformedQuestion];
                         });
                         
@@ -358,9 +212,12 @@ function App() {
                           setLoadingProgress(100);
                           setTimeout(() => {
                             setGameStarted(true);
+                            setIsQuestionsCardEntering(true);
                             receivedFirstQuestion = true;
                             setIsLoading(false);
                             setIsLoadingMoreQuestions(false);
+                            // Remove entering state after animation completes
+                            setTimeout(() => setIsQuestionsCardEntering(false), 350);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
                           // For very hard mode, we are done after receiving all requested questions
@@ -513,19 +370,7 @@ function App() {
                         
                         // Add this question to our questions array
                         setQuestions(prevQuestions => {
-                          // If this is a very hard question batch (startIndex > 0), make sure we have enough space
-                          if (isVeryHardMode && startIndex > 0) {
-                            // Make sure we have enough space for this question
-                            const newQuestions = [...prevQuestions];
-                            // If we need to add at an index beyond the current length, fill with placeholders
-                            while (newQuestions.length <= startIndex + questionCount) {
-                              newQuestions.push(null);
-                            }
-                            // Place the question at the exact position
-                            newQuestions[startIndex + questionCount] = transformedQuestion;
-                            return newQuestions;
-                          }
-                          // Otherwise, just add
+                          // Always just append questions sequentially
                           return [...prevQuestions, transformedQuestion];
                         });
                         
@@ -537,9 +382,12 @@ function App() {
                           setLoadingProgress(100);
                           setTimeout(() => {
                             setGameStarted(true);
+                            setIsQuestionsCardEntering(true);
                             receivedFirstQuestion = true;
                             setIsLoading(false);
                             setIsLoadingMoreQuestions(false);
+                            // Remove entering state after animation completes
+                            setTimeout(() => setIsQuestionsCardEntering(false), 350);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
                           // For very hard mode, we are done after receiving all requested questions
@@ -595,50 +443,48 @@ function App() {
   useEffect(() => {
     // Load very hard questions when the player reaches question 10
     if (gameStarted && 
-        currentQuestion === 9 && // Just answered question 10
-        !isLoadingMoreQuestions && 
+        currentQuestion === 9 &&  // Load very hard questions when game starts
         !isLoading && 
         !loadedVeryHardQuestions && 
-        !gameOver && 
-        !showWinner) {
+        !gameOver) {
       setLoadedVeryHardQuestions(true);
       // Generate questions 16-20 (very hard)
       fetchQuestions(null, 15, false, true);
     }
-    
-    // If the player reaches question 15, load 5 more very hard questions
+
+    // Load more very hard questions when needed
     if (gameStarted && 
-        currentQuestion === 14 && // Just answered question 15
+        currentQuestion >= 15 && 
         !isLoadingMoreQuestions && 
         !isLoading && 
-        !gameOver && 
-        !showWinner) {
+        !gameOver) {
       // Generate questions 21-25 (very hard)
       fetchQuestions(null, 20, false, true);
     }
-    
-    // Load more very hard question batches every 5 questions after question 15
-    if (gameStarted &&
-        currentQuestion >= 15 &&
-        (currentQuestion - 15) % 5 === 4 &&  // Questions 19, 24, 29, etc. (to prepare for 20, 25, 30)
-        !isLoadingMoreQuestions &&
-        !isLoading &&
-        !gameOver &&
-        !showWinner) {
+  }, [gameStarted, isLoading, currentQuestion, gameOver, loadedVeryHardQuestions]);
+
+  // Check if we need to load more questions (when we're 5 questions away from the end)
+  useEffect(() => {
+    if (gameStarted && 
+        currentQuestion + 5 >= questions.length && 
+        !isLoadingMoreQuestions && 
+        !isLoading && 
+        !gameOver) {
       const nextStart = Math.floor((currentQuestion + 1) / 5) * 5 + 15;
       fetchQuestions(null, nextStart, false, true);
     }
-  }, [currentQuestion, gameStarted, isLoading, isLoadingMoreQuestions, gameOver, showWinner, loadedVeryHardQuestions]);
+  }, [currentQuestion, gameStarted, isLoading, isLoadingMoreQuestions, gameOver, loadedVeryHardQuestions]);
 
-  const handleAnswer = async (optionIndex) => {
+  const handleAnswer = async (selectedOption) => {
+    if (isTransitioning || isShowingAnswers) return;
+    
     const correctAnswer = questions[currentQuestion].correctAnswerIndex;
-    const questionNumber = currentQuestion + 1; // Convert index to question number
-    const questionPoints = getPointsForQuestion(questionNumber);
-
-    setSelectedAnswer(optionIndex);
+    const questionPoints = getPointsForQuestion(currentQuestion + 1);
+    
+    setSelectedAnswer(selectedOption);
     setIsShowingAnswers(true);
 
-    if (optionIndex === correctAnswer) {
+    if (selectedOption === correctAnswer) {
       // Play the sound effect for the correct answer
       scoreUpSound.play();
       
@@ -657,14 +503,23 @@ function App() {
       setTimeout(() => {
         // In endless mode, we never reach the "end" of the questions
         // We just keep going as long as the player answers correctly
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setCurrentQuestion(prev => prev + 1);
-          setFeedback(null);
-          setIsTransitioning(false);
-          setSelectedAnswer(null);
-          setIsShowingAnswers(false);
-        }, 500);
+        const moveToNextQuestion = async () => {
+          setIsTransitioning(true);
+          
+          // Wait for exit animation to complete (400ms transition + buffer)
+          setTimeout(() => {
+            setCurrentQuestion(prev => prev + 1);
+            setFeedback(null);
+            setSelectedAnswer(null);
+            setIsShowingAnswers(false);
+            
+            // Reset transition state after content changes
+            setTimeout(() => {
+              setIsTransitioning(false);
+            }, 50);
+          }, 450);
+        };
+        moveToNextQuestion();
       }, 1000);
     } else {
       // Play the sound effect for the incorrect answer
@@ -728,38 +583,69 @@ function App() {
     
     setRemainingHints(prev => Math.max(0, prev - 1));
   };
+
   const resetGame = () => {
     // Cancel any ongoing requests
-    if (abortController) {
-      abortController.abort();
-      setAbortController(null);
-    }
-    
-    setGameStarted(false);
-    setCurrentQuestion(0);
-    setPoints(0);
-    setRemainingHints(3);
-    setGameOver(false);
-    setShowWinner(false);
-    setFeedback(null);
-    setUsedHints(new Set());
-    setQuestions([]);
-    setSelectedAnswer(null);
-    setIsShowingAnswers(false);
     setIsLoadingMoreQuestions(false);
   };
 
-  const retryGame = async () => {
-    const currentTopic = topic; // Save the current topic
-    setIsLoading(true);
-    resetGame();
-    setTopic(currentTopic); // Restore the topic before fetching
-    await fetchQuestions(null, 0, true);
+  // Check if we need to load more questions
+  useEffect(() => {
+    // Load very hard questions when the player reaches question 10
+    if (gameStarted && 
+        currentQuestion === 9 &&  // Load very hard questions when game starts
+        !isLoading && 
+        !loadedVeryHardQuestions && 
+        !gameOver) {
+      setLoadedVeryHardQuestions(true);
+      // Generate questions 16-20 (very hard)
+      fetchQuestions(null, 15, false, true);
+    }
+  }, [currentQuestion, gameStarted, isLoading, loadedVeryHardQuestions, gameOver]);
+
+  const startNewGame = async () => {
+    setIsGameOverExiting(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setCurrentQuestion(0);
+    setPoints(0);
+    setPrevPoints(0);
+    setRemainingHints(3);
+    setUsedHints(new Set());
+    setGameOver(false);
+    setGameStarted(false);
+    setQuestions([]);
+    setFeedback(null);
+    setLoadedVeryHardQuestions(false);
+    setSelectedAnswer(null);
+    setIsShowingAnswers(false);
+    setPointsChanged(false);
+    setIsTopicInputExiting(false);
+    setIsGameOverExiting(false);
   };
 
-  const startNewGame = () => {
-    resetGame();
-    setTopic('');
+    // Retry the current game with new questions
+    const retryGame = async () => {
+    setIsGameOverExiting(true);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setCurrentQuestion(0);
+    setPoints(0);
+    setPrevPoints(0);
+    setRemainingHints(3);
+    setUsedHints(new Set());
+    setGameOver(false);
+    setQuestions([]);
+    setFeedback(null);
+    setLoadedVeryHardQuestions(false);
+    setSelectedAnswer(null);
+    setIsShowingAnswers(false);
+    setPointsChanged(false);
+    setIsGameOverExiting(false);
+    
+    // Generate new questions for the same topic with the selected model
+    const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
+    await fetchQuestions(null, 0, true, false, selectedModel);
   };
 
   const handleApiKeyChange = (e) => {
@@ -770,72 +656,63 @@ function App() {
     sessionStorage.setItem('openai_api_key', newKey);
   };
 
-  useEffect(() => {
-    // If the current question is null or a placeholder, try to move to the next one
-    if (gameStarted && 
-        questions.length > currentQuestion && 
-        (!questions[currentQuestion] || questions[currentQuestion].isPlaceholder)) {
-      // Try to move to the next question
-      setCurrentQuestion(prev => prev + 1);
-    }
-  }, [currentQuestion, questions, gameStarted]);
+
+  const generateQuestions = async (apiKey, model) => {
+    // Set exiting state and wait for animation to complete
+    setIsTopicInputExiting(true);
+    await new Promise(resolve => setTimeout(resolve, 350)); // Match this with CSS animation duration
+    
+    // Reset state and fetch questions
+    setIsTopicInputExiting(false);
+    await fetchQuestions(apiKey, 0, true, false, model);
+  };
 
   return (
     <div className="app-wrapper">
       <div className="container">
-        <GameCard show={!gameStarted && !isLoading && !gameOver && !showWinner}>
-          {!gameStarted && !isLoading && (
-            <TopicInput
-              topic={topic}
-              setTopic={setTopic}
-              generateQuestions={(apiKey, model) => fetchQuestions(apiKey, 0, true, false, model)}
-              isLoading={isLoading}
-              error={error}
-              hasApiKey={!!apiKey}
-            />
-          )}
-        </GameCard>
+        {!gameStarted && !isLoading && !gameOver && !isTopicInputExiting && (
+          <TopicInput
+            topic={topic}
+            setTopic={setTopic}
+            generateQuestions={generateQuestions}
+            isLoading={isLoading}
+            error={error}
+            hasApiKey={!!apiKey}
+          />
+        )}
 
         {isLoading && <LoadingScreen progress={loadingProgress} />}
 
-        <GameCard show={gameStarted && !isLoading && !gameOver && !showWinner}>
-          {gameStarted && !isLoading && questions[currentQuestion] && !questions[currentQuestion].isPlaceholder && (
-            <QuestionCard
-              currentQuestion={currentQuestion}
-              points={points}
-              remainingHints={remainingHints}
-              question={questions[currentQuestion]}
-              onAnswer={handleAnswer}
-              onUseHint={useHint}
-              feedback={feedback}
-              isHintUsed={usedHints.has(currentQuestion)}
-              isTransitioning={isTransitioning}
-              selectedAnswer={selectedAnswer}
-              isShowingAnswers={isShowingAnswers}
-              pointsChanged={pointsChanged}
-            />
-          )}
-        </GameCard>
+        {gameStarted && !isLoading && !gameOver && questions[currentQuestion] && !questions[currentQuestion].isPlaceholder && (
+          <QuestionsCard
+            currentQuestion={currentQuestion}
+            points={points}
+            remainingHints={remainingHints}
+            question={questions[currentQuestion]}
+            onAnswer={handleAnswer}
+            onUseHint={useHint}
+            feedback={feedback}
+            isHintUsed={usedHints.has(currentQuestion)}
+            isTransitioning={isTransitioning}
+            selectedAnswer={selectedAnswer}
+            isShowingAnswers={isShowingAnswers}
+            pointsChanged={pointsChanged}
+            isExiting={isQuestionsCardExiting}
+            isEntering={isQuestionsCardEntering}
+          />
+        )}
 
-        <GameCard show={gameOver}>
-          {gameOver && (
+        {gameOver && (
+          <div className="game-over-container">
             <GameOverCard
               points={points}
               onRetry={retryGame}
               onNewGame={startNewGame}
+              isExiting={isGameOverExiting}
             />
-          )}
-        </GameCard>
+          </div>
+        )}
 
-        <GameCard show={showWinner}>
-          {showWinner && (
-            <WinnerCard
-              points={points}
-              onRetry={retryGame}
-              onNewGame={startNewGame}
-            />
-          )}
-        </GameCard>
       </div>
     </div>
   );
