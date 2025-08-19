@@ -29,7 +29,7 @@ const WinnerCard = ({ points, onRetry, onNewGame }) => (
     <div className="button-group">
       <button className="button" onClick={onRetry}>
         <Repeat size={24} />
-        Try again
+        Try Again
       </button>
       <button className="button button-outline" onClick={onNewGame}>
         <CaretRight size={24} />
