@@ -84,7 +84,10 @@ function App() {
 
   const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {
     console.log('Fetching questions with model:', model);
-    if (!topic.trim()) {
+    
+    // Get the current topic from the input field to ensure we have the latest value
+    const topicFromInput = document.getElementById('topic')?.value || topic;
+    if (!topicFromInput.trim()) {
       setError('Please enter a topic');
       return;
     }
@@ -122,7 +125,7 @@ function App() {
             'Authorization': `Bearer ${keyToUse}`
           },
           body: JSON.stringify({ 
-            topic, 
+            topic: topicFromInput, 
             startIndex, 
             batchSize,
             isVeryHardMode,
@@ -216,7 +219,7 @@ function App() {
                             setIsLoading(false);
                             setIsLoadingMoreQuestions(false);
                             // Remove entering state after animation completes
-                            setTimeout(() => setIsQuestionsCardEntering(false), 350);
+                            setTimeout(() => setIsQuestionsCardEntering(false), 800);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
                           // For very hard mode, we are done after receiving all requested questions
@@ -292,7 +295,7 @@ function App() {
             'Authorization': `Bearer ${keyToUse}`
           },
           body: JSON.stringify({ 
-            topic, 
+            topic: topicFromInput, 
             startIndex, 
             batchSize,
             isVeryHardMode,
@@ -386,7 +389,7 @@ function App() {
                             setIsLoading(false);
                             setIsLoadingMoreQuestions(false);
                             // Remove entering state after animation completes
-                            setTimeout(() => setIsQuestionsCardEntering(false), 350);
+                            setTimeout(() => setIsQuestionsCardEntering(false), 800);
                           }, 500);
                         } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
                           // For very hard mode, we are done after receiving all requested questions
@@ -659,7 +662,7 @@ function App() {
   const generateQuestions = async (apiKey, model) => {
     // Set exiting state and wait for animation to complete
     setIsTopicInputExiting(true);
-    await new Promise(resolve => setTimeout(resolve, 350)); // Match this with CSS animation duration
+    await new Promise(resolve => setTimeout(resolve, 700)); // Match this with CSS animation duration
     
     // Reset state and fetch questions
     setIsTopicInputExiting(false);

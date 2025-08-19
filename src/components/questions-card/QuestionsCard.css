@@ -26,11 +26,11 @@
 .questions-card.entering {
   opacity: 0;
   transform: scale(0.98) translateY(10px);
-  animation: scaleIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .questions-card.exiting {
-  animation: scaleOut 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+  animation: scaleOut 0.7s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
   pointer-events: none;
 }
 

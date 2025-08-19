@@ -11,13 +11,13 @@
   overflow: hidden;
   opacity: 0;
   transform: scale(0.98) translateY(10px);
-  animation: scaleIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
   will-change: transform, opacity;
   box-sizing: border-box;
 }
 
 .topic-card.exiting {
-  animation: scaleOut 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+  animation: scaleOut 0.7s ease-out forwards !important;
   pointer-events: none;
 }
 
@@ -27,10 +27,15 @@
     transform: scale(0.5) rotateY(-8deg) rotateX(5deg) translateY(30px);
     filter: blur(6px);
   }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95) rotateY(-3deg) rotateX(2deg) translateY(5px);
+    filter: blur(0px);
+  }
   70% {
     opacity: 0.9;
     transform: scale(1.01) rotateY(-2deg) rotateX(1deg) translateY(-2px);
-    filter: blur(1px);
+    filter: blur(0px);
   }
   100% {
     opacity: 1;
@@ -45,15 +50,15 @@
     transform: scale(1) rotateY(0deg) rotateX(0deg) translateY(0);
     filter: blur(0px);
   }
-  60% {
-    opacity: 0.7;
-    transform: scale(1.01) rotateY(4deg) rotateX(-2deg) translateY(-3px);
-    filter: blur(0.5px);
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85) rotateY(2deg) rotateX(-1deg) translateY(0);
+    filter: blur(1px);
   }
   100% {
     opacity: 0;
-    transform: scale(0.6) rotateY(12deg) rotateX(-8deg) translateY(25px);
-    filter: blur(4px);
+    transform: scale(0.6) rotateY(4deg) rotateX(-2deg) translateY(0);
+    filter: blur(3px);
   }
 }
 
@@ -259,7 +264,6 @@
   right: 0;
   bottom: 0;
   display: flex;
-  border-radius: 24px;
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -267,33 +271,35 @@
   background-color: transparent;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   backdrop-filter: blur(0px);
 }
 
 .modal-overlay.open {
   opacity: 1;
   visibility: visible;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 .modal-content {
   background: white;
-  border-radius: 20px;
+  border-radius: 24px;
   width: 100%;
   max-width: min(500px, 90vw);
-  height: 80vh;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: scale(0.95);
+  min-height: 200px;
+  max-height: 80vh;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: scale(0.8) translateY(30px) rotateX(10deg);
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
+  perspective: 1000px;
 }
 
 .modal-overlay.open .modal-content {
-  transform: scale(1);
+  transform: scale(1) translateY(0) rotateX(0deg);
   opacity: 1;
 }
 
@@ -304,7 +310,7 @@
   justify-content: space-between;
   align-items: center;
   background: white;
-  border-radius: 20px 20px 0 0;
+  border-radius: 24px 24px 0 0;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -348,7 +354,8 @@
 .leaderboard-list {
   padding: 1rem;
   overflow-y: auto;
-  flex-grow: 1;
+  flex-grow: 0;
+  flex-shrink: 1;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
@@ -373,6 +380,7 @@
   border-bottom: 1px solid #e5e7eb;
   animation: fadeIn 0.3s ease;
   transition: background-color 0.2s ease;
+  cursor: pointer;
 }
 
 .leaderboard-item:hover {
@@ -427,7 +435,7 @@
 .leaderboard-empty {
   text-align: center;
   color: #6b7280;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 .leaderboard-button {

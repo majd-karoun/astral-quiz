@@ -3,7 +3,7 @@ import { Howl } from 'howler';
 import { Books, CaretRight, Trophy, X, Clock } from '@phosphor-icons/react';
 import './TopicInput.css';
 
-const LeaderboardModal = ({ isOpen, onClose }) => {
+const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef(null);
@@ -11,7 +11,28 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
-      const sortedHistory = history.sort((a, b) => b.score - a.score);
+      
+      // Group by topic and keep only the highest score for each topic
+      const topicBestScores = {};
+      history.forEach(entry => {
+        if (!topicBestScores[entry.topic] || entry.score > topicBestScores[entry.topic].score) {
+          topicBestScores[entry.topic] = entry;
+        }
+      });
+      
+      // Convert back to array and sort by score (highest first)
+      const uniqueTopicHistory = Object.values(topicBestScores);
+      const sortedHistory = uniqueTopicHistory
+        .sort((a, b) => {
+          // First sort by score (highest first)
+          if (b.score !== a.score) {
+            return b.score - a.score;
+          }
+          // If scores are equal, sort by timestamp (newest first)
+          return b.timestamp - a.timestamp;
+        })
+        .slice(0, 100); // Limit to top 100 entries
+      
       setLeaderboard(sortedHistory);
       setIsClosing(false);
       document.body.style.overflow = 'hidden';
@@ -40,6 +61,11 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
     }, 300);
   };
 
+  const handleTopicClick = (topic) => {
+    onSelectTopic(topic);
+    handleClose();
+  };
+
   const handleOverlayClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       handleClose();
@@ -66,7 +92,7 @@ const LeaderboardModal = ({ isOpen, onClose }) => {
         <div className="leaderboard-list">
           {leaderboard.length > 0 ? (
             leaderboard.map((entry, index) => (
-              <div key={entry.timestamp} className="leaderboard-item">
+              <div key={entry.timestamp} className="leaderboard-item" onClick={() => handleTopicClick(entry.topic)}>
                 <div className="leaderboard-rank">#{index + 1}</div>
                 <div className="leaderboard-info">
                   <span className="leaderboard-topic">{entry.topic}</span>
@@ -254,7 +280,7 @@ const TopicInput = ({
         };
         cardRef.current.addEventListener('animationend', onAnimationEnd, { once: true });
       } else {
-        setTimeout(resolve, 350); // Fallback if ref isn't available
+        setTimeout(resolve, 700); // Fallback if ref isn't available
       }
     });
     
@@ -394,6 +420,7 @@ const TopicInput = ({
         <LeaderboardModal 
           isOpen={isLeaderboardOpen} 
           onClose={() => setIsLeaderboardOpen(false)} 
+          onSelectTopic={setTopic}
         />
       </div>
     </div>
