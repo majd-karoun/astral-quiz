@@ -61,8 +61,10 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
     }, 300);
   };
 
-  const handleTopicClick = (topic) => {
+  const handleTopicClick = async (topic) => {
     onSelectTopic(topic);
+    // Wait for React to update the DOM
+    await new Promise(resolve => setTimeout(resolve, 10));
     handleClose();
   };
 
@@ -160,7 +162,11 @@ const RecentTopics = ({ onSelectTopic }) => {
           <button 
             key={topic} 
             className="topic-chip"
-            onClick={() => onSelectTopic(topic)}
+            onClick={async () => {
+              onSelectTopic(topic);
+              // Wait for React to update the DOM
+              await new Promise(resolve => setTimeout(resolve, 10));
+            }}
           >
             {topic}
           </button>
@@ -235,6 +241,13 @@ const TopicInput = ({
     }
   }, []);
 
+  // Ensure input field value is synchronized with topic state
+  useEffect(() => {
+    if (inputRef.current && inputRef.current.value !== topic) {
+      inputRef.current.value = topic;
+    }
+  }, [topic]);
+
   const handleApiKeyChange = (e) => {
     const newKey = e.target.value;
     setApiKey(newKey);
@@ -253,7 +266,10 @@ const TopicInput = ({
     });
     clickSound.play();
 
-    if (!topic.trim()) {
+    // Get the current topic from the input field to ensure we have the latest value
+    const currentTopic = inputRef.current?.value || topic;
+    
+    if (!currentTopic.trim()) {
       return;
     }
 
@@ -266,6 +282,11 @@ const TopicInput = ({
         setApiKeyError('Invalid API key format');
         return;
       }
+    }
+    
+    // Ensure the topic state is synchronized with the input field
+    if (currentTopic !== topic) {
+      setTopic(currentTopic);
     }
     
     // Start exit animation

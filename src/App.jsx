@@ -37,6 +37,7 @@ function App() {
   const [isShowingAnswers, setIsShowingAnswers] = useState(false);
   const [pointsChanged, setPointsChanged] = useState(false);
   const [abortController, setAbortController] = useState(null);
+  const [isRequestAborted, setIsRequestAborted] = useState(false);
   const [isGameOverExiting, setIsGameOverExiting] = useState(false);
   
   // Create audio elements for sound effects
@@ -82,12 +83,13 @@ function App() {
     localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
   };
 
-  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {
+  const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini', topicOverride = null) => {
     console.log('Fetching questions with model:', model);
     
-    // Get the current topic from the input field to ensure we have the latest value
-    const topicFromInput = document.getElementById('topic')?.value || topic;
-    if (!topicFromInput.trim()) {
+    // Always get the current topic from the input field to ensure we have the latest value
+    const topicFromInput = document.getElementById('topic')?.value;
+    const topicToUse = topicOverride || topicFromInput || topic;
+    if (!topicToUse.trim()) {
       setError('Please enter a topic');
       return;
     }
@@ -113,6 +115,7 @@ function App() {
       // Create a new AbortController instance
       const controller = new AbortController();
       setAbortController(controller);
+      setIsRequestAborted(false);
 
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
@@ -125,7 +128,7 @@ function App() {
             'Authorization': `Bearer ${keyToUse}`
           },
           body: JSON.stringify({ 
-            topic: topicFromInput, 
+            topic: topicToUse, 
             startIndex, 
             batchSize,
             isVeryHardMode,
@@ -155,8 +158,28 @@ function App() {
         
         const processStreamChunk = async () => {
           while (true) {
+            // Check if the request was aborted before reading
+            if (controller.signal.aborted || isRequestAborted) {
+              try {
+                await reader.cancel();
+              } catch (e) {
+                // Ignore cancel errors
+              }
+              break;
+            }
+            
             const { value, done } = await reader.read();
             if (done) {
+              break;
+            }
+            
+            // Check again after reading
+            if (controller.signal.aborted || isRequestAborted) {
+              try {
+                await reader.cancel();
+              } catch (e) {
+                // Ignore cancel errors
+              }
               break;
             }
             
@@ -179,6 +202,11 @@ function App() {
                 
                 if (questionMatches && questionMatches.length > 0) {
                   for (const match of questionMatches) {
+                    // Check if aborted before processing each question
+                    if (controller.signal.aborted || isRequestAborted) {
+                      break;
+                    }
+                    
                     try {
                       const questionObj = JSON.parse(match);
                       
@@ -189,6 +217,11 @@ function App() {
                           typeof questionObj.correctAnswerIndex === 'number' &&
                           questionObj.helpfulHint) {
                         
+                        // Check if aborted before adding to state
+                        if (controller.signal.aborted || isRequestAborted) {
+                          break;
+                        }
+                        
                         // Transform and add the question to our state
                         const transformedQuestion = {
                           mainQuestion: questionObj.mainQuestion,
@@ -197,13 +230,13 @@ function App() {
                           helpfulHint: questionObj.helpfulHint
                         };
                         
-                        // Log the received question
-                        console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
-                        
                         // Add this question to our questions array
                         setQuestions(prevQuestions => {
                           // Always just append questions sequentially
-                          return [...prevQuestions, transformedQuestion];
+                          const newQuestions = [...prevQuestions, transformedQuestion];
+                          // Log the received question with correct numbering
+                          console.log(`Question ${newQuestions.length} received:`, questionObj.mainQuestion);
+                          return newQuestions;
                         });
                         
                         questionCount++;
@@ -295,7 +328,7 @@ function App() {
             'Authorization': `Bearer ${keyToUse}`
           },
           body: JSON.stringify({ 
-            topic: topicFromInput, 
+            topic: topicToUse, 
             startIndex, 
             batchSize,
             isVeryHardMode,
@@ -325,8 +358,28 @@ function App() {
         
         const processStreamChunk = async () => {
           while (true) {
+            // Check if the request was aborted before reading
+            if (controller.signal.aborted || isRequestAborted) {
+              try {
+                await reader.cancel();
+              } catch (e) {
+                // Ignore cancel errors
+              }
+              break;
+            }
+            
             const { value, done } = await reader.read();
             if (done) {
+              break;
+            }
+            
+            // Check again after reading
+            if (controller.signal.aborted || isRequestAborted) {
+              try {
+                await reader.cancel();
+              } catch (e) {
+                // Ignore cancel errors
+              }
               break;
             }
             
@@ -349,6 +402,11 @@ function App() {
                 
                 if (questionMatches && questionMatches.length > 0) {
                   for (const match of questionMatches) {
+                    // Check if aborted before processing each question
+                    if (controller.signal.aborted || isRequestAborted) {
+                      break;
+                    }
+                    
                     try {
                       const questionObj = JSON.parse(match);
                       
@@ -359,6 +417,11 @@ function App() {
                           typeof questionObj.correctAnswerIndex === 'number' &&
                           questionObj.helpfulHint) {
                         
+                        // Check if aborted before adding to state
+                        if (controller.signal.aborted || isRequestAborted) {
+                          break;
+                        }
+                        
                         // Transform and add the question to our state
                         const transformedQuestion = {
                           mainQuestion: questionObj.mainQuestion,
@@ -367,13 +430,13 @@ function App() {
                           helpfulHint: questionObj.helpfulHint
                         };
                         
-                        // Log the received question
-                        console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
-                        
                         // Add this question to our questions array
                         setQuestions(prevQuestions => {
                           // Always just append questions sequentially
-                          return [...prevQuestions, transformedQuestion];
+                          const newQuestions = [...prevQuestions, transformedQuestion];
+                          // Log the received question with correct numbering
+                          console.log(`Question ${newQuestions.length} received:`, questionObj.mainQuestion);
+                          return newQuestions;
                         });
                         
                         questionCount++;
@@ -530,6 +593,7 @@ function App() {
       // Cancel any ongoing requests
       if (abortController) {
         try {
+          setIsRequestAborted(true);
           abortController.abort();
         } catch (e) {
           console.error("Error canceling request:", e);
@@ -624,6 +688,7 @@ function App() {
     setPointsChanged(false);
     setIsTopicInputExiting(false);
     setIsGameOverExiting(false);
+    setIsRequestAborted(false);
   };
 
     // Retry the current game with new questions
@@ -644,6 +709,7 @@ function App() {
     setIsShowingAnswers(false);
     setPointsChanged(false);
     setIsGameOverExiting(false);
+    setIsRequestAborted(false);
     
     // Generate new questions for the same topic with the selected model
     const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
@@ -666,6 +732,7 @@ function App() {
     
     // Reset state and fetch questions
     setIsTopicInputExiting(false);
+    // Don't pass topic override - let fetchQuestions read from the input field directly
     await fetchQuestions(apiKey, 0, true, false, model);
   };
 
