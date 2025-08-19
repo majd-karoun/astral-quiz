@@ -11,35 +11,49 @@
   overflow: hidden;
   opacity: 0;
   transform: scale(0.98) translateY(10px);
-  animation: scaleIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: scaleIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   will-change: transform, opacity;
   box-sizing: border-box;
 }
 
 .topic-card.exiting {
-  animation: scaleOut 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+  animation: scaleOut 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
   pointer-events: none;
 }
 
 @keyframes scaleIn {
-  from {
+  0% {
     opacity: 0;
-    transform: scale(0.96) translateY(20px);
+    transform: scale(0.5) rotateY(-8deg) rotateX(5deg) translateY(30px);
+    filter: blur(6px);
   }
-  to {
+  70% {
+    opacity: 0.9;
+    transform: scale(1.01) rotateY(-2deg) rotateX(1deg) translateY(-2px);
+    filter: blur(1px);
+  }
+  100% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) rotateY(0deg) rotateX(0deg) translateY(0);
+    filter: blur(0px);
   }
 }
 
 @keyframes scaleOut {
-  from {
+  0% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) rotateY(0deg) rotateX(0deg) translateY(0);
+    filter: blur(0px);
   }
-  to {
+  60% {
+    opacity: 0.7;
+    transform: scale(1.01) rotateY(4deg) rotateX(-2deg) translateY(-3px);
+    filter: blur(0.5px);
+  }
+  100% {
     opacity: 0;
-    transform: scale(0.96) translateY(20px);
+    transform: scale(0.6) rotateY(12deg) rotateX(-8deg) translateY(25px);
+    filter: blur(4px);
   }
 }
 
