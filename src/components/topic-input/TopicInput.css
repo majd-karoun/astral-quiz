@@ -4,7 +4,7 @@
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   max-width: min(600px, 90vw);
-  width: 100%;
+  width: 600px;
   margin: 0 auto;
   padding: clamp(1rem, 3vw, 2rem);
   position: relative;
