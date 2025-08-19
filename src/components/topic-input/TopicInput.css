@@ -187,7 +187,7 @@
   background-color: #5050AA;
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 20px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
