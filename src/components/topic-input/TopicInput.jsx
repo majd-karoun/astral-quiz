@@ -168,7 +168,12 @@ const TopicInput = ({
       'Quantum Physics for Beginners',
       'The Works of Leonardo da Vinci',
       'Deep Sea Marine Biology',
-      'The French Revolution'
+      'The French Revolution',
+      'Ancient Egyptian Mythology',
+      'Space Exploration Milestones',
+      'The Science of Dreams',
+      'Famous Art Heists',
+      'The Human Brain'
     ];
     let currentIndex = 0;
     let letterIndex = 0;

@@ -424,10 +424,10 @@ function App() {
       // Create a new AbortController instance
       const controller = new AbortController();
       setAbortController(controller);
-
+//https://server-cold-hill-2617.fly.dev
       try {
         const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-        const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+        const response = await fetch(`http://localhost:8080/api/generate-questions`, {
           method: 'POST',
           mode: 'cors',
           credentials: 'include',
