@@ -81,18 +81,18 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
     >
       <div className="modal-content" ref={modalRef}>
         <div className="modal-header">
-          <div className="modal-title">
-            <Trophy size={24} className="leaderboard-icon" />
-            <h2>Leaderboard</h2>
+          <div className="modal-title animate-modal-title">
+            <Trophy size={24} className="leaderboard-icon animate-modal-icon" />
+            <h2 className="animate-modal-heading">Leaderboard</h2>
           </div>
-          <button className="modal-close" onClick={handleClose}>
+          <button className="modal-close animate-modal-close" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
-        <div className="leaderboard-list">
+        <div className="leaderboard-list animate-modal-list">
           {leaderboard.length > 0 ? (
             leaderboard.map((entry, index) => (
-              <div key={entry.timestamp} className="leaderboard-item" onClick={() => handleTopicClick(entry.topic)}>
+              <div key={entry.timestamp} className="leaderboard-item animate-leaderboard-item" style={{'--item-index': index}} onClick={() => handleTopicClick(entry.topic)}>
                 <div className="leaderboard-rank">#{index + 1}</div>
                 <div className="leaderboard-info">
                   <span className="leaderboard-topic">{entry.topic}</span>
@@ -309,10 +309,10 @@ const TopicInput = ({
     >
       <div className="topic-content">
         <div className="topic-header">
-          <Books className="topic-icon" weight="duotone" />
-          <h1>Astral Quiz</h1>
+          <Books className="topic-icon animate-icon" weight="duotone" />
+          <h1 className="animate-title">Astral Quiz</h1>
           <button 
-            className="leaderboard-button"
+            className="leaderboard-button animate-leaderboard"
             onClick={() => setIsLeaderboardOpen(true)}
           >
             <Trophy size={20} />
@@ -320,7 +320,7 @@ const TopicInput = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="input-form" ref={formRef}>
+        <form onSubmit={handleSubmit} className="input-form animate-rest" ref={formRef}>
           <div className="input-sections">
             <div className="input-section">
               <label htmlFor="topic">Quiz Topic</label>
