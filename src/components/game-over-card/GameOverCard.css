@@ -60,10 +60,6 @@
 .game-over-icon {
   color: #ef4444;
   margin-bottom: 0.5rem;
-  opacity: 0;
-  transform: scale(0.5) rotate(-180deg);
-  animation: iconSpinIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.3s;
 }
 
 .game-over-title {
@@ -71,10 +67,6 @@
   font-weight: 700;
   color: #1f2937;
   margin: 0;
-  opacity: 0;
-  transform: translateY(30px) scale(0.8);
-  animation: titleSlideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.5s;
 }
 
 .game-over-score {
@@ -82,9 +74,9 @@
   color: #4b5563;
   margin: 0 0 1rem 0;
   opacity: 0;
-  transform: translateX(-50px);
-  animation: scoreSlideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.7s;
+  transform: scale(0.3);
+  animation: scoreScaleBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation-delay: 0.3s;
 }
 
 .game-over-buttons {
@@ -95,10 +87,6 @@
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 1rem;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: buttonsSlideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.9s;
 }
 
 .game-over-button {
@@ -169,18 +157,25 @@
   }
 }
 
-@keyframes scoreSlideIn {
+@keyframes scoreScaleBounce {
   0% {
     opacity: 0;
-    transform: translateX(-50px);
+    transform: scale(0.3);
   }
-  60% {
+  50% {
     opacity: 0.8;
-    transform: translateX(5px);
+    transform: scale(1.2);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.9);
+  }
+  85% {
+    transform: scale(1.05);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: scale(1);
   }
 }
 
