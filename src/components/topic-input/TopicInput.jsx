@@ -285,9 +285,6 @@ const TopicInput = ({
   };
 
   const startAutoCloseTimer = () => {
-    // Don't start auto-close timer if input is empty
-    if (!apiKey.trim()) return;
-    
     // Don't start auto-close timer during initial card animation (first 1 second)
     const cardAnimationDelay = 1000;
     
@@ -305,21 +302,11 @@ const TopicInput = ({
   };
 
   const handleApiKeyBlur = () => {
-    // Only start auto-close timer if input has content
-    if (apiKey.trim()) {
-      startAutoCloseTimer();
-    } else {
-      // If input is empty, close immediately
-      setIsApiKeyExpanded(false);
-    }
+    // Start auto-close timer regardless of content
+    startAutoCloseTimer();
   };
 
   const toggleApiKeySection = (fromClick = false) => {
-    // Don't collapse if the input is empty
-    if (isApiKeyExpanded && !apiKey.trim()) {
-      return;
-    }
-    
     if (fromClick || !isApiKeyExpanded) {
       setHasUserInteracted(true);
       setIsApiKeyExpanded(!isApiKeyExpanded);
@@ -347,11 +334,7 @@ const TopicInput = ({
       return;
     }
 
-    if (!hasApiKey) {
-      if (!apiKey.trim()) {
-        setApiKeyError('API key is required');
-        return;
-      }
+    if (!hasApiKey && apiKey.trim()) {
       if (!apiKey.startsWith('sk-')) {
         setApiKeyError('Invalid API key format');
         return;
@@ -380,7 +363,7 @@ const TopicInput = ({
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      if (!isLoading && topic.trim() && apiKey.trim()) {
+      if (!isLoading && topic.trim()) {
         e.preventDefault();
         handleSubmit(e);
       } else {
@@ -506,8 +489,8 @@ const TopicInput = ({
 
           <button
             type="submit"
-            className={`start-button ${(!topic.trim() || !apiKey.trim()) ? 'disabled' : ''}`}
-            disabled={isLoading || !topic.trim() || !apiKey.trim()}
+            className={`start-button ${!topic.trim() ? 'disabled' : ''}`}
+            disabled={isLoading || !topic.trim()}
           >
             <CaretRight className="button-icon" />
             <span>Start Quiz</span>
