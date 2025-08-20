@@ -386,6 +386,13 @@
   backdrop-filter: blur(0px);
 }
 
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 2vh 3vw;
+  }
+}
+
 .modal-overlay.open {
   opacity: 1;
   visibility: visible;
@@ -578,10 +585,12 @@
   .topic-card {
     max-width: 95vw;
     padding: 1rem;
+    min-height: 70vh;
   }
 
   .topic-header {
     margin-bottom: 1.5rem;
+    margin-top: 3.5rem;
   }
 
   .topic-icon {
@@ -611,9 +620,11 @@
   }
 
   .leaderboard-button {
-    position: static;
-    margin-top: 1rem;
-    align-self: center;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
   }
 
   .input-sections {

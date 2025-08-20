@@ -57,3 +57,19 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
+
+@media (max-width: 768px) {
+  .simple-loading-screen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 400px;
+    padding: 1.5rem;
+  }
+  
+  .title-large {
+    font-size: 1.5rem;
+  }
+}

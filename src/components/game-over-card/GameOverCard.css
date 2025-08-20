@@ -204,3 +204,20 @@
   width: 300px;
   height: 300px;
 }
+
+
+@media (max-width: 768px) {
+  .game-over-card {
+    margin-top: 0;
+    max-width: 90vw;
+    padding: clamp(1rem, 4vw, 1.5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .game-over-card {
+    margin-top: 0;
+    max-width: 95vw;
+    padding: clamp(0.8rem, 4vw, 1rem);
+  }
+}
