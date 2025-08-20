@@ -318,6 +318,17 @@
   }
 }
 
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .button-outline.wrong-answer:disabled {
   color: #ef4444;
   border-color: #ef4444;
@@ -413,6 +424,7 @@
 @media (max-width: 768px) {
   .questions-card {
     padding: 4vh 4vw 2vh 4vw;
+    overflow: hidden;
   }
   
   .questions-card-content-wrapper {
@@ -487,6 +499,7 @@
     max-width: 100%;
     font-size: 14px;
     padding: 10px 14px;
+    animation: slideInFromTop 0.3s ease-out;
   }
 }
 

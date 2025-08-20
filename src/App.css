@@ -17,6 +17,7 @@ body {
   body {
     align-items: flex-start;
     padding-top: 2vh;
+    overflow: hidden;
   }
 }
 
@@ -232,6 +233,8 @@ body {
 @media (max-width: 768px) {
   .game-over-container {
     padding: 0 1rem;
+    align-items: flex-start;
+    padding-top: 10vh;
   }
 }
 
