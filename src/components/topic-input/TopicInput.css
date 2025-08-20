@@ -3,8 +3,9 @@
   background: white;
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: min(600px, 90vw);
+  min-width: min(600px, 90vw);
   max-width: min(600px, 90vw);
-  width: 600px;
   margin: 0 auto;
   padding: clamp(1rem, 3vw, 2rem);
   position: relative;
@@ -583,6 +584,8 @@
 /* Mobile Responsiveness */
 @media (max-width: 640px) {
   .topic-card {
+    width: 95vw;
+    min-width: 95vw;
     max-width: 95vw;
     padding: 1rem;
     min-height: 70vh;
