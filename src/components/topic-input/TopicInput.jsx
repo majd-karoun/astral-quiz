@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import { Books, CaretRight, Trophy, X, Clock } from '@phosphor-icons/react';
+import { Books, CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
 import './TopicInput.css';
 
 const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
@@ -190,9 +190,23 @@ const TopicInput = ({
     return sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
   });
   const [isExiting, setIsExiting] = useState(false);
+  const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(() => {
+    // Always start closed - only expand when user explicitly needs to enter a key
+    const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
+    return false; // Always start closed to prevent animations on refresh
+  });
+  const [cardAnimationComplete, setCardAnimationComplete] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
+    // If we have a stored key, consider it as already interacted to prevent weird animations
+    const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
+    return !!(storedKey && storedKey.trim());
+  });
+  const [isApiKeyAnimating, setIsApiKeyAnimating] = useState(false);
   const inputRef = useRef(null);
   const formRef = useRef(null);
   const cardRef = useRef(null);
+  const apiKeyRef = useRef(null);
+  const autoCloseTimeoutRef = useRef(null);
 
   useEffect(() => {
     const placeholders = [
@@ -233,6 +247,20 @@ const TopicInput = ({
     if (inputRef.current) {
       inputRef.current.focus();
     }
+    
+    // Mark card animation as complete after the scaleIn animation duration (0.8s)
+    const cardAnimationTimer = setTimeout(() => {
+      setCardAnimationComplete(true);
+      
+      // Only expand API key section after card animation if no key exists
+      const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
+      if (!storedKey || storedKey.trim() === '') {
+        setIsApiKeyExpanded(true);
+        setHasUserInteracted(true);
+      }
+    }, 800);
+    
+    return () => clearTimeout(cardAnimationTimer);
   }, []);
 
   const handleApiKeyChange = (e) => {
@@ -242,6 +270,68 @@ const TopicInput = ({
     localStorage.setItem('openai_api_key', newKey);
     sessionStorage.setItem('openai_api_key', newKey);
     setApiKeyError('');
+    setHasUserInteracted(true);
+    
+    // Reset auto-close timer when typing/deleting
+    clearTimeout(autoCloseTimeoutRef.current);
+    
+    // Only start auto-close timer if input is not focused
+    if (newKey.trim() && document.activeElement !== apiKeyRef.current) {
+      startAutoCloseTimer();
+    }
+    
+    // Don't auto-collapse while user is typing or deleting
+    // We'll let the blur handler handle the auto-close
+  };
+
+  const startAutoCloseTimer = () => {
+    // Don't start auto-close timer if input is empty
+    if (!apiKey.trim()) return;
+    
+    // Don't start auto-close timer during initial card animation (first 1 second)
+    const cardAnimationDelay = 1000;
+    
+    autoCloseTimeoutRef.current = setTimeout(() => {
+      setIsApiKeyExpanded(false);
+    }, 3000 + cardAnimationDelay);
+  };
+
+  const clearAutoCloseTimer = () => {
+    clearTimeout(autoCloseTimeoutRef.current);
+  };
+
+  const handleApiKeyFocus = () => {
+    clearAutoCloseTimer();
+  };
+
+  const handleApiKeyBlur = () => {
+    // Only start auto-close timer if input has content
+    if (apiKey.trim()) {
+      startAutoCloseTimer();
+    } else {
+      // If input is empty, close immediately
+      setIsApiKeyExpanded(false);
+    }
+  };
+
+  const toggleApiKeySection = (fromClick = false) => {
+    // Don't collapse if the input is empty
+    if (isApiKeyExpanded && !apiKey.trim()) {
+      return;
+    }
+    
+    if (fromClick || !isApiKeyExpanded) {
+      setHasUserInteracted(true);
+      setIsApiKeyExpanded(!isApiKeyExpanded);
+      if (!isApiKeyExpanded) {
+        // Focus the input when expanding
+        setTimeout(() => {
+          if (apiKeyRef.current) {
+            apiKeyRef.current.focus();
+          }
+        }, 100);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -308,11 +398,16 @@ const TopicInput = ({
       }}
     >
       <div className="topic-content">
+        {!isApiKeyExpanded && apiKey.trim() && (
+          <div className="api-key-icon animate-api-key-icon" onClick={() => toggleApiKeySection(true)}>
+            <Key size={20} weight="duotone" />
+          </div>
+        )}
         <div className="topic-header">
           <Books className="topic-icon animate-icon" weight="duotone" />
           <h1 className="animate-title">Astral Quiz</h1>
           <button 
-            className="leaderboard-button animate-leaderboard"
+            className="leaderboard-button"
             onClick={() => setIsLeaderboardOpen(true)}
           >
             <Trophy size={20} />
@@ -371,34 +466,40 @@ const TopicInput = ({
               </div>
             </div>
 
-            <div className="input-section">
-              <label htmlFor="apiKey">
-                OpenAI API Key
-                <a 
-                  href="https://platform.openai.com/api-keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="api-key-link"
-                >
-                  Get API Key
-                </a>
-              </label>
-              <div className="input-container">
-                <input
-                  id="apiKey"
-                  type="password"
-                  autoComplete="new-password"
-                  value={apiKey}
-                  onChange={handleApiKeyChange}
-                  placeholder="sk-..."
-                  className="topic-input"
-                  disabled={isLoading}
-                />
+            {(isApiKeyExpanded || (!apiKey.trim() && cardAnimationComplete)) && (
+              <div className={`input-section ${!isApiKeyExpanded ? 'api-key-hidden' : (isApiKeyExpanded && cardAnimationComplete && (hasUserInteracted || apiKey.trim()) ? 'api-key-visible' : '')}`}>
+                <label htmlFor="apiKey">
+                  OpenAI API Key
+                  <a 
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="api-key-link"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Get API Key
+                  </a>
+                </label>
+                <div className="input-container">
+                  <input
+                    ref={apiKeyRef}
+                    id="apiKey"
+                    type="password"
+                    autoComplete="new-password"
+                    value={apiKey}
+                    onChange={handleApiKeyChange}
+                    onFocus={handleApiKeyFocus}
+                    onBlur={handleApiKeyBlur}
+                    placeholder="sk-..."
+                    className="topic-input"
+                    disabled={isLoading}
+                  />
+                </div>
+                {apiKeyError && (
+                  <p className="error-message">{apiKeyError}</p>
+                )}
               </div>
-              {apiKeyError && (
-                <p className="error-message">{apiKeyError}</p>
-              )}
-            </div>
+            )}
           </div>
 
           <RecentTopics onSelectTopic={setTopic} />
