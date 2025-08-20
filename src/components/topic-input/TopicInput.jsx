@@ -302,8 +302,10 @@ const TopicInput = ({
   };
 
   const handleApiKeyBlur = () => {
-    // Start auto-close timer regardless of content
-    startAutoCloseTimer();
+    // Only start auto-close timer if input has content
+    if (apiKey.trim()) {
+      startAutoCloseTimer();
+    }
   };
 
   const toggleApiKeySection = (fromClick = false) => {
