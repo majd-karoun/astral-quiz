@@ -116,7 +116,7 @@ function App() {
     // Create a new AbortController instance
     const controller = new AbortController();
     setAbortController(controller);
-
+    // https://server-cold-hill-2617.fly.dev
     try {
       const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
       const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
@@ -125,7 +125,9 @@ function App() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${keyToUse}`
+          'Authorization': `Bearer ${keyToUse}`,
+          'Connection': 'keep-alive',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({ 
           topic: topicFromInput, 
@@ -134,7 +136,8 @@ function App() {
           isVeryHardMode,
           model
         }),
-        signal: controller.signal
+        signal: controller.signal,
+        keepalive: true
       });
 
       if (!response.ok) {
@@ -149,6 +152,7 @@ function App() {
       let chunkCount = 0;
       let receivedFirstQuestion = false;
       let questionCount = 0;
+      let connectionEstablished = false;
       
       // For the initial load, we set a higher target (15 questions)
       const targetQuestionCount = isVeryHardMode ? veryHardQuestionBatchSize : (isInitialLoad ? questionBatchSize : 3);
@@ -166,84 +170,122 @@ function App() {
           const chunk = decoder.decode(value, { stream: true });
           chunkCount++;
           
+          // Mark connection as established on first chunk
+          if (!connectionEstablished) {
+            connectionEstablished = true;
+            console.log('Connection established, first chunk received');
+          }
+          
           // Update loading progress based on chunks for the first question
           if (isInitialLoad && !receivedFirstQuestion) {
-            // For the initial load, we scale based on chunks until we receive the first question
-            const progressValue = Math.min(chunkCount * 10, 90);
+            const progressValue = Math.min(chunkCount * 15, 90);
             setLoadingProgress(progressValue);
           }
           
           buffer += chunk;
           
-          // Try to extract complete questions
-          try {
-            if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
-              const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
+          // Only try to parse when we have substantial content
+          if (buffer.length < 30) continue;
+          
+          // Look for complete question objects - server now sends individual JSON objects
+          let searchStart = 0;
+          while (true) {
+            const questionStart = buffer.indexOf('"mainQuestion"', searchStart);
+            if (questionStart === -1) break;
+            
+            // Find the opening brace before mainQuestion
+            let braceStart = questionStart;
+            while (braceStart > 0 && buffer[braceStart] !== '{') {
+              braceStart--;
+            }
+            
+            // Find the matching closing brace
+            let braceEnd = braceStart;
+            let braceCount = 0;
+            let inString = false;
+            let escapeNext = false;
+            
+            for (let i = braceStart; i < buffer.length; i++) {
+              const char = buffer[i];
               
-              if (questionMatches && questionMatches.length > 0) {
-                for (const match of questionMatches) {
-                  try {
-                    const questionObj = JSON.parse(match);
-                    
-                    // Validate the question object structure
-                    if (questionObj.mainQuestion && 
-                        Array.isArray(questionObj.answerOptions) && 
-                        questionObj.answerOptions.length === 4 &&
-                        typeof questionObj.correctAnswerIndex === 'number' &&
-                        questionObj.helpfulHint) {
-                      
-                      // Transform and add the question to our state
-                      const transformedQuestion = {
-                        mainQuestion: questionObj.mainQuestion,
-                        answerOptions: questionObj.answerOptions,
-                        correctAnswerIndex: questionObj.correctAnswerIndex,
-                        helpfulHint: questionObj.helpfulHint
-                      };
-                      
-                      // Log the received question
-                      console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
-                      
-                      // Add this question to our questions array
-                      setQuestions(prevQuestions => {
-                        // Always just append questions sequentially
-                        return [...prevQuestions, transformedQuestion];
-                      });
-                      
-                      questionCount++;
-                      batchQuestionCount++;
-                      
-                      // Start the game as soon as we have the first question
-                      if (isInitialLoad && !receivedFirstQuestion) {
-                        setLoadingProgress(100);
-                        setTimeout(() => {
-                          setGameStarted(true);
-                          setIsQuestionsCardEntering(true);
-                          receivedFirstQuestion = true;
-                          setIsLoading(false);
-                          setIsLoadingMoreQuestions(false);
-                          // Remove entering state after animation completes
-                          setTimeout(() => setIsQuestionsCardEntering(false), 800);
-                        }, 500);
-                      } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
-                        // For very hard mode, we are done after receiving all requested questions
-                        setIsLoadingMoreQuestions(false);
-                      } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
-                        // For other question batches
-                        setIsLoadingMoreQuestions(false);
-                        receivedFirstQuestion = true;
-                      }
-                      
-                      // Remove the processed question from the buffer
-                      buffer = buffer.replace(match, '');
-                    }
-                  } catch (e) {
-                    // Skip invalid JSON fragments
+              if (escapeNext) {
+                escapeNext = false;
+                continue;
+              }
+              
+              if (char === '\\') {
+                escapeNext = true;
+                continue;
+              }
+              
+              if (char === '"') {
+                inString = !inString;
+                continue;
+              }
+              
+              if (!inString) {
+                if (char === '{') braceCount++;
+                else if (char === '}') {
+                  braceCount--;
+                  if (braceCount === 0) {
+                    braceEnd = i + 1;
+                    break;
                   }
                 }
               }
             }
-          } catch (e) {
-            // Skip parsing errors
+            
+            if (braceCount === 0 && braceEnd > braceStart + 1) {
+              const questionJson = buffer.substring(braceStart, braceEnd);
+              
+              try {
+                const questionObj = JSON.parse(questionJson);
+                
+                // Validate and process immediately
+                if (questionObj.mainQuestion && 
+                    Array.isArray(questionObj.answerOptions) && 
+                    questionObj.answerOptions.length === 4 &&
+                    typeof questionObj.correctAnswerIndex === 'number' &&
+                    questionObj.helpfulHint) {
+                  
+                  console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
+                  
+                  // Add question immediately
+                  setQuestions(prevQuestions => [...prevQuestions, questionObj]);
+                  
+                  questionCount++;
+                  batchQuestionCount++;
+                  
+                  // Start game immediately on first question
+                  if (isInitialLoad && !receivedFirstQuestion) {
+                    setLoadingProgress(100);
+                    setTimeout(() => {
+                      setGameStarted(true);
+                      setIsQuestionsCardEntering(true);
+                      receivedFirstQuestion = true;
+                      setIsLoading(false);
+                      setIsLoadingMoreQuestions(false);
+                      setTimeout(() => setIsQuestionsCardEntering(false), 800);
+                    }, 100); // Even faster start
+                  } else if (isVeryHardMode && batchQuestionCount >= veryHardQuestionBatchSize) {
+                    setIsLoadingMoreQuestions(false);
+                  } else if (!isInitialLoad && !isVeryHardMode && !receivedFirstQuestion) {
+                    setIsLoadingMoreQuestions(false);
+                    receivedFirstQuestion = true;
+                  }
+                  
+                  // Remove processed question from buffer
+                  buffer = buffer.substring(0, braceStart) + buffer.substring(braceEnd);
+                  searchStart = braceStart;
+                } else {
+                  searchStart = questionStart + 1;
+                }
+              } catch (e) {
+                searchStart = questionStart + 1;
+              }
+            } else {
+              break; // Wait for more data
+            }
           }
         }
       };

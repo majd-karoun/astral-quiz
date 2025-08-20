@@ -5,9 +5,9 @@ const app = express();
 
 // Enable CORS with specific configuration
 const corsOptions = {
-  origin: ['http://localhost:5174', 'http://localhost:5173', 'https://astral-quiz.netlify.app', 'https://*.netlify.app'],
+  origin: ['http://localhost:5174', 'http://localhost:5173', 'https://astral-quiz.netlify.app', 'https://*.netlify.app','http://192.168.2.101:5173'],
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Connection'],
   credentials: true
 }
 
@@ -118,32 +118,33 @@ app.post('/api/generate-questions', async (req, res) => {
     }
 
     const openai = new OpenAI({ 
-     
-      apiKey });
+      apiKey,
+      timeout: 30000,
+      maxRetries: 1
+    });
 
     try {
-      // Create a completion with streaming enabled
+      // Create a completion with streaming enabled and optimized settings
       const stream = await openai.chat.completions.create({
         messages: [{ 
           role: "user", 
           content: isVeryHardMode ? constructVeryHardPrompt(topic, batchSize) : constructPrompt(topic, batchSize)
         }],
         model: model,
-        
         stream: true,
         response_format: { type: "json_object" }
       });
 
-      // Set headers for streaming
+      // Set headers for streaming with optimizations
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Transfer-Encoding', 'chunked');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
     
     // Initialize variables to track the state
     let buffer = '';
     let questionCount = 0;
-    
-    // Start the response with the opening structure
-    res.write('{"questions":[');
     
     // Process the stream
     for await (const chunk of stream) {
@@ -151,17 +152,14 @@ app.post('/api/generate-questions', async (req, res) => {
       if (content) {
         buffer += content;
         
-        // Try to extract complete questions as they come in
+        // Try to extract complete questions
         try {
-          // Check if we have a complete JSON object with a question
           if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
-            // Extract question objects from the buffer using a more robust regex
-            const matches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
+            const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
             
-            if (matches && matches.length > 0) {
-              for (const match of matches) {
+            if (questionMatches && questionMatches.length > 0) {
+              for (const match of questionMatches) {
                 try {
-                  // Try to parse the question object
                   const questionObj = JSON.parse(match);
                   
                   // Validate the question object
@@ -172,25 +170,12 @@ app.post('/api/generate-questions', async (req, res) => {
                       questionObj.helpfulHint) {
                     
                     // Send the question to the client
-                    if (questionCount > 0) {
-                      res.write(',');
-                    }
+                    const questionJson = JSON.stringify(questionObj);
+                    console.log(`Question ${questionCount + 1} sent:`, questionObj.mainQuestion);
                     
-                    // Format and send the question
-                    const formattedQuestion = {
-                      mainQuestion: questionObj.mainQuestion,
-                      answerOptions: questionObj.answerOptions,
-                      correctAnswerIndex: questionObj.correctAnswerIndex,
-                      helpfulHint: questionObj.helpfulHint
-                    };
-                    
-                    const questionJson = JSON.stringify(formattedQuestion);
-                    // Only log the question content
-                    console.log(`Question content: ${questionObj.mainQuestion}`);
-                    
-                    // Flush the response immediately to ensure the client receives it
+                    // Send question directly as individual JSON object
                     res.write(questionJson);
-                    res.flush && res.flush();
+                    if (res.flush) res.flush();
                     
                     questionCount++;
                     
@@ -204,13 +189,12 @@ app.post('/api/generate-questions', async (req, res) => {
             }
           }
         } catch (e) {
-          // Continue collecting more data
+          // Skip parsing errors
         }
       }
     }
     
-      // Close the JSON structure
-      res.write(']}');
+      // End the response
       res.end();
     } catch (streamError) {
       // Handle streaming errors
