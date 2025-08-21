@@ -107,7 +107,7 @@ const QuestionsCard = ({
           style={{ '--progress': `${(remainingDeleteOptions / 3) * 100}%` }}
         >
           <DeleteOptionsIcon size={20} />
-          <span>2 Options</span>
+          <span> Options</span>
         </button>
       </div>
       <div className="feedback-container">
