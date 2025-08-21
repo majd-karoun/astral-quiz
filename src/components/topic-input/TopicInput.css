@@ -35,7 +35,7 @@
   }
   70% {
     opacity: 0.9;
-    transform: scale(1.01) rotateY(-2deg) rotateX(1deg) translateY(-2px);
+    transform: scale(1) rotateY(-2deg) rotateX(1deg) translateY(-2px);
     filter: blur(0px);
   }
   100% {
@@ -764,7 +764,7 @@
   }
   70% {
     opacity: 0.8;
-    transform: scale(1.1) rotate(10deg);
+    transform: scale(1) rotate(10deg);
   }
   100% {
     opacity: 1;
@@ -779,7 +779,7 @@
   }
   60% {
     opacity: 0.8;
-    transform: translateY(-5px) scale(1.05);
+    transform: translateY(-5px) scale(1);
   }
   100% {
     opacity: 1;
@@ -814,86 +814,22 @@
 }
 
 /* Leaderboard Modal Animations */
-.animate-modal-icon {
-  opacity: 0;
-  transform: scale(0.5) rotate(-180deg);
-  animation: modalIconSpinIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.1s;
-}
-
-.animate-modal-heading {
-  opacity: 0;
-  transform: translateY(20px) scale(0.8);
-  animation: modalHeadingSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.2s;
-}
-
-.animate-modal-close {
-  opacity: 0;
-  transform: translateX(30px);
-  animation: modalCloseSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.3s;
-}
 
 .animate-modal-list {
   opacity: 0;
   transform: translateY(20px);
   animation: modalListSlideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: 0.4s;
+  animation-delay: 0s;
 }
 
 .animate-leaderboard-item {
   opacity: 0;
   transform: translateX(-30px);
   animation: leaderboardItemSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  animation-delay: calc(0.5s + (var(--item-index) * 0.05s));
+  animation-delay: calc(0.1s + (var(--item-index) * 0.05s));
 }
 
 /* Leaderboard Modal Animation Keyframes */
-@keyframes modalIconSpinIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) rotate(-180deg);
-  }
-  70% {
-    opacity: 0.8;
-    transform: scale(1.1) rotate(10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes modalHeadingSlideUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.8);
-  }
-  60% {
-    opacity: 0.8;
-    transform: translateY(-3px) scale(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes modalCloseSlideIn {
-  0% {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  60% {
-    opacity: 0.8;
-    transform: translateX(-3px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
 @keyframes modalListSlideUp {
   0% {

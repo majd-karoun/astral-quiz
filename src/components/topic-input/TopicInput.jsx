@@ -81,11 +81,11 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
     >
       <div className="modal-content" ref={modalRef}>
         <div className="modal-header">
-          <div className="modal-title animate-modal-title">
-            <Trophy size={24} className="leaderboard-icon animate-modal-icon" />
-            <h2 className="animate-modal-heading">Leaderboard</h2>
+          <div className="modal-title">
+            <Trophy size={24} className="leaderboard-icon" />
+            <h2>Leaderboard</h2>
           </div>
-          <button className="modal-close animate-modal-close" onClick={handleClose}>
+          <button className="modal-close" onClick={handleClose}>
             <X size={24} />
           </button>
         </div>

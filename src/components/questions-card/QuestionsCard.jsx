@@ -73,6 +73,7 @@ const QuestionsCard = ({
       <div className="feedback-container">
         {feedback && (
           <div
+            key={`${feedback.type}-${feedback.message}`}
             className={`feedback ${
               feedback.type === 'success'
                 ? 'feedback-success'
@@ -86,7 +87,7 @@ const QuestionsCard = ({
             {feedback.type === 'success' ? (
               <Check size={20} />
             ) : feedback.type === 'hint' ? (
-              <Lightning size={20} />
+              <Lightning size={24} />
             ) : (
               <CaretRight size={20} />
             )}
