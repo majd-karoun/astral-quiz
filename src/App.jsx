@@ -4,15 +4,14 @@ import TopicInput from './components/topic-input/TopicInput';
 import LoadingScreen from './components/loading-screen/LoadingScreen';
 import QuestionsCard from './components/questions-card/QuestionsCard';
 import GameOverCard from './components/game-over-card/GameOverCard';
+import { apiKeyEncryption } from './utils/encryption';
 import './App.css';
 
 
 function App() {
   const [topic, setTopic] = useState('');
-  const [apiKey, setApiKey] = useState(() => {
-    // First check localStorage, then sessionStorage
-    return localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
-  });
+  const [apiKey, setApiKey] = useState('');
+  const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -39,6 +38,27 @@ function App() {
   const [abortController, setAbortController] = useState(null);
   const [isGameOverExiting, setIsGameOverExiting] = useState(false);
   
+  // Load and decrypt API key on component mount
+  useEffect(() => {
+    const loadApiKey = async () => {
+      try {
+        const encryptedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
+        if (encryptedKey) {
+          const decryptedKey = await apiKeyEncryption.decrypt(encryptedKey);
+          setApiKey(decryptedKey);
+        }
+      } catch (error) {
+        console.error('Failed to decrypt API key:', error);
+        // Clear potentially corrupted key
+        localStorage.removeItem('openai_api_key');
+        sessionStorage.removeItem('openai_api_key');
+      } finally {
+        setIsLoadingApiKey(false);
+      }
+    };
+    loadApiKey();
+  }, []);
+
   // Create audio elements for sound effects
   const scoreUpSound = new Audio('/sounds/score-up.mp3');
   const gameOverSound = new Audio('/sounds/game-over.mp3');
@@ -98,8 +118,16 @@ function App() {
     
     if (apiKeyFromInput) {
       setApiKey(apiKeyFromInput);
-      localStorage.setItem('openai_api_key', apiKeyFromInput);
-      sessionStorage.setItem('openai_api_key', apiKeyFromInput);
+      // Encrypt and store the API key
+      apiKeyEncryption.encrypt(apiKeyFromInput).then(encryptedKey => {
+        localStorage.setItem('openai_api_key', encryptedKey);
+        sessionStorage.setItem('openai_api_key', encryptedKey);
+      }).catch(error => {
+        console.error('Failed to encrypt API key:', error);
+        // Fallback to plain storage if encryption fails
+        localStorage.setItem('openai_api_key', apiKeyFromInput);
+        sessionStorage.setItem('openai_api_key', apiKeyFromInput);
+      });
       keyToUse = apiKeyFromInput;
     } else {
       keyToUse = providedApiKey || apiKey;
@@ -505,9 +533,22 @@ function App() {
   const handleApiKeyChange = (e) => {
     const newKey = e.target.value;
     setApiKey(newKey);
-    // Save to both storages when changed
-    localStorage.setItem('openai_api_key', newKey);
-    sessionStorage.setItem('openai_api_key', newKey);
+    // Encrypt and save to both storages when changed
+    if (newKey.trim()) {
+      apiKeyEncryption.encrypt(newKey).then(encryptedKey => {
+        localStorage.setItem('openai_api_key', encryptedKey);
+        sessionStorage.setItem('openai_api_key', encryptedKey);
+      }).catch(error => {
+        console.error('Failed to encrypt API key:', error);
+        // Fallback to plain storage if encryption fails
+        localStorage.setItem('openai_api_key', newKey);
+        sessionStorage.setItem('openai_api_key', newKey);
+      });
+    } else {
+      // Clear storage if key is empty
+      localStorage.removeItem('openai_api_key');
+      sessionStorage.removeItem('openai_api_key');
+    }
   };
 
 

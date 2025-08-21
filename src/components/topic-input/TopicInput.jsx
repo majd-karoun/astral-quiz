@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
 import { Books, CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
+import { apiKeyEncryption } from '../../utils/encryption';
 import './TopicInput.css';
 
 const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
@@ -178,10 +179,8 @@ const TopicInput = ({
   error, 
   hasApiKey 
 }) => {
-  const [apiKey, setApiKey] = useState(() => {
-    // First check localStorage, then sessionStorage
-    return localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
-  });
+  const [apiKey, setApiKey] = useState('');
+  const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
   const [apiKeyError, setApiKeyError] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
@@ -190,23 +189,36 @@ const TopicInput = ({
     return sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
   });
   const [isExiting, setIsExiting] = useState(false);
-  const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(() => {
-    // Always start closed - only expand when user explicitly needs to enter a key
-    const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
-    return false; // Always start closed to prevent animations on refresh
-  });
+  const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(false);
   const [cardAnimationComplete, setCardAnimationComplete] = useState(false);
-  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
-    // If we have a stored key, consider it as already interacted to prevent weird animations
-    const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
-    return !!(storedKey && storedKey.trim());
-  });
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isApiKeyAnimating, setIsApiKeyAnimating] = useState(false);
   const inputRef = useRef(null);
   const formRef = useRef(null);
   const cardRef = useRef(null);
   const apiKeyRef = useRef(null);
   const autoCloseTimeoutRef = useRef(null);
+
+  // Load and decrypt API key on component mount
+  useEffect(() => {
+    const loadApiKey = async () => {
+      try {
+        const encryptedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key') || '';
+        if (encryptedKey) {
+          const decryptedKey = await apiKeyEncryption.decrypt(encryptedKey);
+          setApiKey(decryptedKey);
+        }
+      } catch (error) {
+        console.error('Failed to decrypt API key:', error);
+        // Clear potentially corrupted key
+        localStorage.removeItem('openai_api_key');
+        sessionStorage.removeItem('openai_api_key');
+      } finally {
+        setIsLoadingApiKey(false);
+      }
+    };
+    loadApiKey();
+  }, []);
 
   useEffect(() => {
     const placeholders = [
@@ -251,24 +263,40 @@ const TopicInput = ({
     // Mark card animation as complete after the scaleIn animation duration (0.8s)
     const cardAnimationTimer = setTimeout(() => {
       setCardAnimationComplete(true);
-      
-      // Only expand API key section after card animation if no key exists
-      const storedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
-      if (!storedKey || storedKey.trim() === '') {
-        setIsApiKeyExpanded(true);
-        setHasUserInteracted(true);
-      }
     }, 800);
     
     return () => clearTimeout(cardAnimationTimer);
   }, []);
 
+  // Separate useEffect to handle API key expansion after loading is complete
+  useEffect(() => {
+    if (cardAnimationComplete && !isLoadingApiKey && (!apiKey || apiKey.trim() === '')) {
+      setIsApiKeyExpanded(true);
+      setHasUserInteracted(true);
+    }
+  }, [cardAnimationComplete, isLoadingApiKey, apiKey]);
+
   const handleApiKeyChange = (e) => {
     const newKey = e.target.value;
     setApiKey(newKey);
-    // Save to both storages when changed
-    localStorage.setItem('openai_api_key', newKey);
-    sessionStorage.setItem('openai_api_key', newKey);
+    
+    // Encrypt and save to both storages when changed
+    if (newKey.trim()) {
+      apiKeyEncryption.encrypt(newKey).then(encryptedKey => {
+        localStorage.setItem('openai_api_key', encryptedKey);
+        sessionStorage.setItem('openai_api_key', encryptedKey);
+      }).catch(error => {
+        console.error('Failed to encrypt API key:', error);
+        // Fallback to plain storage if encryption fails
+        localStorage.setItem('openai_api_key', newKey);
+        sessionStorage.setItem('openai_api_key', newKey);
+      });
+    } else {
+      // Clear storage if key is empty
+      localStorage.removeItem('openai_api_key');
+      sessionStorage.removeItem('openai_api_key');
+    }
+    
     setApiKeyError('');
     setHasUserInteracted(true);
     
@@ -383,7 +411,7 @@ const TopicInput = ({
       }}
     >
       <div className="topic-content">
-        {!isApiKeyExpanded && apiKey.trim() && (
+        {!isApiKeyExpanded && !isLoadingApiKey && apiKey.trim() && (
           <div className="api-key-icon animate-api-key-icon" onClick={() => toggleApiKeySection(true)}>
             <Key size={20} weight="duotone" />
           </div>
