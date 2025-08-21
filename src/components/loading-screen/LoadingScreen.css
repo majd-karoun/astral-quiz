@@ -8,8 +8,8 @@
   align-items: center;
   justify-content: center;
   gap: 32px;
-  width: 450px;
-  max-width: 800px;
+  width: 90%;
+  max-width: 450px;
   padding: 2rem;
   background: transparent;
   border-radius: 12px;
@@ -27,6 +27,8 @@
   margin: 0;
   text-align: center;
   color: rgba(255, 255, 255, 0.4) !important;
+  white-space: normal;
+  word-wrap: break-word;
 
 }
 
