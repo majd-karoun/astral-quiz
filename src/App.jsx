@@ -22,9 +22,12 @@ function App() {
   const [points, setPoints] = useState(0);
   const [prevPoints, setPrevPoints] = useState(0);
   const [remainingHints, setRemainingHints] = useState(3);
+  const [remainingDeleteOptions, setRemainingDeleteOptions] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [usedHints, setUsedHints] = useState(new Set());
+  const [usedDeleteOptions, setUsedDeleteOptions] = useState(new Set());
+  const [hiddenOptions, setHiddenOptions] = useState(new Set());
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isQuestionsCardExiting, setIsQuestionsCardExiting] = useState(false);
   const [isQuestionsCardEntering, setIsQuestionsCardEntering] = useState(false);
@@ -466,6 +469,48 @@ function App() {
     setRemainingHints(prev => Math.max(0, prev - 1));
   };
 
+  const useDeleteOptions = () => {
+    // Return if conditions are not met
+    if (!questions[currentQuestion] || 
+        usedDeleteOptions.has(currentQuestion) || 
+        remainingDeleteOptions <= 0 ||
+        isShowingAnswers) {
+      return;
+    }
+
+    const correctAnswerIndex = questions[currentQuestion].correctAnswerIndex;
+    const wrongOptions = [];
+    
+    // Find all wrong answer indices
+    for (let i = 0; i < 4; i++) {
+      if (i !== correctAnswerIndex) {
+        wrongOptions.push(i);
+      }
+    }
+
+    // Randomly select 2 wrong options to hide
+    const shuffled = wrongOptions.sort(() => 0.5 - Math.random());
+    const optionsToHide = shuffled.slice(0, 2);
+
+    // Create unique keys for hidden options (questionIndex_optionIndex)
+    const hiddenKeys = optionsToHide.map(optionIndex => `${currentQuestion}_${optionIndex}`);
+    
+    setHiddenOptions(prev => {
+      const newSet = new Set(prev);
+      hiddenKeys.forEach(key => newSet.add(key));
+      return newSet;
+    });
+
+    setUsedDeleteOptions(prev => {
+      const newSet = new Set(prev);
+      newSet.add(currentQuestion);
+      return newSet;
+    });
+
+    setRemainingDeleteOptions(prev => Math.max(0, prev - 1));
+
+  };
+
   const resetGame = () => {
     // Cancel any ongoing requests
     setIsLoadingMoreQuestions(false);
@@ -493,7 +538,10 @@ function App() {
     setPoints(0);
     setPrevPoints(0);
     setRemainingHints(3);
+    setRemainingDeleteOptions(3);
     setUsedHints(new Set());
+    setUsedDeleteOptions(new Set());
+    setHiddenOptions(new Set());
     setGameOver(false);
     setGameStarted(false);
     setQuestions([]);
@@ -515,7 +563,10 @@ function App() {
     setPoints(0);
     setPrevPoints(0);
     setRemainingHints(3);
+    setRemainingDeleteOptions(3);
     setUsedHints(new Set());
+    setUsedDeleteOptions(new Set());
+    setHiddenOptions(new Set());
     setGameOver(false);
     setQuestions([]);
     setFeedback(null);
@@ -583,11 +634,15 @@ function App() {
             currentQuestion={currentQuestion}
             points={points}
             remainingHints={remainingHints}
+            remainingDeleteOptions={remainingDeleteOptions}
             question={questions[currentQuestion]}
             onAnswer={handleAnswer}
             onUseHint={useHint}
+            onUseDeleteOptions={useDeleteOptions}
             feedback={feedback}
             isHintUsed={usedHints.has(currentQuestion)}
+            isDeleteOptionsUsed={usedDeleteOptions.has(currentQuestion)}
+            hiddenOptions={hiddenOptions}
             isTransitioning={isTransitioning}
             selectedAnswer={selectedAnswer}
             isShowingAnswers={isShowingAnswers}

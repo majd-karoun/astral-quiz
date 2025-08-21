@@ -7,7 +7,7 @@
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  padding: 5vh 5vw;
+  padding: 2vh 5vw;
   margin: 0;
   overflow-y: auto;
   z-index: 10;
@@ -78,18 +78,16 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   max-width: min(650px, 90vw);
   width: 100%;
-  height: 90vh;
-  max-height: 90vh;
-  padding: clamp(1rem, 3vw, 2rem);
+  height: auto;
+  min-height: 85vh;
+  padding: clamp(0rem, 3vw, 2rem);
   position: relative;
-  overflow: auto;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
   grid-template-areas: 
     "header"
-    "content"
-    "footer";
-  gap: 0;
+    "content";
+  gap: 8px;
 }
 
 /* Responsive background for larger screens - removed white background */
@@ -156,8 +154,8 @@
   grid-area: content;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 20px 0 50px 0;
+  justify-content: flex-start;
+  padding: 20px 0 120px 0;
   opacity: 1;
   transform: translateX(0);
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -334,6 +332,14 @@
   border-color: #ef4444;
 }
 
+.questions-card .button-outline.fifty-fifty-disabled {
+  opacity: 0.3 !important;
+  color: #ef4444;
+  border-color: #ef4444;
+  cursor: not-allowed;
+  transition: opacity 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
 /* Test styles for highlighting correct answers during testing */
 .test-correct-answer {
   position: relative;
@@ -353,26 +359,61 @@
 
 /* Bottom Container */
 .bottom-container {
-  grid-area: footer;
+  position: absolute;
+  bottom: 0;
+  left: clamp(1rem, 3vw, 2rem);
+  right: clamp(1rem, 3vw, 2rem);
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
   padding: 16px 0 20px 0;
   border-top: 2px solid #f0f0f0;
-  position: relative;
+  background: white;
+  border-radius: 0 0 1.5rem 1.5rem;
 }
 
 /* Help Options */
 .help-options {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   justify-content: flex-start;
-  margin-top: 8px;
+  margin-top: 5px;
 }
 
 .help-options .button {
   margin: 0;
   min-width: 150px;
+}
+
+/* Help Button Progress Background */
+.help-button {
+  position: relative;
+  overflow: hidden;
+  height: 50px;
+  background: rgba(240, 240, 240, 0.3);
+}
+
+.help-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--progress, 100%);
+  background: rgba(80, 80, 170, 0.15);
+  transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.help-button:hover:not(:disabled)::before {
+  background: rgba(80, 80, 170, 0.25);
+}
+
+.help-button:disabled::before {
+  background: rgba(128, 128, 128, 0.1);
 }
 
 /* Feedback */
@@ -424,13 +465,17 @@
 @media (max-width: 768px) {
   .questions-card {
     padding: 4vh 4vw 2vh 4vw;
-    overflow: hidden;
+    overflow-y: auto;
   }
   
   .questions-card-content-wrapper {
     max-width: 92vw;
     padding: clamp(1rem, 3vw, 1.5rem);
     border-radius: 1rem;
+    min-height: auto;
+    height: auto;
+    display: flex;
+    flex-direction: column;
   }
   
   .header {
@@ -452,7 +497,7 @@
   }
   
   .question-and-options {
-    padding: 24px 0;
+    padding: 24px 0 0 0;
   }
   
   .question {
@@ -463,7 +508,7 @@
   
   .options-grid {
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
   }
   
   .questions-card .button-outline {
@@ -473,10 +518,18 @@
   }
   
   .bottom-container {
+    position: static;
     padding: 12px 0 16px 0;
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+    margin-top: 16px;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    border-top: 2px solid #f0f0f0;
+    background: white;
+    border-radius: 0;
   }
   
   .help-options {

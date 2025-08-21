@@ -8,22 +8,51 @@ import {
 } from '@phosphor-icons/react';
 import './QuestionsCard.css';
 
+// 50/50 icon
+const DeleteOptionsIcon = ({ size = 20 }) => (
+  <svg width={size * 1.2} height={size} viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="2" y="8" fontSize="12" fontWeight="bold" fill="currentColor">50</text>
+    <line x1="6" y1="16" x2="24" y2="4" stroke="currentColor" strokeWidth="2"/>
+    <text x="16" y="18" fontSize="12" fontWeight="bold" fill="currentColor">50</text>
+  </svg>
+);
+
 const QuestionsCard = ({ 
   currentQuestion,
   points,
   remainingHints,
+  remainingDeleteOptions,
   question,
   onAnswer,
   onUseHint,
+  onUseDeleteOptions,
   feedback,
   isHintUsed,
+  isDeleteOptionsUsed,
+  hiddenOptions,
   isTransitioning,
   selectedAnswer,
   isShowingAnswers,
   pointsChanged,
   isExiting,
   isEntering
-}) => (
+}) => {
+  const [hintDecreasing, setHintDecreasing] = React.useState(false);
+  const [deleteDecreasing, setDeleteDecreasing] = React.useState(false);
+
+  const handleUseHint = () => {
+    setHintDecreasing(true);
+    onUseHint();
+    setTimeout(() => setHintDecreasing(false), 600);
+  };
+
+  const handleUseDeleteOptions = () => {
+    setDeleteDecreasing(true);
+    onUseDeleteOptions();
+    setTimeout(() => setDeleteDecreasing(false), 600);
+  };
+
+  return (
   <div className={`questions-card ${isExiting ? 'exiting' : ''} ${isEntering ? 'entering' : ''}`}>
     <div className="questions-card-content-wrapper">
       <div className="header">
@@ -42,7 +71,8 @@ const QuestionsCard = ({
         {question.answerOptions.map((option, index) => {
           const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
           const isSelected = isShowingAnswers && index === selectedAnswer;
-          
+          const isHidden = hiddenOptions.has(`${currentQuestion}_${index}`);
+
           return (
             <button
               key={index}
@@ -50,8 +80,8 @@ const QuestionsCard = ({
               className={`button button-outline ${
                 isCorrect ? 'correct-answer' : 
                 isSelected ? 'wrong-answer' : ''
-              }`}
-              disabled={isShowingAnswers}
+              } ${isHidden ? 'fifty-fifty-disabled' : ''}`}
+              disabled={isShowingAnswers || isHidden}
             >
               {option}
             </button>
@@ -62,12 +92,22 @@ const QuestionsCard = ({
     <div className="bottom-container">
       <div className="help-options">
         <button 
-          onClick={onUseHint} 
-          className="button button-outline"
+          onClick={handleUseHint} 
+          className={`button button-outline help-button ${hintDecreasing ? 'decreasing' : ''}`}
           disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
+          style={{ '--progress': `${(remainingHints / 3) * 100}%` }}
         >
           <Lightning size={20} />
-          Hint ({remainingHints})
+          <span>Hint</span>
+        </button>
+        <button 
+          onClick={handleUseDeleteOptions} 
+          className={`button button-outline help-button ${deleteDecreasing ? 'decreasing' : ''}`}
+          disabled={isDeleteOptionsUsed || remainingDeleteOptions <= 0 || isShowingAnswers}
+          style={{ '--progress': `${(remainingDeleteOptions / 3) * 100}%` }}
+        >
+          <DeleteOptionsIcon size={20} />
+          <span>2 Options</span>
         </button>
       </div>
       <div className="feedback-container">
@@ -96,8 +136,9 @@ const QuestionsCard = ({
         )}
       </div>
     </div>
+    </div>
   </div>
-  </div>
-);
+  );
+};
 
 export default QuestionsCard;

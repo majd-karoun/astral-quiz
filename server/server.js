@@ -62,7 +62,7 @@ For each question, provide:
 4. A helpful hint that gives a tip without revealing the answer directly
 5. Use an emoji at the end of each question sentence (after question mark).
 
-Make sure the 15 questions aren't random, but releated to each other and represent a cheatsheet about the chosen topic.
+Make sure the 15 questions aren't random trivia like, but usefull, releated to each other and represent a cheatsheet about the chosen topic.
 
 Format the output as a JSON object with this structure:
 {
@@ -86,6 +86,9 @@ For each question, provide:
 3. Correct answer number (0-3)
 4. A helpful hint that gives a tip without revealing the answer directly
 5. Use an emoji at the end of each question sentence (after question mark).
+
+Make sure the questions aren't random trivia like, but usefull, releated to each other and represent a cheatsheet about the chosen topic.
+
 
 Format the output as a JSON object with this structure:
 {
