@@ -47,8 +47,8 @@ const validateApiKey = (apiKey) => {
   return typeof apiKey === 'string' && apiKey.startsWith('sk-') && apiKey.length > 20;
 };
 
-const constructPrompt = (topic, batchSize = 3) => {
-  return `Create ${batchSize} quiz questions about ${topic} with increasing difficulty based on the question number:
+const constructPrompt = (topic) => {
+  return `Create 15 quiz questions about [${topic}] with increasing difficulty based on the question number:
  - Questions 1-3: Very Easy
  - Questions 4-5: Easy
  - Questions 6-10: Medium
@@ -77,8 +77,8 @@ Format the output as a JSON object with this structure:
 }`;
 };
 
-const constructVeryHardPrompt = (topic, batchSize = 5) => {
-  return `Create ${batchSize} VERY HARD quiz questions about ${topic}. These should be extremely difficult questions (1000 points per question) for experts who have already answered 15 progressively difficult questions.
+const constructVeryHardPrompt = (topic) => {
+  return `Create 5 VERY HARD quiz questions about [${topic}]. These should be extremely difficult questions (1000 points per question) for experts who have already answered 15 progressively difficult questions.
 
 For each question, provide:
 1. Main question
@@ -106,7 +106,7 @@ Format the output as a JSON object with this structure:
 // Main question generation endpoint
 app.post('/api/generate-questions', async (req, res) => {
   try {
-    const { topic, startIndex = 0, batchSize = 3, isVeryHardMode = false, model = 'gpt-4o-mini' } = req.body;
+    const { topic, isVeryHardMode = false, model = 'gpt-4o-mini' } = req.body;
     console.log('Using model:', model);
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
@@ -133,7 +133,7 @@ app.post('/api/generate-questions', async (req, res) => {
       const stream = await openai.chat.completions.create({
         messages: [{ 
           role: "user", 
-          content: isVeryHardMode ? constructVeryHardPrompt(topic, batchSize) : constructPrompt(topic, batchSize)
+          content: isVeryHardMode ? constructVeryHardPrompt(topic) : constructPrompt(topic)
         }],
         model: model,
         stream: true,
@@ -147,59 +147,45 @@ app.post('/api/generate-questions', async (req, res) => {
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
     
-    // Initialize variables to track the state
+    // Stream and parse questions as they arrive
     let buffer = '';
-    let questionCount = 0;
     
-    // Process the stream
     for await (const chunk of stream) {
       const content = chunk.choices?.[0]?.delta?.content;
       if (content) {
         buffer += content;
         
-        // Try to extract complete questions
-        try {
-          if (buffer.includes('"mainQuestion"') && buffer.includes('"correctAnswerIndex"')) {
-            const questionMatches = buffer.match(/{[^{]*"mainQuestion"[^{]*"correctAnswerIndex"[^{}]*}/g);
+        // Look for complete question objects in the buffer
+        const questionRegex = /{\s*"mainQuestion"[^}]*"helpfulHint"[^}]*}/g;
+        let match;
+        
+        while ((match = questionRegex.exec(buffer)) !== null) {
+          try {
+            const questionObj = JSON.parse(match[0]);
             
-            if (questionMatches && questionMatches.length > 0) {
-              for (const match of questionMatches) {
-                try {
-                  const questionObj = JSON.parse(match);
-                  
-                  // Validate the question object
-                  if (questionObj.mainQuestion && 
-                      Array.isArray(questionObj.answerOptions) && 
-                      questionObj.answerOptions.length === 4 &&
-                      typeof questionObj.correctAnswerIndex === 'number' &&
-                      questionObj.helpfulHint) {
-                    
-                    // Send the question to the client
-                    const questionJson = JSON.stringify(questionObj);
-                    console.log(`Question ${questionCount + 1} sent:`, questionObj.mainQuestion);
-                    
-                    // Send question directly as individual JSON object
-                    res.write(questionJson);
-                    if (res.flush) res.flush();
-                    
-                    questionCount++;
-                    
-                    // Remove the processed question from the buffer
-                    buffer = buffer.replace(match, '');
-                  }
-                } catch (e) {
-                  // Skip invalid JSON fragments
-                }
-              }
+            // Validate the question object
+            if (questionObj.mainQuestion && 
+                Array.isArray(questionObj.answerOptions) && 
+                questionObj.answerOptions.length === 4 &&
+                typeof questionObj.correctAnswerIndex === 'number' &&
+                questionObj.helpfulHint) {
+              
+              console.log('Question sent:', questionObj.mainQuestion);
+              res.write(JSON.stringify(questionObj));
+              if (res.flush) res.flush();
+              
+              // Remove the processed question from buffer
+              buffer = buffer.replace(match[0], '');
+              questionRegex.lastIndex = 0; // Reset regex
             }
+          } catch (e) {
+            // Skip invalid JSON
           }
-        } catch (e) {
-          // Skip parsing errors
         }
       }
     }
     
-      // End the response
+    // End the response
       res.end();
     } catch (streamError) {
       // Handle streaming errors

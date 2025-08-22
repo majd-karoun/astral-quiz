@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import { Books, CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
+import { CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
 import { apiKeyEncryption } from '../../utils/encryption';
+import BookIcon from '../BookIcon';
 import './TopicInput.css';
 
 const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
@@ -417,7 +418,7 @@ const TopicInput = ({
           </div>
         )}
         <div className="topic-header">
-          <Books className="topic-icon animate-icon" weight="duotone" />
+          <BookIcon className="topic-icon animate-books" weight="duotone" />
           <h1 className="animate-title">Astral Quiz</h1>
           <button 
             className="leaderboard-button"
