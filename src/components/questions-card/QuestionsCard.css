@@ -78,8 +78,8 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   max-width: min(650px, 90vw);
   width: 100%;
-  height: auto;
-  min-height: 85vh;
+  height: 80vh;
+
   padding: clamp(0rem, 3vw, 2rem);
   position: relative;
   display: grid;
