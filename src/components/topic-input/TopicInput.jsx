@@ -223,20 +223,13 @@ const TopicInput = ({
 
   useEffect(() => {
     const placeholders = [
-      'Ancient Egyptian Mythology',
-      'The French Revolution',
+      
+   
       'Quantum Physics for Beginners',
-      'The History of Space Exploration',
-      'Artificial Intelligence Ethics',
+      'Ancient Egyptian Mythology',
+      'Artificial Intelligence',
       'Ancient Roman Architecture',
-      'Marine Biology Mysteries',
-      'The Renaissance Period',
-      'Cryptocurrency Basics',
-      'World War II Espionage',
-      'The Human Brain and Memory',
-      'Sustainable Energy Solutions',
-      'The Art of Japanese Tea Ceremony',
-      'Renewable Energy Technologies',
+      'The French Revolution',
       'History of the Roman Empire',
       'Ancient Greek Philosophy',
       'Solar System Formation',
