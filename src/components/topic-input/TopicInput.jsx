@@ -223,15 +223,30 @@ const TopicInput = ({
 
   useEffect(() => {
     const placeholders = [
-      'History of the Roman Empire',
-      'Quantum Physics for Beginners',
-      'The Works of Leonardo da Vinci',
-      'Deep Sea Marine Biology',
       'Ancient Egyptian Mythology',
       'The French Revolution',
+      'Quantum Physics for Beginners',
+      'The History of Space Exploration',
+      'Artificial Intelligence Ethics',
+      'Ancient Roman Architecture',
+      'Marine Biology Mysteries',
+      'The Renaissance Period',
+      'Cryptocurrency Basics',
+      'World War II Espionage',
+      'The Human Brain and Memory',
+      'Sustainable Energy Solutions',
+      'The Art of Japanese Tea Ceremony',
+      'Renewable Energy Technologies',
+      'History of the Roman Empire',
+      'Ancient Greek Philosophy',
       'Solar System Formation',
-      'The Science of Dreams', 
-      'The Human Brain',
+      'Deep Sea Marine Biology',
+      'The Human Biology',
+      'science Breakthroughs',
+      'Theories of the Universe',
+      'The Digital Revolution',
+      'Japanese Culture',
+
     ];
     let currentIndex = 0;
     let letterIndex = 0;
