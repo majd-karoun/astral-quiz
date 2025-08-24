@@ -228,18 +228,17 @@ const TopicInput = ({
       'Quantum Physics for Beginners',
       'Ancient Egyptian Mythology',
       'Artificial Intelligence',
-      'Ancient Roman Architecture',
+  
       'The French Revolution',
       'History of the Roman Empire',
-      'Ancient Greek Philosophy',
+
       'Solar System Formation',
       'Deep Sea Marine Biology',
       'The Human Biology',
-      'science Breakthroughs',
+      'Science Breakthroughs',
       'Theories of the Universe',
       'The Digital Revolution',
       'Japanese Culture',
-
     ];
     let currentIndex = 0;
     let letterIndex = 0;
