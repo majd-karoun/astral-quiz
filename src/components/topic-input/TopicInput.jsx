@@ -457,8 +457,8 @@ const TopicInput = ({
                   className="model-select"
                   disabled={isLoading}
                 >
-                  <option value="gpt-4o-mini">GPT-4o Mini (faster)</option>
-                  <option value="gpt-5-mini">GPT-5 Mini (smarter)</option>
+                  <option value="gpt-4">GPT-4 (faster)</option>
+                  <option value="gpt-5">GPT-5 (smarter)</option>
                 </select>
               </div>
             </div>
