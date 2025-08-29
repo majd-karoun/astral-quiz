@@ -344,12 +344,6 @@ const TopicInput = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const clickSound = new Howl({
-      src: ['/sounds/click.mp3'],
-      volume: 0.4
-    });
-    clickSound.play();
-
     if (!topic.trim()) {
       return;
     }
@@ -463,8 +457,8 @@ const TopicInput = ({
                   className="model-select"
                   disabled={isLoading}
                 >
-                  <option value="gpt-4o-mini">GPT-4 (faster)</option>
-                  <option value="gpt-5-mini">GPT-5 (smarter)</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini (faster)</option>
+                  <option value="gpt-5-mini">GPT-5 Mini (smarter)</option>
                 </select>
               </div>
             </div>
