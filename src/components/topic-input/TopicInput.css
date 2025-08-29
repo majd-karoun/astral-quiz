@@ -735,7 +735,7 @@
 
 .animate-books .right-book {
   transform-origin: bottom center;
-  animation: bookTilt 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: bookTilt 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
   animation-delay: 0.7s;
 }
 
