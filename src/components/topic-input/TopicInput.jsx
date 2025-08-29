@@ -222,45 +222,27 @@ const TopicInput = ({
   }, []);
 
   useEffect(() => {
-    const placeholders = [
-      
-   
-      'Quantum Physics for Beginners',
-      'Ancient Egyptian Mythology',
-      'Artificial Intelligence',
-  
-      'The French Revolution',
-      'History of the Roman Empire',
-
-      'Solar System Formation',
-      'Deep Sea Marine Biology',
-      'The Human Biology',
-      'Science Breakthroughs',
-      'Theories of the Universe',
-      'The Digital Revolution',
-      'Japanese Culture',
-    ];
-    let currentIndex = 0;
+    const placeholderText = 'Enter a quiz topic here (e.g., AI or fun facts)';
     let letterIndex = 0;
-    let currentPlaceholder = '';
+    let currentText = '';
 
     const typeWriter = () => {
-      if (letterIndex < placeholders[currentIndex].length) {
-        currentPlaceholder += placeholders[currentIndex].charAt(letterIndex);
-        setPlaceholder(currentPlaceholder);
+      if (letterIndex < placeholderText.length) {
+        currentText += placeholderText.charAt(letterIndex);
+        setPlaceholder(currentText);
         letterIndex++;
         setTimeout(typeWriter, 50);
-      } else {
-        setTimeout(() => {
-          letterIndex = 0;
-          currentPlaceholder = '';
-          currentIndex = (currentIndex + 1) % placeholders.length;
-          typeWriter();
-        }, 3000);
       }
+      // No else block means it won't loop
     };
 
+    // Start the animation just once
     typeWriter();
+    
+    // Cleanup function
+    return () => {
+      clearTimeout();
+    };
   }, []);
 
   useEffect(() => {
