@@ -124,21 +124,28 @@ app.post('/api/generate-questions', async (req, res) => {
 
     const openai = new OpenAI({ 
       apiKey,
-      timeout: 30000,
-      maxRetries: 1
+      timeout: 60000,
+      maxRetries: 2
     });
 
     try {
-      // Create a completion with streaming enabled and optimized settings
-      const stream = await openai.chat.completions.create({
+      // Create completion parameters
+      const completionParams = {
         messages: [{ 
           role: "user", 
           content: isVeryHardMode ? constructVeryHardPrompt(topic) : constructPrompt(topic)
         }],
         model: model,
-        stream: true,
-        response_format: { type: "json_object" }
-      });
+        stream: true
+      };
+      
+      // Only add response_format for compatible models
+      if (model.includes('gpt-4o') || model === 'gpt-3.5-turbo-1106' || model === 'gpt-3.5-turbo-0125') {
+        completionParams.response_format = { type: "json_object" };
+      }
+      
+      // Create a completion with streaming enabled and optimized settings
+      const stream = await openai.chat.completions.create(completionParams);
 
       // Set headers for streaming with optimizations
       res.setHeader('Content-Type', 'application/json');

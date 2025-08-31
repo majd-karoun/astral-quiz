@@ -537,12 +537,40 @@
   color: #6b7280;
 }
 
+.leaderboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sheet-button {
+  background: #f3f4f6;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.sheet-button:hover {
+  background: #5050AA;
+  color: white;
+}
+
 .leaderboard-score {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #f59e0b;
   font-weight: 600;
+  color: #5050AA;
 }
 
 .leaderboard-empty {

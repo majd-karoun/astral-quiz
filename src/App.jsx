@@ -5,6 +5,7 @@ import LoadingScreen from './components/loading-screen/LoadingScreen';
 import QuestionsCard from './components/questions-card/QuestionsCard';
 import GameOverCard from './components/game-over-card/GameOverCard';
 import { apiKeyEncryption } from './utils/encryption';
+import { generateOrUpdateBulletPointsSheet } from './utils/quizSessions';
 import './App.css';
 
 
@@ -40,6 +41,7 @@ function App() {
   const [pointsChanged, setPointsChanged] = useState(false);
   const [abortController, setAbortController] = useState(null);
   const [isGameOverExiting, setIsGameOverExiting] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState([]);
   
   // Load and decrypt API key on component mount
   useEffect(() => {
@@ -74,7 +76,7 @@ function App() {
     return 1000; // Questions 14+ (including all very hard questions)
   };
 
-  const saveQuizToHistory = () => {
+  const saveQuizToHistory = async () => {
     const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
     const newQuiz = {
       topic,
@@ -103,6 +105,15 @@ function App() {
       .slice(0, 100);
     
     localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
+    
+    // Generate or update bullet points sheet if there are correct answers
+    if (correctAnswers.length > 0) {
+      try {
+        await generateOrUpdateBulletPointsSheet(topic, correctAnswers, apiKey);
+      } catch (error) {
+        console.error('Failed to generate bullet points sheet:', error);
+      }
+    }
   };
 
   const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {
@@ -151,7 +162,7 @@ function App() {
     // http://localhost:8080
     try {
       const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-      const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+      const response = await fetch(`http://localhost:8080/api/generate-questions`, {
         method: 'POST',
         mode: 'cors',
         credentials: 'include',
@@ -373,6 +384,13 @@ function App() {
       // Play the sound effect for the correct answer
       scoreUpSound.play();
       
+      // Record the correct answer
+      const correctAnswerData = {
+        question: questions[currentQuestion].mainQuestion,
+        correctAnswer: questions[currentQuestion].answerOptions[correctAnswer]
+      };
+      setCorrectAnswers(prev => [...prev, correctAnswerData]);
+      
       setPrevPoints(points);
       setPoints(prev => {
         const newPoints = prev + questionPoints;
@@ -429,9 +447,9 @@ function App() {
         message: 'Wrong answer!'
       });
       
-      setTimeout(() => {
+      setTimeout(async () => {
         setGameOver(true);
-        saveQuizToHistory();
+        await saveQuizToHistory();
       }, 2000);
     }
   };
@@ -552,6 +570,7 @@ function App() {
     setPointsChanged(false);
     setIsTopicInputExiting(false);
     setIsGameOverExiting(false);
+    setCorrectAnswers([]);
   };
 
     // Retry the current game with new questions
@@ -575,6 +594,7 @@ function App() {
     setIsShowingAnswers(false);
     setPointsChanged(false);
     setIsGameOverExiting(false);
+    setCorrectAnswers([]);
     
     // Generate new questions for the same topic with the selected model
     const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
