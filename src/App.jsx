@@ -5,7 +5,6 @@ import LoadingScreen from './components/loading-screen/LoadingScreen';
 import QuestionsCard from './components/questions-card/QuestionsCard';
 import GameOverCard from './components/game-over-card/GameOverCard';
 import { apiKeyEncryption } from './utils/encryption';
-import { generateOrUpdateBulletPointsSheet } from './utils/quizSessions';
 import './App.css';
 
 
@@ -106,14 +105,6 @@ function App() {
     
     localStorage.setItem('quiz_history', JSON.stringify(sortedHistory));
     
-    // Generate or update bullet points sheet if there are correct answers
-    if (correctAnswers.length > 0) {
-      try {
-        await generateOrUpdateBulletPointsSheet(topic, correctAnswers, apiKey);
-      } catch (error) {
-        console.error('Failed to generate bullet points sheet:', error);
-      }
-    }
   };
 
   const fetchQuestions = async (providedApiKey = null, startIndex = 0, isInitialLoad = false, isVeryHardMode = false, model = 'gpt-4o-mini') => {

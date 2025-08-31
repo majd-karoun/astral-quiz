@@ -1,13 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import { CaretRight, Trophy, X, Clock, Key, FileText } from '@phosphor-icons/react';
+import { CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
 import { apiKeyEncryption } from '../../utils/encryption';
-import { getBulletPointsSheet, createTestSheet } from '../../utils/quizSessions';
 import BookIcon from '../BookIcon';
-import BulletPointsSheet from '../bullet-points-sheet/BulletPointsSheet';
 import './TopicInput.css';
 
-const LeaderboardModal = ({ isOpen, onClose, onSelectTopic, onSheetClick }) => {
+const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef(null);
@@ -70,10 +68,6 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic, onSheetClick }) => {
     handleClose();
   };
 
-  const handleSheetClick = (e, topic) => {
-    e.stopPropagation();
-    onSheetClick(topic);
-  };
 
   const handleOverlayClick = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
@@ -101,20 +95,9 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic, onSheetClick }) => {
         <div className="leaderboard-list animate-modal-list">
           {leaderboard.length > 0 ? (
             leaderboard.map((entry, index) => {
-              const hasSheet = getBulletPointsSheet(entry.topic);
-              console.log(`Topic: ${entry.topic}, Has Sheet:`, hasSheet);
               return (
                 <div key={entry.timestamp} className="leaderboard-item animate-leaderboard-item" style={{'--item-index': index}} onClick={() => handleTopicClick(entry.topic)}>
                   <div className="leaderboard-rank">#{index + 1}</div>
-                  {hasSheet && (
-                    <button 
-                      className="sheet-button"
-                      onClick={(e) => handleSheetClick(e, entry.topic)}
-                      title="View Study Sheet"
-                    >
-                      <FileText size={16} />
-                    </button>
-                  )}
                   <div className="leaderboard-info">
                     <span className="leaderboard-topic">{entry.topic}</span>
                     <span className="leaderboard-date">
@@ -206,9 +189,6 @@ const TopicInput = ({
   const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
   const [apiKeyError, setApiKeyError] = useState('');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const [bulletPointsSheet, setBulletPointsSheet] = useState(null);
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [placeholder, setPlaceholder] = useState('');
   const [selectedModel, setSelectedModel] = useState(() => {
     // Use sessionStorage to persist model selection during session but not across refreshes
@@ -544,23 +524,6 @@ const TopicInput = ({
           isOpen={isLeaderboardOpen} 
           onClose={() => setIsLeaderboardOpen(false)} 
           onSelectTopic={setTopic}
-          onSheetClick={(topic) => {
-            const sheet = getBulletPointsSheet(topic);
-            setBulletPointsSheet(sheet);
-            setSelectedTopic(topic);
-            setIsSheetOpen(true);
-          }}
-        />
-        
-        <BulletPointsSheet 
-          isOpen={isSheetOpen}
-          onClose={() => {
-            setIsSheetOpen(false);
-            setBulletPointsSheet(null);
-            setSelectedTopic('');
-          }}
-          sheet={bulletPointsSheet}
-          topic={selectedTopic}
         />
       </div>
     </div>
