@@ -199,6 +199,7 @@ const TopicInput = ({
   const [cardAnimationComplete, setCardAnimationComplete] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isApiKeyAnimating, setIsApiKeyAnimating] = useState(false);
+  const [hasApiKeyError, setHasApiKeyError] = useState(false);
   const inputRef = useRef(null);
   const formRef = useRef(null);
   const cardRef = useRef(null);
@@ -271,9 +272,29 @@ const TopicInput = ({
     }
   }, [cardAnimationComplete, isLoadingApiKey, apiKey]);
 
+  // Auto-expand API key section when there's an "Incorrect API Key" error
+  useEffect(() => {
+    if (error && error.includes('Incorrect API Key')) {
+      setIsApiKeyExpanded(true);
+      setHasUserInteracted(true);
+      setHasApiKeyError(true);
+      // Focus the API key input after a short delay
+      setTimeout(() => {
+        if (apiKeyRef.current) {
+          apiKeyRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [error]);
+
   const handleApiKeyChange = (e) => {
     const newKey = e.target.value;
     setApiKey(newKey);
+    
+    // Reset API key error state when user changes the key
+    if (hasApiKeyError) {
+      setHasApiKeyError(false);
+    }
     
     // Encrypt and save to both storages when changed
     if (newKey.trim()) {
@@ -298,8 +319,8 @@ const TopicInput = ({
     // Reset auto-close timer when typing/deleting
     clearTimeout(autoCloseTimeoutRef.current);
     
-    // Only start auto-close timer if input is not focused
-    if (newKey.trim() && document.activeElement !== apiKeyRef.current) {
+    // Only start auto-close timer if input is not focused and there's no API key error
+    if (newKey.trim() && document.activeElement !== apiKeyRef.current && !hasApiKeyError) {
       startAutoCloseTimer();
     }
     
@@ -325,8 +346,8 @@ const TopicInput = ({
   };
 
   const handleApiKeyBlur = () => {
-    // Only start auto-close timer if input has content
-    if (apiKey.trim()) {
+    // Only start auto-close timer if input has content and there's no API key error
+    if (apiKey.trim() && !hasApiKeyError) {
       startAutoCloseTimer();
     }
   };
@@ -377,7 +398,8 @@ const TopicInput = ({
     });
     
     // Generate questions after animation completes
-    generateQuestions(hasApiKey ? null : apiKey, selectedModel);
+    const currentApiKey = document.getElementById('apiKey')?.value || apiKey;
+    generateQuestions(currentApiKey, selectedModel);
   };
 
   const handleKeyDown = (e) => {
@@ -418,6 +440,20 @@ const TopicInput = ({
         </div>
 
         <form onSubmit={handleSubmit} className="input-form animate-rest" ref={formRef}>
+          {error && (
+            <div className="error-message-top">
+              {error.includes('add credit here') ? (
+                <span>
+                  Not enough API credit,{' '}
+                  <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">
+                    add credit here
+                  </a>
+                </span>
+              ) : (
+                error
+              )}
+            </div>
+          )}
           <div className="input-sections">
             <div className="input-section">
               <label htmlFor="topic">Quiz Topic</label>
@@ -515,9 +551,6 @@ const TopicInput = ({
             <span>Start Quiz</span>
           </button>
 
-          {error && (
-            <p className="error-message">{error}</p>
-          )}
         </form>
 
         <LeaderboardModal 

@@ -362,6 +362,41 @@
   margin: 0.25rem 0 0;
 }
 
+.error-message-top {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  color: #DC2626;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideInError 0.3s ease-out;
+}
+
+.error-message-top a {
+  color: #DC2626;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.error-message-top a:hover {
+  color: #B91C1C;
+}
+
+@keyframes slideInError {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

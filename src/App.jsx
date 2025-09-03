@@ -121,7 +121,7 @@ function App() {
     const apiKeyFromInput = document.getElementById('apiKey')?.value;
     let keyToUse;
     
-    if (apiKeyFromInput) {
+    if (apiKeyFromInput && apiKeyFromInput.trim()) {
       setApiKey(apiKeyFromInput);
       // Encrypt and store the API key
       apiKeyEncryption.encrypt(apiKeyFromInput).then(encryptedKey => {
@@ -133,10 +133,11 @@ function App() {
         localStorage.setItem('openai_api_key', apiKeyFromInput);
         sessionStorage.setItem('openai_api_key', apiKeyFromInput);
       });
-      keyToUse = apiKeyFromInput;
+      keyToUse = apiKeyFromInput.trim();
     } else {
       keyToUse = providedApiKey || apiKey;
     }
+    
     
     if (isInitialLoad) {
       setLoadingProgress(0);

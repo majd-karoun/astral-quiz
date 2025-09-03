@@ -197,6 +197,18 @@ app.post('/api/generate-questions', async (req, res) => {
     } catch (streamError) {
       // Handle streaming errors
       console.error('OpenAI Streaming Error:', streamError);
+      
+      // Check for specific error codes in streaming errors
+      if (streamError.code === 'invalid_api_key') {
+        return res.status(401).json({ error: 'Incorrect API Key' });
+      }
+      
+      if (streamError.code === 'insufficient_quota') {
+        return res.status(402).json({ 
+          error: 'Not enough API credit, add credit here' 
+        });
+      }
+      
       res.status(500).json({
         error: 'Failed to generate questions',
         details: streamError.message
@@ -205,8 +217,15 @@ app.post('/api/generate-questions', async (req, res) => {
   } catch (error) {
     console.error('OpenAI API Error:', error);
     
-    if (error.status === 401 || error.code === 'invalid_api_key') {
-      return res.status(401).json({ error: 'Invalid API key' });
+    // Check for specific error codes
+    if (error.code === 'invalid_api_key' || error.status === 401) {
+      return res.status(401).json({ error: 'Incorrect API Key' });
+    }
+    
+    if (error.code === 'insufficient_quota') {
+      return res.status(402).json({ 
+        error: 'Not enough API credit, add credit here' 
+      });
     }
     
     if (error.status === 429) {
