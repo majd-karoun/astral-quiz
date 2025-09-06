@@ -228,7 +228,7 @@ const TopicInput = ({
   }, []);
 
   useEffect(() => {
-    const placeholderText = 'Enter a quiz topic here...';
+    const placeholderText = 'Enter a quiz topic here...(e.g., AI or fun facts)';
     let letterIndex = 0;
     let currentText = '';
 
