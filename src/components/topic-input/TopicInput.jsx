@@ -392,7 +392,7 @@ const TopicInput = ({
       setTimeout(() => {
         setIsSettingsOpen(false);
         setIsSettingsClosing(false);
-      }, 250); // Match animation duration
+      }, 200); // Match animation duration
     } else {
       setIsSettingsOpen(true);
     }
@@ -546,7 +546,7 @@ const TopicInput = ({
                       }}
                       disabled={isLoading}
                     >
-                      gpt 4
+                      gpt 4 <span className="model-speed">(faster)</span>
                     </button>
                     <button
                       type="button"
@@ -557,7 +557,7 @@ const TopicInput = ({
                       }}
                       disabled={isLoading}
                     >
-                      gpt 5
+                      gpt 5 <span className="model-speed">(slower)</span>
                     </button>
                   </div>
                 </div>
