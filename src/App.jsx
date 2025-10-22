@@ -626,7 +626,7 @@ function App() {
     
     // Generate new questions for the same topic with the selected model
     const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
-    await fetchQuestions(null, 0, true, false, selectedModel);
+    await fetchQuestions(apiKey, 0, true, false, selectedModel);
   };
 
   const handleApiKeyChange = (e) => {
