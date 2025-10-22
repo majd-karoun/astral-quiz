@@ -603,7 +603,7 @@ const TopicInput = ({
 
                 {/* Image Search Toggle */}
                 <div className="menu-row">
-                  <label className="menu-label">images search</label>
+                  <label className="menu-label">images search:</label>
                   <div className="toggle-buttons">
                     <button
                       type="button"
