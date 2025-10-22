@@ -347,73 +347,22 @@ app.post('/api/search-images', async (req, res) => {
         }
       }
       
-      // If we have enough images, return them
-      if (imageUrls.length >= 2) {
-        console.log(`Found ${imageUrls.length} unique images from Bing`);
-        return res.json({ 
-          images: imageUrls
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 2)
-        });
+      if (imageUrls.length === 0) {
+        throw new Error('No images found from Bing');
       }
       
-      console.log('Bing scraping found insufficient results, using fallback');
-      
-      // Enhanced fallback with multiple image sources
-      const fallbackImages = [];
-      const seedBase = searchQuery.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase();
-      const topicBase = (topic || searchQuery).replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase();
-      
-      // Try multiple fallback sources
-      const fallbackSources = [
-        // Picsum with different seeds
-        `https://picsum.photos/seed/${seedBase}-${timestamp}/800/600`,
-        `https://picsum.photos/seed/${topicBase}-${timestamp}/800/600`,
-        // Placeholder with different themes
-        `https://placehold.co/800x600/333/fff?text=${encodeURIComponent(searchQuery)}`,
-        `https://placehold.co/800x600/555/fff?text=${encodeURIComponent(topic || searchQuery)}`,
-        // Random image from Unsplash (requires API key for better results)
-        `https://source.unsplash.com/random/800x600/?${encodeURIComponent(searchQuery)},${encodeURIComponent(topic)}`
-      ];
-      
-      // Add fallback images ensuring uniqueness
-      for (const [index, imgUrl] of fallbackSources.entries()) {
-        if (fallbackImages.length >= 2) break;
-        if (!fallbackImages.some(img => img.url === imgUrl)) {
-          fallbackImages.push({
-            url: imgUrl,
-            alt: `${searchQuery} (${index === 0 ? 'Picsum' : 'Fallback'})`,
-            source: index < 2 ? 'Picsum' : 
-                   index < 4 ? 'Placeholder' : 'Unsplash',
-            isFallback: true
-          });
-        }
-      }
-      
-      console.log(`Using ${fallbackImages.length} fallback images`);
-      return res.json({ images: fallbackImages });
+      console.log(`Found ${imageUrls.length} unique images from Bing`);
+      return res.json({ 
+        images: imageUrls
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 2)
+      });
     } catch (fetchError) {
       console.error('Image search error:', fetchError);
-      
-      // Error fallback: Picsum
-      const searchTerms = topic || 'technology';
-      const seed1 = searchTerms.replace(/\s+/g, '-').toLowerCase();
-      const seed2 = `${seed1}-alt`;
-      
-      const images = [
-        { 
-          url: `https://picsum.photos/seed/${seed1}/400/300`, 
-          alt: searchTerms,
-          source: 'Picsum'
-        },
-        { 
-          url: `https://picsum.photos/seed/${seed2}/400/300`, 
-          alt: searchTerms,
-          source: 'Picsum'
-        }
-      ];
-      
-      res.json({ images });
+      return res.status(500).json({
+        error: 'Failed to fetch images from Bing',
+        details: fetchError.message
+      });
     }
   } catch (error) {
     console.error('Image search error:', error);
