@@ -252,16 +252,11 @@ app.post('/api/search-images', async (req, res) => {
     }
     
     try {
-      // Use the full question for better context, but clean it up first
-      let searchQuery = query
+      // Clean up the question text for the search query
+      const searchQuery = query
         .replace(/[?!.,;:\"']/g, '') // Remove punctuation
         .replace(/\s+/g, ' ') // Replace multiple spaces with single space
         .trim();
-      
-      // If we have a topic, prepend it for better relevance
-      if (topic && topic.trim()) {
-        searchQuery = `${topic.trim()} ${searchQuery}`;
-      }
       
       console.log(`Searching images for: "${searchQuery}"`);
       
