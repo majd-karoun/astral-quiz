@@ -64,7 +64,7 @@ cd ../server
 npm install
 ```
 
-3. Set up environment variables
+3. Set up environment variables:
 
 Frontend (.env):
 ```bash
@@ -77,7 +77,7 @@ PORT=3001
 NODE_ENV=development
 ```
 
-4. Start the development servers
+4. Start the development servers:
 ```bash
 # Start the backend server
 cd server
