@@ -263,90 +263,135 @@ app.post('/api/search-images', async (req, res) => {
       
       console.log(`Bing Image search - Topic: "${topic}", Search terms: "${searchQuery}"`);
       
-      // Scrape Bing Images with cache-busting and better image selection
       const timestamp = Date.now();
-      // Get a random starting point for pagination to get different results
-      const startIndex = Math.floor(Math.random() * 10) * 10 + 1;
+      const imageUrls = [];
       
-      const bingUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&first=${startIndex}&count=10&ts=${timestamp}`;
+      // Generate multiple search variations for more diverse results
+      const searchVariations = [
+        searchQuery,
+        `${searchQuery} ${topic}`,  // Add topic for better context
+        `${searchQuery} ${topic} high quality`,
+        `${searchQuery} ${topic} detailed`,
+        `${searchQuery} ${topic} realistic`
+      ];
       
-      console.log(`Fetching images from: ${bingUrl}`);
-      
-      const response = await fetch(bingUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-
-      if (response.ok) {
-        const html = await response.text();
-        const $ = cheerio.load(html);
-        const imageUrls = [];
+      // Try multiple search variations until we get enough unique images
+      for (const variation of searchVariations) {
+        if (imageUrls.length >= 6) break;
         
-        // Extract image URLs from Bing's HTML with more specific selectors
-        $('a.iusc').each((i, elem) => {
-          if (imageUrls.length >= 6) return false;
+        // Get a random starting point for pagination
+        const startIndex = Math.floor(Math.random() * 10) * 10 + 1;
+        const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(variation)}&first=${startIndex}&count=10&ts=${timestamp}`;
+        
+        console.log(`Trying search variation: "${variation}"`);
+        
+        try {
+          const response = await fetch(searchUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            timeout: 5000 // 5 second timeout per request
+          });
           
-          const m = $(elem).attr('m');
-          if (m) {
-            try {
-              const metadata = JSON.parse(m);
-              if (metadata.murl && !metadata.murl.includes('bing.net/th?')) { // Skip thumbnails
-                // Add cache-busting parameter to image URL
-                const imageUrl = new URL(metadata.murl);
-                imageUrl.searchParams.set('_', timestamp + i);
-                
-                imageUrls.push({
-                  url: imageUrl.toString(),
-                  alt: metadata.t || searchQuery,
-                  thumbnail: metadata.turl,
-                  source: 'Bing',
-                  timestamp: timestamp
-                });
+          if (response.ok) {
+            const html = await response.text();
+            const $ = cheerio.load(html);
+            
+            // Extract image URLs from Bing's HTML with more specific selectors
+            $('a.iusc').each((i, elem) => {
+              if (imageUrls.length >= 10) return false;
+              
+              const m = $(elem).attr('m');
+              if (m) {
+                try {
+                  const metadata = JSON.parse(m);
+                  // Skip thumbnails and ensure it's a direct image URL
+                  if (metadata.murl && 
+                      !metadata.murl.includes('bing.net/th?') && 
+                      (metadata.murl.endsWith('.jpg') || 
+                       metadata.murl.endsWith('.jpeg') || 
+                       metadata.murl.endsWith('.png') ||
+                       metadata.murl.includes('i.imgur.com'))) {
+                    
+                    // Add cache-busting parameter to image URL
+                    const imageUrl = new URL(metadata.murl);
+                    imageUrl.searchParams.set('_', timestamp + imageUrls.length);
+                    
+                    const imgData = {
+                      url: imageUrl.toString(),
+                      alt: metadata.t || variation,
+                      thumbnail: metadata.turl || imageUrl.toString(),
+                      source: 'Bing',
+                      searchQuery: variation,
+                      timestamp: timestamp
+                    };
+                    
+                    // Check for duplicate URLs before adding
+                    if (!imageUrls.some(img => img.url === imgData.url)) {
+                      imageUrls.push(imgData);
+                    }
+                  }
+                } catch (e) {
+                  console.error('Error parsing image metadata:', e);
+                }
               }
-            } catch (e) {
-              console.error('Error parsing image metadata:', e);
-            }
+            });
           }
-        });
-        
-        // Shuffle the array and take first 2 unique images
-        const uniqueImages = Array.from(new Map(imageUrls.map(img => [img.url, img])).values());
-        const shuffled = uniqueImages.sort(() => 0.5 - Math.random());
-        
-        if (shuffled.length > 0) {
-          console.log(`Found ${shuffled.length} unique images from Bing`);
-          return res.json({ images: shuffled.slice(0, 2) });
+        } catch (error) {
+          console.error(`Error with search variation "${variation}":`, error.message);
         }
       }
       
-      console.log('Bing scraping failed, using fallback');
+      // If we have enough images, return them
+      if (imageUrls.length >= 2) {
+        console.log(`Found ${imageUrls.length} unique images from Bing`);
+        return res.json({ 
+          images: imageUrls
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 2)
+        });
+      }
       
-      // Fallback: Use Picsum with topic-based seeds
-      const seed1 = searchQuery.replace(/\s+/g, '-').toLowerCase();
-      const seed2 = (topic || searchQuery).replace(/\s+/g, '-').toLowerCase();
+      console.log('Bing scraping found insufficient results, using fallback');
       
-      const images = [
-        { 
-          url: `https://picsum.photos/seed/${seed1}/400/300`, 
-          alt: searchQuery,
-          source: 'Picsum'
-        },
-        { 
-          url: `https://picsum.photos/seed/${seed2}/400/300`, 
-          alt: searchQuery,
-          source: 'Picsum'
-        }
+      // Enhanced fallback with multiple image sources
+      const fallbackImages = [];
+      const seedBase = searchQuery.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase();
+      const topicBase = (topic || searchQuery).replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase();
+      
+      // Try multiple fallback sources
+      const fallbackSources = [
+        // Picsum with different seeds
+        `https://picsum.photos/seed/${seedBase}-${timestamp}/800/600`,
+        `https://picsum.photos/seed/${topicBase}-${timestamp}/800/600`,
+        // Placeholder with different themes
+        `https://placehold.co/800x600/333/fff?text=${encodeURIComponent(searchQuery)}`,
+        `https://placehold.co/800x600/555/fff?text=${encodeURIComponent(topic || searchQuery)}`,
+        // Random image from Unsplash (requires API key for better results)
+        `https://source.unsplash.com/random/800x600/?${encodeURIComponent(searchQuery)},${encodeURIComponent(topic)}`
       ];
       
-      console.log(`Using Picsum fallback images`);
-      res.json({ images });
+      // Add fallback images ensuring uniqueness
+      for (const [index, imgUrl] of fallbackSources.entries()) {
+        if (fallbackImages.length >= 2) break;
+        if (!fallbackImages.some(img => img.url === imgUrl)) {
+          fallbackImages.push({
+            url: imgUrl,
+            alt: `${searchQuery} (${index === 0 ? 'Picsum' : 'Fallback'})`,
+            source: index < 2 ? 'Picsum' : 
+                   index < 4 ? 'Placeholder' : 'Unsplash',
+            isFallback: true
+          });
+        }
+      }
       
+      console.log(`Using ${fallbackImages.length} fallback images`);
+      return res.json({ images: fallbackImages });
     } catch (fetchError) {
       console.error('Image search error:', fetchError);
       
