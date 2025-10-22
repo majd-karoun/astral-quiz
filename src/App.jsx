@@ -87,8 +87,7 @@ function App() {
         },
         credentials: 'include',
         body: JSON.stringify({ 
-          query: question.mainQuestion,
-          topic: topic  // Include the topic for better context
+          questionTitle: question.questionTitle
         })
       });
 
@@ -320,7 +319,8 @@ function App() {
                     Array.isArray(questionObj.answerOptions) && 
                     questionObj.answerOptions.length === 4 &&
                     typeof questionObj.correctAnswerIndex === 'number' &&
-                    questionObj.helpfulHint) {
+                    questionObj.helpfulHint &&
+                    questionObj.questionTitle) {
                   
                   console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
                   

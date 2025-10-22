@@ -64,6 +64,7 @@ For each question, provide:
 3. Correct answer number (0-3)
 4. A helpful hint that gives a tip without revealing the answer directly
 5. Use an emoji at the end of each question sentence (after question mark).
+6. A short question title  (2-4 words) for image search purposes.
 
 
 Format the output as a JSON object with this structure:
@@ -73,7 +74,8 @@ Format the output as a JSON object with this structure:
       "mainQuestion": "string",
       "answerOptions": ["string", "string", "string", "string"],
       "correctAnswerIndex": number,
-      "helpfulHint": "string"
+      "helpfulHint": "string",
+      "questionTitle": "string (2-4 words)"
     }
   ]
 }`;
@@ -90,6 +92,7 @@ For each question, provide:
 3. Correct answer number (0-3)
 4. A helpful hint that gives a tip without revealing the answer directly
 5. Use an emoji at the end of each question sentence (after question mark).
+6. A short question title (2-4 words) for image search purposes.
 
 
 
@@ -100,7 +103,8 @@ Format the output as a JSON object with this structure:
       "mainQuestion": "string",
       "answerOptions": ["string", "string", "string", "string"],
       "correctAnswerIndex": number,
-      "helpfulHint": "string"
+      "helpfulHint": "string",
+      "questionTitle": "string (always in English, 2-4 words)"
     }
   ]
 }`;
@@ -178,7 +182,8 @@ app.post('/api/generate-questions', async (req, res) => {
                 Array.isArray(questionObj.answerOptions) && 
                 questionObj.answerOptions.length === 4 &&
                 typeof questionObj.correctAnswerIndex === 'number' &&
-                questionObj.helpfulHint) {
+                questionObj.helpfulHint &&
+                questionObj.questionTitle) {
               
               console.log('Question sent:', questionObj.mainQuestion);
               res.write(JSON.stringify(questionObj));
@@ -245,116 +250,92 @@ app.post('/api/generate-questions', async (req, res) => {
 // Real internet image search using Bing Images scraping
 app.post('/api/search-images', async (req, res) => {
   try {
-    const { query, topic } = req.body;
+    const { questionTitle } = req.body;
     
-    if (!query || typeof query !== 'string' || query.trim().length === 0) {
-      return res.status(400).json({ error: 'Valid search query is required' });
+    if (!questionTitle || typeof questionTitle !== 'string' || questionTitle.trim().length === 0) {
+      return res.status(400).json({ error: 'Valid question title is required' });
     }
     
     try {
-      // Clean up the question text for the search query
-      const searchQuery = query
+      // Clean up the question title for the search query
+      const searchQuery = questionTitle
         .replace(/[?!.,;:\"']/g, '') // Remove punctuation
         .replace(/\s+/g, ' ') // Replace multiple spaces with single space
         .trim();
       
       console.log(`Searching images for: "${searchQuery}"`);
       
-      console.log(`Bing Image search - Topic: "${topic}", Search terms: "${searchQuery}"`);
+      console.log(`Bing Image search - Query: "${searchQuery}"`);
       
       const timestamp = Date.now();
       const imageUrls = [];
       
-      // Generate multiple search variations for more diverse results
-      const searchVariations = [
-        searchQuery,
-        `${searchQuery} ${topic}`,  // Add topic for better context
-        `${searchQuery} ${topic} high quality`,
-        `${searchQuery} ${topic} detailed`,
-        `${searchQuery} ${topic} realistic`
-      ];
+      // Single search with the question text
+      const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&first=1&count=10&ts=${timestamp}`;
       
-      // Try multiple search variations until we get enough unique images
-      for (const variation of searchVariations) {
-        if (imageUrls.length >= 6) break;
-        
-        // Get a random starting point for pagination
-        const startIndex = Math.floor(Math.random() * 10) * 10 + 1;
-        const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(variation)}&first=${startIndex}&count=10&ts=${timestamp}`;
-        
-        console.log(`Trying search variation: "${variation}"`);
-        
-        try {
-          const response = await fetch(searchUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            },
-            timeout: 5000 // 5 second timeout per request
-          });
-          
-          if (response.ok) {
-            const html = await response.text();
-            const $ = cheerio.load(html);
-            
-            // Extract image URLs from Bing's HTML with more specific selectors
-            $('a.iusc').each((i, elem) => {
-              if (imageUrls.length >= 10) return false;
-              
-              const m = $(elem).attr('m');
-              if (m) {
-                try {
-                  const metadata = JSON.parse(m);
-                  // Skip thumbnails and ensure it's a direct image URL
-                  if (metadata.murl && 
-                      !metadata.murl.includes('bing.net/th?') && 
-                      (metadata.murl.endsWith('.jpg') || 
-                       metadata.murl.endsWith('.jpeg') || 
-                       metadata.murl.endsWith('.png') ||
-                       metadata.murl.includes('i.imgur.com'))) {
-                    
-                    // Add cache-busting parameter to image URL
-                    const imageUrl = new URL(metadata.murl);
-                    imageUrl.searchParams.set('_', timestamp + imageUrls.length);
-                    
-                    const imgData = {
-                      url: imageUrl.toString(),
-                      alt: metadata.t || variation,
-                      thumbnail: metadata.turl || imageUrl.toString(),
-                      source: 'Bing',
-                      searchQuery: variation,
-                      timestamp: timestamp
-                    };
-                    
-                    // Check for duplicate URLs before adding
-                    if (!imageUrls.some(img => img.url === imgData.url)) {
-                      imageUrls.push(imgData);
-                    }
-                  }
-                } catch (e) {
-                  console.error('Error parsing image metadata:', e);
-                }
-              }
-            });
-          }
-        } catch (error) {
-          console.error(`Error with search variation "${variation}":`, error.message);
-        }
+      const response = await fetch(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        timeout: 5000 // 5 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch from Bing');
       }
+      
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      
+      // Extract top image URLs from Bing's HTML
+      $('a.iusc').each((i, elem) => {
+        if (imageUrls.length >= 2) return false; // Stop after getting 2 images
+        
+        const m = $(elem).attr('m');
+        if (m) {
+          try {
+            const metadata = JSON.parse(m);
+            // Skip thumbnails and ensure it's a direct image URL
+            if (metadata.murl && 
+                !metadata.murl.includes('bing.net/th?') && 
+                (metadata.murl.endsWith('.jpg') || 
+                 metadata.murl.endsWith('.jpeg') || 
+                 metadata.murl.endsWith('.png') ||
+                 metadata.murl.includes('i.imgur.com'))) {
+              
+              // Add cache-busting parameter to image URL
+              const imageUrl = new URL(metadata.murl);
+              imageUrl.searchParams.set('_', timestamp + imageUrls.length);
+              
+              const imgData = {
+                url: imageUrl.toString(),
+                alt: metadata.t || searchQuery,
+                thumbnail: metadata.turl || imageUrl.toString(),
+                source: 'Bing',
+                searchQuery: searchQuery,
+                timestamp: timestamp
+              };
+              
+              imageUrls.push(imgData);
+            }
+          } catch (e) {
+            console.error('Error parsing image metadata:', e);
+          }
+        }
+      });
       
       if (imageUrls.length === 0) {
         throw new Error('No images found from Bing');
       }
       
-      console.log(`Found ${imageUrls.length} unique images from Bing`);
+      console.log(`Found ${imageUrls.length} images from Bing`);
       return res.json({ 
-        images: imageUrls
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 2)
+        images: imageUrls // Return top 2 most relevant images
       });
     } catch (fetchError) {
       console.error('Image search error:', fetchError);
