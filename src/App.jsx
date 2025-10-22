@@ -80,7 +80,7 @@ function App() {
 
   const fetchImagesForQuestion = async (question) => {
     try {
-      const response = await fetch('https://server-cold-hill-2617.fly.dev/api/search-images', {
+      const response = await fetch('http://localhost:8080/api/search-images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ function App() {
     // http://localhost:8080
     try {
       const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
-      const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
+      const response = await fetch(`http://localhost:8080/api/generate-questions`, {
         method: 'POST',
         mode: 'cors',
         credentials: 'include',
