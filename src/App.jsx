@@ -167,6 +167,13 @@ function App() {
       keyToUse = providedApiKey || apiKey;
     }
     
+    // Validate that we have an API key
+    if (!keyToUse || !keyToUse.trim()) {
+      setError('API key is required. Please enter your OpenAI API key.');
+      setIsLoading(false);
+      setIsLoadingMoreQuestions(false);
+      return;
+    }
     
     if (isInitialLoad) {
       setLoadingProgress(0);
@@ -624,9 +631,25 @@ function App() {
     setIsGameOverExiting(false);
     setCorrectAnswers([]);
     
+    // Load API key from storage if not in state
+    let keyToUse = apiKey;
+    if (!keyToUse || !keyToUse.trim()) {
+      try {
+        const encryptedKey = localStorage.getItem('openai_api_key') || sessionStorage.getItem('openai_api_key');
+        if (encryptedKey) {
+          keyToUse = await apiKeyEncryption.decrypt(encryptedKey);
+          setApiKey(keyToUse);
+        }
+      } catch (error) {
+        console.error('Failed to load API key:', error);
+        setError('API key not found. Please start a new game and enter your API key.');
+        return;
+      }
+    }
+    
     // Generate new questions for the same topic with the selected model
     const selectedModel = sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
-    await fetchQuestions(apiKey, 0, true, false, selectedModel);
+    await fetchQuestions(keyToUse, 0, true, false, selectedModel);
   };
 
   const handleApiKeyChange = (e) => {
