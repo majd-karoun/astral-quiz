@@ -190,6 +190,8 @@ function App() {
     // http://localhost:8080
     try {
       const batchSize = isVeryHardMode ? veryHardQuestionBatchSize : questionBatchSize;
+      const selectedLanguage = sessionStorage.getItem('language') || 'English';
+      
       const response = await fetch(`https://server-cold-hill-2617.fly.dev/api/generate-questions`, {
         method: 'POST',
         mode: 'cors',
@@ -205,7 +207,8 @@ function App() {
           startIndex, 
           batchSize,
           isVeryHardMode,
-          model
+          model,
+          language: selectedLanguage
         }),
         signal: controller.signal,
         keepalive: true
@@ -321,15 +324,24 @@ function App() {
                   
                   console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
                   
-                  // Fetch images for the question
-                  fetchImagesForQuestion(questionObj).then(questionWithImages => {
-                    // Add question with images immediately
-                    setQuestions(prevQuestions => [...prevQuestions, questionWithImages]);
-                  }).catch(err => {
-                    console.error('Error fetching images:', err);
-                    // Add question without images if fetch fails
+                  // Check if image search is enabled
+                  const imageSearchEnabled = sessionStorage.getItem('image_search');
+                  const shouldFetchImages = imageSearchEnabled === null || imageSearchEnabled === 'true';
+                  
+                  // Fetch images for the question only if enabled
+                  if (shouldFetchImages) {
+                    fetchImagesForQuestion(questionObj).then(questionWithImages => {
+                      // Add question with images immediately
+                      setQuestions(prevQuestions => [...prevQuestions, questionWithImages]);
+                    }).catch(err => {
+                      console.error('Error fetching images:', err);
+                      // Add question without images if fetch fails
+                      setQuestions(prevQuestions => [...prevQuestions, { ...questionObj, images: [] }]);
+                    });
+                  } else {
+                    // Add question without images when image search is disabled
                     setQuestions(prevQuestions => [...prevQuestions, { ...questionObj, images: [] }]);
-                  });
+                  }
                   
                   questionCount++;
                   batchQuestionCount++;

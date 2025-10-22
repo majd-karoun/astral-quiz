@@ -48,13 +48,15 @@ const validateApiKey = (apiKey) => {
   return typeof apiKey === 'string' && apiKey.startsWith('sk-') && apiKey.length > 20;
 };
 
-const constructPrompt = (topic) => {
+const constructPrompt = (topic, language = 'English') => {
   return `Create 15 quiz questions about [${topic}] with increasing difficulty based on the question number:
  - Questions 1-3: Very Easy
  - Questions 4-5: Easy
  - Questions 6-10: Medium
  - Questions 11-13: Hard
  - Questions 14-15: Very Hard
+
+IMPORTANT: Generate ALL content (questions, answer options, and hints) in ${language}.
 
 For each question, provide:
 1. Main question
@@ -77,8 +79,10 @@ Format the output as a JSON object with this structure:
 }`;
 };
 
-const constructVeryHardPrompt = (topic) => {
+const constructVeryHardPrompt = (topic, language = 'English') => {
   return `Create 5 VERY HARD quiz questions about [${topic}]. These should be extremely difficult questions (1000 points per question) for experts who have already answered 15 progressively difficult questions.
+
+IMPORTANT: Generate ALL content (questions, answer options, and hints) in ${language}.
 
 For each question, provide:
 1. Main question
@@ -105,8 +109,8 @@ Format the output as a JSON object with this structure:
 // Main question generation endpoint
 app.post('/api/generate-questions', async (req, res) => {
   try {
-    const { topic, isVeryHardMode = false, model = 'gpt-4o-mini' } = req.body;
-    console.log('Using model:', model);
+    const { topic, isVeryHardMode = false, model = 'gpt-4o-mini', language = 'English' } = req.body;
+    console.log('Using model:', model, '| Language:', language);
     const apiKey = req.headers.authorization?.split('Bearer ')?.[1];
 
     if (!apiKey) {
@@ -132,7 +136,7 @@ app.post('/api/generate-questions', async (req, res) => {
       const completionParams = {
         messages: [{ 
           role: "user", 
-          content: isVeryHardMode ? constructVeryHardPrompt(topic) : constructPrompt(topic)
+          content: isVeryHardMode ? constructVeryHardPrompt(topic, language) : constructPrompt(topic, language)
         }],
         model: model,
         stream: true

@@ -124,7 +124,7 @@ const QuestionsCard = ({
           </div>
         </div>
       )}
-      <div className="options-grid">
+      <div className={`options-grid ${!question.images || question.images.length === 0 ? 'no-images' : ''}`}>
         {question.answerOptions.map((option, index) => {
           const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
           const isSelected = isShowingAnswers && index === selectedAnswer;

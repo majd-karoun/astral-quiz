@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import { CaretRight, Trophy, X, Clock, Key } from '@phosphor-icons/react';
+import { CaretRight, Trophy, X, Clock, Key, Gear } from '@phosphor-icons/react';
 import { apiKeyEncryption } from '../../utils/encryption';
 import BookIcon from '../BookIcon';
 import './TopicInput.css';
@@ -203,6 +203,15 @@ const TopicInput = ({
     
     return storedModel;
   });
+  const [imageSearch, setImageSearch] = useState(() => {
+    const stored = sessionStorage.getItem('image_search');
+    return stored === null ? true : stored === 'true';
+  });
+  const [language, setLanguage] = useState(() => {
+    return sessionStorage.getItem('language') || 'English';
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsClosing, setIsSettingsClosing] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(false);
   const [cardAnimationComplete, setCardAnimationComplete] = useState(false);
@@ -376,6 +385,19 @@ const TopicInput = ({
     }
   };
 
+  const toggleSettingsMenu = () => {
+    if (isSettingsOpen) {
+      // Start closing animation
+      setIsSettingsClosing(true);
+      setTimeout(() => {
+        setIsSettingsOpen(false);
+        setIsSettingsClosing(false);
+      }, 250); // Match animation duration
+    } else {
+      setIsSettingsOpen(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -497,20 +519,118 @@ const TopicInput = ({
                   disabled={isLoading}
                   onKeyDown={handleKeyDown}
                 />
-                <select
-                  value={selectedModel}
-                  onChange={(e) => {
-                    const newModel = e.target.value;
-                    setSelectedModel(newModel);
-                    sessionStorage.setItem('selected_model', newModel);
-                  }}
-                  className="model-select"
+
+                <button
+                  type="button"
+                  className={`settings-icon-button ${isSettingsOpen ? 'open' : ''}`}
+                  onClick={toggleSettingsMenu}
                   disabled={isLoading}
                 >
-                  <option value="gpt-4o-mini">GPT-4 (faster)</option>
-                  <option value="gpt-5-mini">GPT-5 (smarter)</option>
-                </select>
+                  <Gear size={20} weight="fill" />
+                </button>
               </div>
+
+              {/* Collapsible Settings Menu */}
+              {isSettingsOpen && (
+                <div className={`settings-dropdown ${isSettingsClosing ? 'closing' : ''}`}>
+                {/* Model Selection */}
+                <div className="menu-row">
+                  <label className="menu-label">model :</label>
+                  <div className="model-buttons-inline">
+                    <button
+                      type="button"
+                      className={`model-button-small ${selectedModel === 'gpt-4o-mini' ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedModel('gpt-4o-mini');
+                        sessionStorage.setItem('selected_model', 'gpt-4o-mini');
+                      }}
+                      disabled={isLoading}
+                    >
+                      gpt 4
+                    </button>
+                    <button
+                      type="button"
+                      className={`model-button-small ${selectedModel === 'gpt-5-mini' ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedModel('gpt-5-mini');
+                        sessionStorage.setItem('selected_model', 'gpt-5-mini');
+                      }}
+                      disabled={isLoading}
+                    >
+                      gpt 5
+                    </button>
+                  </div>
+                </div>
+
+                {/* Language Selection */}
+                <div className="menu-row">
+                  <label className="menu-label">language :</label>
+                  <select
+                    value={language}
+                    onChange={(e) => {
+                      setLanguage(e.target.value);
+                      sessionStorage.setItem('language', e.target.value);
+                    }}
+                    className="language-select"
+                    disabled={isLoading}
+                  >
+                    <option value="English">English</option>
+                    <option value="Español">Español</option>
+                    <option value="Français">Français</option>
+                    <option value="Deutsch">Deutsch</option>
+                    <option value="Italiano">Italiano</option>
+                    <option value="Português">Português</option>
+                    <option value="Nederlands">Nederlands</option>
+                    <option value="Polski">Polski</option>
+                    <option value="Русский">Русский</option>
+                    <option value="日本語">日本語</option>
+                    <option value="한국어">한국어</option>
+                    <option value="中文">中文</option>
+                    <option value="العربية">العربية</option>
+                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="Türkçe">Türkçe</option>
+                    <option value="Svenska">Svenska</option>
+                    <option value="Norsk">Norsk</option>
+                    <option value="Dansk">Dansk</option>
+                    <option value="Suomi">Suomi</option>
+                    <option value="Ελληνικά">Ελληνικά</option>
+                    <option value="עברית">עברית</option>
+                    <option value="ไทย">ไทย</option>
+                    <option value="Tiếng Việt">Tiếng Việt</option>
+                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                  </select>
+                </div>
+
+                {/* Image Search Toggle */}
+                <div className="menu-row">
+                  <label className="menu-label">images search</label>
+                  <div className="toggle-buttons">
+                    <button
+                      type="button"
+                      className={`toggle-button ${imageSearch ? 'active' : ''}`}
+                      onClick={() => {
+                        setImageSearch(true);
+                        sessionStorage.setItem('image_search', 'true');
+                      }}
+                      disabled={isLoading}
+                    >
+                      on
+                    </button>
+                    <button
+                      type="button"
+                      className={`toggle-button ${!imageSearch ? 'active' : ''}`}
+                      onClick={() => {
+                        setImageSearch(false);
+                        sessionStorage.setItem('image_search', 'false');
+                      }}
+                      disabled={isLoading}
+                    >
+                      off
+                    </button>
+                  </div>
+                </div>
+              </div>
+              )}
             </div>
 
             {(isApiKeyExpanded || (!apiKey.trim() && cardAnimationComplete)) && (
