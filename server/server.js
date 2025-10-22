@@ -139,7 +139,7 @@ app.post('/api/generate-questions', async (req, res) => {
       };
       
       // Only add response_format for compatible models
-      if (model.includes('gpt-4o-mini') || model === 'gpt-3.5-turbo-1106' || model === 'gpt-3.5-turbo-0125') {
+      if (model.includes('gpt-4o-mini') || model.includes('gpt-5-mini') || model === 'gpt-3.5-turbo-1106' || model === 'gpt-3.5-turbo-0125') {
         completionParams.response_format = { type: "json_object" };
       }
       
