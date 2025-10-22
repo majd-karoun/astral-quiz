@@ -101,6 +101,9 @@ const QuestionsCard = ({
               />
             </div>
           ))}
+          <div className="image-hint-disclaimer">
+            Note: Image hints may be misleading
+          </div>
         </div>
       )}
       <div className="options-grid">
