@@ -41,9 +41,22 @@ const QuestionsCard = ({
   const [deleteDecreasing, setDeleteDecreasing] = React.useState(false);
   const [loadedImages, setLoadedImages] = React.useState({});
 
+  const questionRef = React.useRef(null);
+  const [isLongQuestion, setIsLongQuestion] = React.useState(false);
+
+  // Check if question is too long and needs to be scaled down
+  React.useEffect(() => {
+    if (questionRef.current) {
+      const questionElement = questionRef.current;
+      const isLong = questionElement.scrollHeight > questionElement.clientHeight;
+      setIsLongQuestion(isLong);
+    }
+  }, [question.mainQuestion]);
+
   // Reset loaded images when question changes
   React.useEffect(() => {
     setLoadedImages({});
+    setIsLongQuestion(false);
   }, [currentQuestion]);
 
   const handleImageLoad = (index) => {
@@ -79,7 +92,12 @@ const QuestionsCard = ({
       </span>
     </div>
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
-      <div className="question">{question.mainQuestion}</div>
+      <div 
+        ref={questionRef}
+        className={`question ${isLongQuestion ? 'long' : ''}`}
+      >
+        {question.mainQuestion}
+      </div>
       {question.images && question.images.length > 0 && (
         <div className="question-images">
           {question.images.map((image, idx) => (
