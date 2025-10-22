@@ -192,7 +192,16 @@ const TopicInput = ({
   const [placeholder, setPlaceholder] = useState('');
   const [selectedModel, setSelectedModel] = useState(() => {
     // Use sessionStorage to persist model selection during session but not across refreshes
-    return sessionStorage.getItem('selected_model') || 'gpt-4o-mini';
+    const storedModel = sessionStorage.getItem('selected_model');
+    const validModels = ['gpt-4o-mini', 'gpt-5-mini'];
+    
+    // If stored model is invalid or old (like 'gpt-4'), reset to default
+    if (!storedModel || !validModels.includes(storedModel)) {
+      sessionStorage.setItem('selected_model', 'gpt-4o-mini');
+      return 'gpt-4o-mini';
+    }
+    
+    return storedModel;
   });
   const [isExiting, setIsExiting] = useState(false);
   const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(false);
