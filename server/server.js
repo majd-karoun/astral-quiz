@@ -247,7 +247,8 @@ app.post('/api/generate-questions', async (req, res) => {
   }
 });
 
-// Real internet image search using Google Images scraping
+// Real internet image search 
+
 app.post('/api/search-images', async (req, res) => {
   try {
     const { questionTitle } = req.body;
@@ -265,137 +266,61 @@ app.post('/api/search-images', async (req, res) => {
       
       console.log(`Searching images for: "${searchQuery}"`);
       
-      console.log(`Google Image search - Query: "${searchQuery}"`);
-      
       const timestamp = Date.now();
       const imageUrls = [];
       
-      // Google Images search URL
-      const searchUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchQuery)}&hl=en`;
+      // Bing Image Search URL
+      const bingUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&first=1&count=10`;
       
-      const response = await fetch(searchUrl, {
+      const response = await fetch(bingUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0'
         },
         timeout: 5000 // 5 second timeout
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch from Google');
+        console.log('Bing search failed, status:', response.status);
+        throw new Error('Failed to fetch from Bing');
       }
       
       const html = await response.text();
       const $ = cheerio.load(html);
       
-      // Extract image URLs from Google's HTML
-      // Try multiple methods to find images
-      
-      // Method 1: Parse script tags for image data
-      // Collect up to 10 images, then randomly select 2
-      $('script').each((i, elem) => {
+      // Extract image URLs from Bing's HTML
+      $('a.iusc').each((i, elem) => {
         if (imageUrls.length >= 10) return false;
         
-        const scriptContent = $(elem).html();
-        if (scriptContent) {
-          // Look for image URLs in various formats
-          const urlPatterns = [
-            /"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp)[^"]*)"/gi,
-            /'(https?:\/\/[^']+\.(jpg|jpeg|png|webp)[^']*)'/gi,
-            /\["(https?:\/\/[^\]]+\.(jpg|jpeg|png|webp)[^\]]*)"\]/gi
-          ];
-          
-          urlPatterns.forEach(pattern => {
-            if (imageUrls.length >= 10) return;
-            
-            const matches = scriptContent.match(pattern);
-            if (matches) {
-              matches.forEach(match => {
-                if (imageUrls.length >= 10) return;
-                
-                const url = match.replace(/["\[\]']/g, '');
-                
-                // Filter out Google's own URLs and small thumbnails
-                if (url.startsWith('http') &&
-                    !url.includes('google.com/') && 
-                    !url.includes('gstatic.com/') &&
-                    !url.includes('googleusercontent.com/') &&
-                    !url.includes('ggpht.com') &&
-                    (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.webp'))) {
-                  
-                  try {
-                    // Clean up URL (remove any trailing characters after extension)
-                    let cleanUrl = url;
-                    const extMatch = url.match(/(.*?\.(jpg|jpeg|png|webp))/i);
-                    if (extMatch) {
-                      cleanUrl = extMatch[1];
-                    }
-                    
-                    const imageUrl = new URL(cleanUrl);
-                    imageUrl.searchParams.set('_', timestamp + imageUrls.length);
-                    
-                    const imgData = {
-                      url: imageUrl.toString(),
-                      alt: searchQuery,
-                      thumbnail: imageUrl.toString(),
-                      source: 'Google',
-                      searchQuery: searchQuery,
-                      timestamp: timestamp
-                    };
-                    
-                    imageUrls.push(imgData);
-                  } catch (e) {
-                    // Skip invalid URLs
-                  }
-                }
-              });
-            }
-          });
-        }
-      });
-      
-      // Method 2: Parse img tags as fallback
-      if (imageUrls.length === 0) {
-        $('img').each((i, elem) => {
-          if (imageUrls.length >= 10) return false;
-          
-          const src = $(elem).attr('src') || $(elem).attr('data-src');
-          if (src && src.startsWith('http') && 
-              !src.includes('google.com/') && 
-              !src.includes('gstatic.com/') &&
-              !src.includes('googleusercontent.com/')) {
-            
-            try {
-              const imageUrl = new URL(src);
-              imageUrl.searchParams.set('_', timestamp + imageUrls.length);
-              
+        try {
+          const m = $(elem).attr('m');
+          if (m) {
+            const metadata = JSON.parse(m);
+            if (metadata.murl) {
               const imgData = {
-                url: imageUrl.toString(),
-                alt: $(elem).attr('alt') || searchQuery,
-                thumbnail: imageUrl.toString(),
-                source: 'Google',
+                url: metadata.murl,
+                alt: metadata.t || searchQuery,
+                thumbnail: metadata.turl || metadata.murl,
+                source: 'Bing',
                 searchQuery: searchQuery,
                 timestamp: timestamp
               };
               
               imageUrls.push(imgData);
-            } catch (e) {
-              // Skip invalid URLs
             }
           }
-        });
-      }
+        } catch (e) {
+          // Skip invalid entries
+        }
+      });
       
       if (imageUrls.length === 0) {
-        console.log('No images found from Google, returning empty array');
+        console.log('No images found from Bing, returning empty array');
         return res.json({ images: [] });
       }
       
-      // Randomly select 2 images from the collected pool (up to 10)
+      // Randomly select 2 images from the collected pool
       let selectedImages = imageUrls;
       if (imageUrls.length > 2) {
         // Shuffle and take first 2
@@ -404,7 +329,7 @@ app.post('/api/search-images', async (req, res) => {
           .slice(0, 2);
       }
       
-      console.log(`Found ${imageUrls.length} images from Google, selected ${selectedImages.length} randomly`);
+      console.log(`Found ${imageUrls.length} images from Bing, selected ${selectedImages.length} randomly`);
       return res.json({ 
         images: selectedImages
       });
