@@ -557,7 +557,7 @@ const TopicInput = ({
                       }}
                       disabled={isLoading}
                     >
-                      gpt 5 <span className="model-speed">(slower)</span>
+                      gpt 5 <span className="model-speed">(smarter)</span>
                     </button>
                   </div>
                 </div>
