@@ -120,7 +120,7 @@ const QuestionsCard = ({
             </div>
           ))}
           <div className="image-hint-disclaimer">
-            Note: Image hints may be misleading
+            Note: Images may be unrelated
           </div>
         </div>
       )}

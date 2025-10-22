@@ -247,7 +247,7 @@ app.post('/api/generate-questions', async (req, res) => {
   }
 });
 
-// Real internet image search using Bing Images scraping
+// Real internet image search using Google Images scraping
 app.post('/api/search-images', async (req, res) => {
   try {
     const { questionTitle } = req.body;
@@ -265,13 +265,13 @@ app.post('/api/search-images', async (req, res) => {
       
       console.log(`Searching images for: "${searchQuery}"`);
       
-      console.log(`Bing Image search - Query: "${searchQuery}"`);
+      console.log(`Google Image search - Query: "${searchQuery}"`);
       
       const timestamp = Date.now();
       const imageUrls = [];
       
-      // Single search with the question text
-      const searchUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&first=1&count=10&ts=${timestamp}`;
+      // Google Images search URL
+      const searchUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchQuery)}&hl=en`;
       
       const response = await fetch(searchUrl, {
         headers: {
@@ -286,70 +286,137 @@ app.post('/api/search-images', async (req, res) => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch from Bing');
+        throw new Error('Failed to fetch from Google');
       }
       
       const html = await response.text();
       const $ = cheerio.load(html);
       
-      // Extract top image URLs from Bing's HTML
-      $('a.iusc').each((i, elem) => {
-        if (imageUrls.length >= 2) return false; // Stop after getting 2 images
+      // Extract image URLs from Google's HTML
+      // Try multiple methods to find images
+      
+      // Method 1: Parse script tags for image data
+      // Collect up to 10 images, then randomly select 2
+      $('script').each((i, elem) => {
+        if (imageUrls.length >= 10) return false;
         
-        const m = $(elem).attr('m');
-        if (m) {
-          try {
-            const metadata = JSON.parse(m);
-            // Skip thumbnails and ensure it's a direct image URL
-            if (metadata.murl && 
-                !metadata.murl.includes('bing.net/th?') && 
-                (metadata.murl.endsWith('.jpg') || 
-                 metadata.murl.endsWith('.jpeg') || 
-                 metadata.murl.endsWith('.png') ||
-                 metadata.murl.includes('i.imgur.com'))) {
-              
-              // Add cache-busting parameter to image URL
-              const imageUrl = new URL(metadata.murl);
+        const scriptContent = $(elem).html();
+        if (scriptContent) {
+          // Look for image URLs in various formats
+          const urlPatterns = [
+            /"(https?:\/\/[^"]+\.(jpg|jpeg|png|webp)[^"]*)"/gi,
+            /'(https?:\/\/[^']+\.(jpg|jpeg|png|webp)[^']*)'/gi,
+            /\["(https?:\/\/[^\]]+\.(jpg|jpeg|png|webp)[^\]]*)"\]/gi
+          ];
+          
+          urlPatterns.forEach(pattern => {
+            if (imageUrls.length >= 10) return;
+            
+            const matches = scriptContent.match(pattern);
+            if (matches) {
+              matches.forEach(match => {
+                if (imageUrls.length >= 10) return;
+                
+                const url = match.replace(/["\[\]']/g, '');
+                
+                // Filter out Google's own URLs and small thumbnails
+                if (url.startsWith('http') &&
+                    !url.includes('google.com/') && 
+                    !url.includes('gstatic.com/') &&
+                    !url.includes('googleusercontent.com/') &&
+                    !url.includes('ggpht.com') &&
+                    (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.webp'))) {
+                  
+                  try {
+                    // Clean up URL (remove any trailing characters after extension)
+                    let cleanUrl = url;
+                    const extMatch = url.match(/(.*?\.(jpg|jpeg|png|webp))/i);
+                    if (extMatch) {
+                      cleanUrl = extMatch[1];
+                    }
+                    
+                    const imageUrl = new URL(cleanUrl);
+                    imageUrl.searchParams.set('_', timestamp + imageUrls.length);
+                    
+                    const imgData = {
+                      url: imageUrl.toString(),
+                      alt: searchQuery,
+                      thumbnail: imageUrl.toString(),
+                      source: 'Google',
+                      searchQuery: searchQuery,
+                      timestamp: timestamp
+                    };
+                    
+                    imageUrls.push(imgData);
+                  } catch (e) {
+                    // Skip invalid URLs
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+      
+      // Method 2: Parse img tags as fallback
+      if (imageUrls.length === 0) {
+        $('img').each((i, elem) => {
+          if (imageUrls.length >= 10) return false;
+          
+          const src = $(elem).attr('src') || $(elem).attr('data-src');
+          if (src && src.startsWith('http') && 
+              !src.includes('google.com/') && 
+              !src.includes('gstatic.com/') &&
+              !src.includes('googleusercontent.com/')) {
+            
+            try {
+              const imageUrl = new URL(src);
               imageUrl.searchParams.set('_', timestamp + imageUrls.length);
               
               const imgData = {
                 url: imageUrl.toString(),
-                alt: metadata.t || searchQuery,
-                thumbnail: metadata.turl || imageUrl.toString(),
-                source: 'Bing',
+                alt: $(elem).attr('alt') || searchQuery,
+                thumbnail: imageUrl.toString(),
+                source: 'Google',
                 searchQuery: searchQuery,
                 timestamp: timestamp
               };
               
               imageUrls.push(imgData);
+            } catch (e) {
+              // Skip invalid URLs
             }
-          } catch (e) {
-            console.error('Error parsing image metadata:', e);
           }
-        }
-      });
-      
-      if (imageUrls.length === 0) {
-        throw new Error('No images found from Bing');
+        });
       }
       
-      console.log(`Found ${imageUrls.length} images from Bing`);
+      if (imageUrls.length === 0) {
+        console.log('No images found from Google, returning empty array');
+        return res.json({ images: [] });
+      }
+      
+      // Randomly select 2 images from the collected pool (up to 10)
+      let selectedImages = imageUrls;
+      if (imageUrls.length > 2) {
+        // Shuffle and take first 2
+        selectedImages = imageUrls
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 2);
+      }
+      
+      console.log(`Found ${imageUrls.length} images from Google, selected ${selectedImages.length} randomly`);
       return res.json({ 
-        images: imageUrls // Return top 2 most relevant images
+        images: selectedImages
       });
     } catch (fetchError) {
       console.error('Image search error:', fetchError);
-      return res.status(500).json({
-        error: 'Failed to fetch images from Bing',
-        details: fetchError.message
-      });
+      // Return empty images instead of error to not break the quiz
+      return res.json({ images: [] });
     }
   } catch (error) {
     console.error('Image search error:', error);
-    res.status(500).json({
-      error: 'Failed to search images',
-      details: error.message
-    });
+    // Return empty images instead of error to not break the quiz
+    res.json({ images: [] });
   }
 });
 
