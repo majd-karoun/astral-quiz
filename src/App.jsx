@@ -75,6 +75,34 @@ function App() {
     return 1000; // Questions 14+ (including all very hard questions)
   };
 
+
+  //https://server-cold-hill-2617.fly.dev
+
+  const fetchImagesForQuestion = async (question) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/search-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          query: question.mainQuestion,
+          topic: topic  // Include the topic for better context
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch images');
+      }
+
+      const data = await response.json();
+      return { ...question, images: data.images || [] };
+    } catch (error) {
+      console.error('Error fetching images for question:', error);
+      return { ...question, images: [] };
+    }
+  };
+
   const saveQuizToHistory = async () => {
     const history = JSON.parse(localStorage.getItem('quiz_history') || '[]');
     const newQuiz = {
@@ -285,8 +313,15 @@ function App() {
                   
                   console.log(`Question ${startIndex + questionCount + 1} received:`, questionObj.mainQuestion);
                   
-                  // Add question immediately
-                  setQuestions(prevQuestions => [...prevQuestions, questionObj]);
+                  // Fetch images for the question
+                  fetchImagesForQuestion(questionObj).then(questionWithImages => {
+                    // Add question with images immediately
+                    setQuestions(prevQuestions => [...prevQuestions, questionWithImages]);
+                  }).catch(err => {
+                    console.error('Error fetching images:', err);
+                    // Add question without images if fetch fails
+                    setQuestions(prevQuestions => [...prevQuestions, { ...questionObj, images: [] }]);
+                  });
                   
                   questionCount++;
                   batchQuestionCount++;

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
+const cheerio = require('cheerio');
 const app = express();
 
 // Enable CORS with specific configuration
@@ -232,6 +233,147 @@ app.post('/api/generate-questions', async (req, res) => {
 
     res.status(500).json({
       error: 'Failed to generate questions',
+      details: error.message
+    });
+  }
+});
+
+// Real internet image search using Bing Images scraping
+app.post('/api/search-images', async (req, res) => {
+  try {
+    const { query, topic } = req.body;
+    
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return res.status(400).json({ error: 'Valid search query is required' });
+    }
+    
+    try {
+      // Use the full question for better context, but clean it up first
+      let searchQuery = query
+        .replace(/[?!.,;:\"']/g, '') // Remove punctuation
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .trim();
+      
+      // If we have a topic, prepend it for better relevance
+      if (topic && topic.trim()) {
+        searchQuery = `${topic.trim()} ${searchQuery}`;
+      }
+      
+      console.log(`Searching images for: "${searchQuery}"`);
+      
+      console.log(`Bing Image search - Topic: "${topic}", Search terms: "${searchQuery}"`);
+      
+      // Scrape Bing Images with cache-busting and better image selection
+      const timestamp = Date.now();
+      // Get a random starting point for pagination to get different results
+      const startIndex = Math.floor(Math.random() * 10) * 10 + 1;
+      
+      const bingUrl = `https://www.bing.com/images/search?q=${encodeURIComponent(searchQuery)}&first=${startIndex}&count=10&ts=${timestamp}`;
+      
+      console.log(`Fetching images from: ${bingUrl}`);
+      
+      const response = await fetch(bingUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
+      if (response.ok) {
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const imageUrls = [];
+        
+        // Extract image URLs from Bing's HTML with more specific selectors
+        $('a.iusc').each((i, elem) => {
+          if (imageUrls.length >= 6) return false;
+          
+          const m = $(elem).attr('m');
+          if (m) {
+            try {
+              const metadata = JSON.parse(m);
+              if (metadata.murl && !metadata.murl.includes('bing.net/th?')) { // Skip thumbnails
+                // Add cache-busting parameter to image URL
+                const imageUrl = new URL(metadata.murl);
+                imageUrl.searchParams.set('_', timestamp + i);
+                
+                imageUrls.push({
+                  url: imageUrl.toString(),
+                  alt: metadata.t || searchQuery,
+                  thumbnail: metadata.turl,
+                  source: 'Bing',
+                  timestamp: timestamp
+                });
+              }
+            } catch (e) {
+              console.error('Error parsing image metadata:', e);
+            }
+          }
+        });
+        
+        // Shuffle the array and take first 2 unique images
+        const uniqueImages = Array.from(new Map(imageUrls.map(img => [img.url, img])).values());
+        const shuffled = uniqueImages.sort(() => 0.5 - Math.random());
+        
+        if (shuffled.length > 0) {
+          console.log(`Found ${shuffled.length} unique images from Bing`);
+          return res.json({ images: shuffled.slice(0, 2) });
+        }
+      }
+      
+      console.log('Bing scraping failed, using fallback');
+      
+      // Fallback: Use Picsum with topic-based seeds
+      const seed1 = searchQuery.replace(/\s+/g, '-').toLowerCase();
+      const seed2 = (topic || searchQuery).replace(/\s+/g, '-').toLowerCase();
+      
+      const images = [
+        { 
+          url: `https://picsum.photos/seed/${seed1}/400/300`, 
+          alt: searchQuery,
+          source: 'Picsum'
+        },
+        { 
+          url: `https://picsum.photos/seed/${seed2}/400/300`, 
+          alt: searchQuery,
+          source: 'Picsum'
+        }
+      ];
+      
+      console.log(`Using Picsum fallback images`);
+      res.json({ images });
+      
+    } catch (fetchError) {
+      console.error('Image search error:', fetchError);
+      
+      // Error fallback: Picsum
+      const searchTerms = topic || 'technology';
+      const seed1 = searchTerms.replace(/\s+/g, '-').toLowerCase();
+      const seed2 = `${seed1}-alt`;
+      
+      const images = [
+        { 
+          url: `https://picsum.photos/seed/${seed1}/400/300`, 
+          alt: searchTerms,
+          source: 'Picsum'
+        },
+        { 
+          url: `https://picsum.photos/seed/${seed2}/400/300`, 
+          alt: searchTerms,
+          source: 'Picsum'
+        }
+      ];
+      
+      res.json({ images });
+    }
+  } catch (error) {
+    console.error('Image search error:', error);
+    res.status(500).json({
+      error: 'Failed to search images',
       details: error.message
     });
   }

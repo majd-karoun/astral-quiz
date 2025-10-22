@@ -39,6 +39,19 @@ const QuestionsCard = ({
 }) => {
   const [hintDecreasing, setHintDecreasing] = React.useState(false);
   const [deleteDecreasing, setDeleteDecreasing] = React.useState(false);
+  const [loadedImages, setLoadedImages] = React.useState({});
+
+  // Reset loaded images when question changes
+  React.useEffect(() => {
+    setLoadedImages({});
+  }, [currentQuestion]);
+
+  const handleImageLoad = (index) => {
+    setLoadedImages(prev => ({
+      ...prev,
+      [index]: true
+    }));
+  };
 
   const handleUseHint = () => {
     setHintDecreasing(true);
@@ -67,6 +80,29 @@ const QuestionsCard = ({
     </div>
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
       <div className="question">{question.mainQuestion}</div>
+      {question.images && question.images.length > 0 && (
+        <div className="question-images">
+          {question.images.map((image, idx) => (
+            <div 
+              key={idx} 
+              className={`image-wrapper ${loadedImages[idx] ? 'loaded' : 'loading'}`}
+            >
+              <img 
+                src={image.url} 
+                alt={image.alt} 
+                className="question-image"
+                loading="lazy"
+                onLoad={() => handleImageLoad(idx)}
+                onError={(e) => {
+                  console.error('Error loading image:', image.url);
+                  // Set a fallback background color if image fails to load
+                  e.target.style.background = '#f5f5f5';
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
       <div className="options-grid">
         {question.answerOptions.map((option, index) => {
           const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
