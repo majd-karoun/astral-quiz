@@ -98,50 +98,46 @@ const QuestionsCard = ({
       >
         {question.mainQuestion}
       </div>
-      {question.images && question.images.length > 0 && (
-        <div className="question-images">
-          {question.images.map((image, idx) => (
-            <div 
-              key={idx} 
-              className={`image-wrapper ${loadedImages[idx] ? 'loaded' : 'loading'}`}
-            >
-              <img 
-                src={image.url} 
-                alt={image.alt} 
-                className="question-image"
-                loading="lazy"
-                onLoad={() => handleImageLoad(idx)}
-                onError={(e) => {
-                  console.error('Error loading image:', image.url);
-                  // Set a fallback background color if image fails to load
-                  e.target.style.background = '#f5f5f5';
-                }}
-              />
-            </div>
-          ))}
-          <div className="image-hint-disclaimer">
-            Note: Images may be unrelated
-          </div>
-        </div>
-      )}
       <div className={`options-grid ${!question.images || question.images.length === 0 ? 'no-images' : ''}`}>
         {question.answerOptions.map((option, index) => {
           const isCorrect = isShowingAnswers && index === question.correctAnswerIndex;
           const isSelected = isShowingAnswers && index === selectedAnswer;
           const isHidden = hiddenOptions.has(`${currentQuestion}_${index}`);
+          const optionImage = question.images && question.images[index];
 
           return (
-            <button
-              key={index}
-              onClick={() => onAnswer(index)}
-              className={`button button-outline ${
-                isCorrect ? 'correct-answer' : 
-                isSelected ? 'wrong-answer' : ''
-              } ${isHidden ? 'fifty-fifty-disabled' : ''}`}
-              disabled={isShowingAnswers || isHidden}
-            >
-              {option}
-            </button>
+            <div key={index} className="option-container">
+              {optionImage && (
+                <div 
+                  className={`option-image-wrapper ${loadedImages[index] ? 'loaded' : 'loading'}`}
+                >
+                  <img 
+                    src={optionImage.url} 
+                    alt={optionImage.alt} 
+                    className="option-image"
+                    loading="lazy"
+                    onLoad={() => handleImageLoad(index)}
+                    onError={(e) => {
+                      console.error('Error loading image:', optionImage.url);
+                      e.target.style.background = '#f5f5f5';
+                    }}
+                  />
+                  <div className="image-disclaimer-overlay">
+                    Image may not be related
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => onAnswer(index)}
+                className={`button button-outline ${
+                  isCorrect ? 'correct-answer' : 
+                  isSelected ? 'wrong-answer' : ''
+                } ${isHidden ? 'fifty-fifty-disabled' : ''}`}
+                disabled={isShowingAnswers || isHidden}
+              >
+                {option}
+              </button>
+            </div>
           );
         })}
       </div>

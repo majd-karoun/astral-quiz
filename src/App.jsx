@@ -80,23 +80,35 @@ function App() {
 
   const fetchImagesForQuestion = async (question) => {
     try {
-      const response = await fetch('https://server-cold-hill-2617.fly.dev/api/search-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ 
-          questionTitle: question.questionTitle
-        })
+      // Fetch images for each option text
+      const imagePromises = question.answerOptions.map(async (optionText) => {
+        try {
+          const response = await fetch('https://server-cold-hill-2617.fly.dev/api/search-images', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ 
+              questionTitle: optionText
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch images');
+          }
+
+          const data = await response.json();
+          // Return the first image for this option
+          return data.images && data.images.length > 0 ? data.images[0] : null;
+        } catch (error) {
+          console.error('Error fetching image for option:', optionText, error);
+          return null;
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch images');
-      }
-
-      const data = await response.json();
-      return { ...question, images: data.images || [] };
+      const images = await Promise.all(imagePromises);
+      return { ...question, images: images };
     } catch (error) {
       console.error('Error fetching images for question:', error);
       return { ...question, images: [] };

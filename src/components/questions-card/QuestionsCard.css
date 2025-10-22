@@ -208,10 +208,22 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.question-and-options.transitioning .options-grid .option-container {
+  animation: none !important;
+  opacity: 0;
+  transform: translateX(-20px) translateY(10px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .question-and-options.transitioning .options-grid .button-outline:nth-child(1) { transition-delay: 0s; }
 .question-and-options.transitioning .options-grid .button-outline:nth-child(2) { transition-delay: 0.05s; }
 .question-and-options.transitioning .options-grid .button-outline:nth-child(3) { transition-delay: 0.1s; }
 .question-and-options.transitioning .options-grid .button-outline:nth-child(4) { transition-delay: 0.15s; }
+
+.question-and-options.transitioning .options-grid .option-container:nth-child(1) { transition-delay: 0s; }
+.question-and-options.transitioning .options-grid .option-container:nth-child(2) { transition-delay: 0.05s; }
+.question-and-options.transitioning .options-grid .option-container:nth-child(3) { transition-delay: 0.1s; }
+.question-and-options.transitioning .options-grid .option-container:nth-child(4) { transition-delay: 0.15s; }
 
 .question {
   font-size: 22px;
@@ -245,12 +257,11 @@
 
 /* Question Images */
 .image-hint-disclaimer {
-  grid-column: 1 / -1;
   text-align: center;
   font-size: 11px;
   color: #999;
   font-style: italic;
-  margin: -4px 0 4px 0;
+  margin: 12px 0 4px 0;
   line-height: 1.2;
   opacity: 0.7;
   padding: 0 10%;
@@ -260,27 +271,24 @@
 @media (max-width: 480px) {
   .image-hint-disclaimer {
     font-size: 10px;
-    margin: -6px 0 2px 0;
+    margin: 8px 0 2px 0;
   }
 }
 
-.question-images {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 24px;
-  opacity: 1;
-  transform: translateY(0);
+/* Option Container - holds image and button together */
+.option-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Image wrapper with modern animations */
-.image-wrapper {
+/* Option Image wrapper with modern animations */
+.option-image-wrapper {
   position: relative;
   width: 100%;
-  height: 180px;
-  border-radius: 16px;
+  height: 140px;
+  border-radius: 12px;
   overflow: hidden;
-  margin: 12px 0;
   transform: translateY(10px) scale(0.98);
   opacity: 0;
   animation: fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
@@ -290,8 +298,28 @@
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+/* Image disclaimer overlay on each image */
+.image-disclaimer-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  color: #666;
+  font-size: 8px;
+  font-weight: 500;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  opacity: 0.85;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.3px;
+}
+
 /* Frame animation - plays once when image loads */
-.image-wrapper::after {
+.option-image-wrapper::after {
   content: '';
   position: absolute;
   top: 0;
@@ -299,7 +327,7 @@
   right: 0;
   bottom: 0;
   border: 2px solid transparent;
-  border-radius: 16px;
+  border-radius: 12px;
   background: linear-gradient(45deg, 
     rgba(255,255,255,0.1) 0%,
     rgba(255,255,255,0.4) 50%,
@@ -331,7 +359,7 @@
   }
 }
 
-.image-wrapper.loaded::after {
+.option-image-wrapper.loaded::after {
   opacity: 0;
   animation: frameAppear 1.2s ease-out forwards;
 }
@@ -349,11 +377,13 @@
 }
 
 /* Staggered animation for multiple images */
-.image-wrapper:nth-child(1) { animation-delay: 0.1s; }
-.image-wrapper:nth-child(2) { animation-delay: 0.2s; }
+.option-container:nth-child(1) .option-image-wrapper { animation-delay: 0.1s; }
+.option-container:nth-child(2) .option-image-wrapper { animation-delay: 0.15s; }
+.option-container:nth-child(3) .option-image-wrapper { animation-delay: 0.2s; }
+.option-container:nth-child(4) .option-image-wrapper { animation-delay: 0.25s; }
 
 /* Image styles with smooth transitions */
-.image-wrapper img {
+.option-image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -371,7 +401,7 @@
 
 
 /* Loading shimmer effect */
-.image-wrapper::before {
+.option-image-wrapper::before {
   content: '';
   position: absolute;
   top: 0;
@@ -389,7 +419,7 @@
   pointer-events: none;
 }
 
-.image-wrapper.loading::before {
+.option-image-wrapper.loading::before {
   opacity: 1;
   animation: shimmer 1.5s infinite;
 }
@@ -400,7 +430,7 @@
 }
 
 /* Loading state */
-.image-wrapper.loading {
+.option-image-wrapper.loading {
   background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
@@ -451,14 +481,25 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.question-and-options:not(.transitioning) .options-grid .button-outline {
+/* Animations for option containers (with images) */
+.question-and-options:not(.transitioning) .options-grid .option-container {
   animation: slideInUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
 }
 
-.question-and-options:not(.transitioning) .options-grid .button-outline:nth-child(1) { animation-delay: 0.2s; }
-.question-and-options:not(.transitioning) .options-grid .button-outline:nth-child(2) { animation-delay: 0.3s; }
-.question-and-options:not(.transitioning) .options-grid .button-outline:nth-child(3) { animation-delay: 0.4s; }
-.question-and-options:not(.transitioning) .options-grid .button-outline:nth-child(4) { animation-delay: 0.5s; }
+.question-and-options:not(.transitioning) .options-grid .option-container:nth-child(1) { animation-delay: 0.2s; }
+.question-and-options:not(.transitioning) .options-grid .option-container:nth-child(2) { animation-delay: 0.3s; }
+.question-and-options:not(.transitioning) .options-grid .option-container:nth-child(3) { animation-delay: 0.4s; }
+.question-and-options:not(.transitioning) .options-grid .option-container:nth-child(4) { animation-delay: 0.5s; }
+
+/* Animations for buttons without images (no-images mode) */
+.question-and-options:not(.transitioning) .options-grid.no-images .button-outline {
+  animation: slideInUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+}
+
+.question-and-options:not(.transitioning) .options-grid.no-images .button-outline:nth-child(1) { animation-delay: 0.2s; }
+.question-and-options:not(.transitioning) .options-grid.no-images .button-outline:nth-child(2) { animation-delay: 0.3s; }
+.question-and-options:not(.transitioning) .options-grid.no-images .button-outline:nth-child(3) { animation-delay: 0.4s; }
+.question-and-options:not(.transitioning) .options-grid.no-images .button-outline:nth-child(4) { animation-delay: 0.5s; }
 
 @keyframes slideInUp {
   0% {
@@ -738,14 +779,8 @@
     line-height: 1.3;
   }
   
-  .question-images {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .question-image {
-    height: 150px;
+  .option-image-wrapper {
+    height: 120px;
   }
   
   .options-grid {
