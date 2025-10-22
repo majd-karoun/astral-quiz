@@ -15,7 +15,7 @@ An interactive quiz application that generates personalized questions on any top
 3. Answer questions with increasing difficulty.
    (The quiz continues indefinitely as long as you answer correctly.)
 4. Use helpers strategically:
-   - **Hints**: Get a helpful clue (3 per game)
+   - **Hints**: Get a helpful clue (6 per game)
    - **50/50 Options**: Eliminate 2 incorrect answers (3 per game)
 5. Try to achieve the highest score.
 

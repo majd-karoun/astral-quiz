@@ -152,7 +152,7 @@ const QuestionsCard = ({
           onClick={handleUseHint} 
           className={`button button-outline help-button ${hintDecreasing ? 'decreasing' : ''}`}
           disabled={isHintUsed || remainingHints <= 0 || isShowingAnswers}
-          style={{ '--progress': `${(remainingHints / 3) * 100}%` }}
+          style={{ '--progress': `${(remainingHints / 6) * 100}%` }}
         >
           <Lightning size={20} />
           <span>Hint</span>

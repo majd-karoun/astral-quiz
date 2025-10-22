@@ -21,7 +21,7 @@ function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [points, setPoints] = useState(0);
   const [prevPoints, setPrevPoints] = useState(0);
-  const [remainingHints, setRemainingHints] = useState(3);
+  const [remainingHints, setRemainingHints] = useState(6);
   const [remainingDeleteOptions, setRemainingDeleteOptions] = useState(3);
   const [gameOver, setGameOver] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -602,7 +602,7 @@ function App() {
     setCurrentQuestion(0);
     setPoints(0);
     setPrevPoints(0);
-    setRemainingHints(3);
+    setRemainingHints(6);
     setRemainingDeleteOptions(3);
     setUsedHints(new Set());
     setUsedDeleteOptions(new Set());
@@ -628,7 +628,7 @@ function App() {
     setCurrentQuestion(0);
     setPoints(0);
     setPrevPoints(0);
-    setRemainingHints(3);
+    setRemainingHints(6);
     setRemainingDeleteOptions(3);
     setUsedHints(new Set());
     setUsedDeleteOptions(new Set());
