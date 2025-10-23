@@ -8,7 +8,7 @@ An interactive quiz application that generates personalized questions on any top
 
 
 
-## 🎮 How to Play
+## 🎮 How to Play:
 
 1. Choose a topic.
 2. Enter your OpenAI API key.
@@ -20,32 +20,32 @@ An interactive quiz application that generates personalized questions on any top
 5. Try to achieve the highest score.
 
 
-## 🔑 API Key
+## 🔑 API Key:
 
 - You need your own OpenAI API key to generate questions.
 - Your OpenAI account must have available credits.
 - Questions are generated using the GPT-4o-mini or GPT-5-mini model.  
 
 
-## 💻 Tech Stack
+## 💻 Tech Stack:
 ### Frontend
 - **React.js**: Frontend framework
 - **Vite**: Build tool and development server
 - **@phosphor-icons/react**: Icon library
 - **CSS**: Custom responsive design
 
-### Backend
+### Backend:
 - **Node.js**: Runtime environment
 - **Express.js**: Web application framework
 - **OpenAI API**: For generating quiz questions
 - **CORS**: Cross-Origin Resource Sharing support
 
-### Deployment
+### Deployment:
 - **Frontend**: Hosted on Netlify
 - **Backend**: Hosted on Fly.io
 
 
-## 🚀 Getting Started
+## 🚀 Getting Started:
 
 1. Clone the repository
 ```bash
