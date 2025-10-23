@@ -580,7 +580,7 @@ const TopicInput = ({
 <option value="中文">中文 (Chinese)</option>
 <option value="हिन्दी">हिन्दी (Hindi)</option>
 <option value="Español">Español (Spanish)</option>
-<option value="العربية" dir="rtl">العربية (Arabic)</option>
+<option value="العربية" dir="rtl">(Arabic) العربية</option>
 <option value="Français">Français (French)</option>
 <option value="বাংলা">বাংলা (Bengali)</option>
 <option value="Português">Português (Portuguese)</option>
