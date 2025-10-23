@@ -575,51 +575,56 @@ const TopicInput = ({
                     disabled={isLoading}
                   >
                     <option value="English">English (English)</option>
+
+
 <option value="中文">中文 (Chinese)</option>
-<option value="Español">Español (Spanish)</option>
 <option value="हिन्दी">हिन्दी (Hindi)</option>
-<option value="العربية">العربية (Arabic)</option>
+<option value="Español">Español (Spanish)</option>
+<option value="العربية" dir="rtl">العربية (Arabic)</option>
+<option value="Français">Français (French)</option>
 <option value="বাংলা">বাংলা (Bengali)</option>
 <option value="Português">Português (Portuguese)</option>
 <option value="Русский">Русский (Russian)</option>
-<option value="日本語">日本語 (Japanese)</option>
-<option value="ਪੰਜਾਬੀ">ਪੰਜਾਬੀ (Punjabi)</option>
-<option value="Deutsch">Deutsch (German)</option>
-<option value="한국어">한국어 (Korean)</option>
-<option value="Français">Français (French)</option>
-<option value="Türkçe">Türkçe (Turkish)</option>
-<option value="తెలుగు">తెలుగు (Telugu)</option>
-<option value="मराठी">मराठी (Marathi)</option>
-<option value="తెలుగు">தமிழ் (Tamil)</option>
-<option value="اردو">اردو (Urdu)</option>
+<option value="اردو" dir="rtl">اردو (Urdu)</option>
 <option value="Bahasa Indonesia">Bahasa Indonesia (Indonesian)</option>
+<option value="Deutsch">Deutsch (German)</option>
+<option value="日本語">日本語 (Japanese)</option>
+<option value="Nigerian Pidgin">Nigerian Pidgin (English Creole)</option>
+<option value="ਪੰਜਾਬੀ">ਪੰਜਾਬੀ (Punjabi)</option>
+<option value="한국어">한국어 (Korean)</option>
+<option value="Basa Jawa">ꦧꦱꦗꦮ (Javanese)</option>
+<option value="తెలుగు">తెలుగు (Telugu)</option>
+<option value="Kiswahili">Kiswahili (Swahili)</option>
+<option value="தமிழ்">தமிழ் (Tamil)</option>
+<option value="فارسی" dir="rtl">فارسی (Persian / Farsi)</option>
+<option value="मराठी">मराठी (Marathi)</option>
+<option value="Türkçe">Türkçe (Turkish)</option>
 <option value="Tiếng Việt">Tiếng Việt (Vietnamese)</option>
+<option value="Tagalog">Tagalog (Filipino)</option>
 <option value="Italiano">Italiano (Italian)</option>
 <option value="ไทย">ไทย (Thai)</option>
-<option value="فارسی">فارسی (Persian / Farsi)</option>
+<option value="ગુજરાતી">ગુજરાતી (Gujarati)</option>
 <option value="Polski">Polski (Polish)</option>
-<option value="Українська">Українська (Ukrainian)</option>
 <option value="Bahasa Melayu">Bahasa Melayu (Malay)</option>
 <option value="Yorùbá">Yorùbá (Yoruba)</option>
-<option value="ગુજરાતી">ગુજરાતી (Gujarati)</option>
+<option value="Українська">Українська (Ukrainian)</option>
 <option value="മലയാളം">മലയാളം (Malayalam)</option>
 <option value="Oʻzbekcha">Oʻzbekcha (Uzbek)</option>
-<option value="Қазақ тілі">Қазақ тілі (Kazakh)</option>
 <option value="Română">Română (Romanian)</option>
-<option value="Basa Jawa">ꦧꦱꦗꦮ (Javanese)</option>
-<option value="Tagalog">Tagalog (Filipino)</option>
-<option value="Kiswahili">Kiswahili (Swahili)</option>
-<option value="Ελληνικά">Ελληνικά (Greek)</option>
+<option value="Қазақ тілі">Қазақ тілі (Kazakh)</option>
 <option value="Nederlands">Nederlands (Dutch)</option>
+<option value="Ελληνικά">Ελληνικά (Greek)</option>
+<option value="Català">Català (Catalan)</option>
+<option value="Svenska">Svenska (Swedish)</option>
 <option value="Čeština">Čeština (Czech)</option>
 <option value="Magyar">Magyar (Hungarian)</option>
 <option value="Български">Български (Bulgarian)</option>
-<option value="Català">Català (Catalan)</option>
-<option value="Svenska">Svenska (Swedish)</option>
+<option value="עברית" dir="rtl">עברית (Hebrew)</option>
+<option value="Suomi">Suomi (Finnish)</option>
 <option value="Dansk">Dansk (Danish)</option>
 <option value="Norsk">Norsk (Norwegian)</option>
-<option value="Suomi">Suomi (Finnish)</option>
-<option value="עברית">עברית (Hebrew)</option>
+
+
                   </select>
                 </div>
 
