@@ -744,6 +744,7 @@ function App() {
             pointsChanged={pointsChanged}
             isExiting={isQuestionsCardExiting}
             isEntering={isQuestionsCardEntering}
+            language={sessionStorage.getItem('language') || 'English'}
           />
         )}
 

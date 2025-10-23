@@ -243,6 +243,17 @@
   line-height: 1.3;
 }
 
+/* RTL support for right-to-left languages */
+.question.rtl {
+  text-align: right;
+  direction: rtl;
+}
+
+.feedback.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
 /* For mobile */
 @media (max-width: 480px) {
   .question {

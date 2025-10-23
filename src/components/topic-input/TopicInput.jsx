@@ -587,17 +587,36 @@ const TopicInput = ({
                     <option value="한국어">한국어</option>
                     <option value="中文">中文</option>
                     <option value="العربية">العربية</option>
-                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="فارسی">فارسی</option>
+                    <option value="اردو">اردو</option>
                     <option value="Türkçe">Türkçe</option>
                     <option value="Svenska">Svenska</option>
                     <option value="Norsk">Norsk</option>
                     <option value="Dansk">Dansk</option>
                     <option value="Suomi">Suomi</option>
-                    <option value="Ελληνικά">Ελληνικά</option>
+                      <option value="Ελληνικά">Ελληνικά</option>
                     <option value="עברית">עברית</option>
+                    <option value="Kiswahili">Kiswahili</option>
+                    <option value="Română">Română</option>
+                    <option value="Українська">Українська</option>
+                    <option value="Čeština">Čeština</option>
+                    <option value="Magyar">Magyar</option>
+                    <option value="Български">Български</option>
+                    <option value="Català">Català</option>
+                   
+                    <option value="हिन्दी">हिन्दी</option>
+                    <option value="বাংলা">বাংলা</option>
+                    <option value="ਪੰਜਾਬੀ">ਪੰਜਾਬੀ</option>
+                    <option value="తెలుగు">తెలుగు</option>
+                    <option value="मराठी">मराठी</option>
+                    <option value="தமிழ்">தமிழ்</option>
+                   
                     <option value="ไทย">ไทย</option>
                     <option value="Tiếng Việt">Tiếng Việt</option>
                     <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                    <option value="Bahasa Melayu">Bahasa Melayu</option>
+                    <option value="Tagalog">Tagalog</option>
+                    <option value="Javanese">Javanese</option>
                   </select>
                 </div>
 

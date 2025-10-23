@@ -17,6 +17,12 @@ const DeleteOptionsIcon = ({ size = 20 }) => (
   </svg>
 );
 
+// Helper function to check if a language is RTL
+const isRTLLanguage = (language) => {
+  const rtlLanguages = ['العربية', 'עברית', 'فارسی', 'اردو'];
+  return rtlLanguages.includes(language);
+};
+
 const QuestionsCard = ({ 
   currentQuestion,
   points,
@@ -35,7 +41,8 @@ const QuestionsCard = ({
   isShowingAnswers,
   pointsChanged,
   isExiting,
-  isEntering
+  isEntering,
+  language = 'English'
 }) => {
   const [hintDecreasing, setHintDecreasing] = React.useState(false);
   const [deleteDecreasing, setDeleteDecreasing] = React.useState(false);
@@ -43,6 +50,7 @@ const QuestionsCard = ({
 
   const questionRef = React.useRef(null);
   const [isLongQuestion, setIsLongQuestion] = React.useState(false);
+  const isRTL = isRTLLanguage(language);
 
   // Check if question is too long and needs to be scaled down
   React.useEffect(() => {
@@ -94,7 +102,8 @@ const QuestionsCard = ({
     <div className={`question-and-options ${isTransitioning ? 'transitioning' : ''}`}>
       <div 
         ref={questionRef}
-        className={`question ${isLongQuestion ? 'long' : ''}`}
+        className={`question ${isLongQuestion ? 'long' : ''} ${isRTL ? 'rtl' : ''}`}
+        dir={isRTL ? 'rtl' : 'ltr'}
       >
         {question.mainQuestion}
       </div>
@@ -175,7 +184,8 @@ const QuestionsCard = ({
                 : feedback.type === 'error'
                 ? 'feedback-error'
                 : 'feedback-info'
-            }`}
+            } ${isRTL ? 'rtl' : ''}`}
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
             {feedback.type === 'success' ? (
               <Check size={20} />
