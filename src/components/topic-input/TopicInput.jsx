@@ -33,7 +33,7 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
           // If scores are equal, sort by timestamp (newest first)
           return b.timestamp - a.timestamp;
         })
-        .slice(0, 100); // Limit to top 100 entries
+        .slice(0, 100); // Limit to top 100 entries.
       
       setLeaderboard(sortedHistory);
       setIsClosing(false);
