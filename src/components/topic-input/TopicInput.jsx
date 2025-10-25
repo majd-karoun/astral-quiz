@@ -685,7 +685,7 @@ const TopicInput = ({
 
                 {/* Color Swatches */}
                 <div className="menu-row">
-                  <label className="menu-label">theme color:</label>
+                  <label className="menu-label">app color:</label>
                   <div className="color-swatch-container">
                     <div className="color-swatches">
                       {colorOptions.map((color) => (
