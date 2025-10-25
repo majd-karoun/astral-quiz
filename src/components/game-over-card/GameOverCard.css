@@ -96,7 +96,7 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
-  background-color: #5050AA;
+  background-color: var(--main-color, #5050AA);
   color: white;
   font-size: 1rem;
   min-width: 140px;
@@ -106,7 +106,7 @@
 }
 
 .game-over-button:hover {
-  background-color: #5050AA;
+  background-color: var(--main-color, #5050AA);
 }
 
 .game-over-button.outline {
@@ -117,9 +117,9 @@
 
 .game-over-button.outline:hover {
   background-color: rgba(181, 178, 243, 0.1);
-  background-color: #f9fafb;
-  border-color: #5050AA;
-  color: #5050AA;
+  background-color: var(--main-bg, #f9fafb);
+  border-color: var(--main-color, #5050AA);
+  color: var(--main-color, #5050AA);
 }
 
 /* Content Animation Keyframes */

@@ -210,9 +210,11 @@ const TopicInput = ({
   const [language, setLanguage] = useState(() => {
     return sessionStorage.getItem('language') || 'English';
   });
+  const [showSettings, setShowSettings] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSettingsClosing, setIsSettingsClosing] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [mainColor, setMainColor] = useState(localStorage.getItem('mainColor') || '#5050AA');
   const [isApiKeyExpanded, setIsApiKeyExpanded] = useState(false);
   const [cardAnimationComplete, setCardAnimationComplete] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -223,6 +225,11 @@ const TopicInput = ({
   const cardRef = useRef(null);
   const apiKeyRef = useRef(null);
   const autoCloseTimeoutRef = useRef(null);
+
+  // Set main color on component mount
+  useEffect(() => {
+    document.documentElement.style.setProperty('--main-color', mainColor);
+  }, []);
 
   // Load and decrypt API key on component mount
   useEffect(() => {
@@ -383,6 +390,25 @@ const TopicInput = ({
         }, 100);
       }
     }
+  };
+
+  // Color options - seven colors
+  const colorOptions = [
+    '#5050AA', // Purple (standard)
+    '#b40d0d', // red
+    '#F97316', // Orange
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#EC4899', // Pink
+    '#000000'  // Black
+  ];
+
+  // Color change handler
+  const handleColorChange = (color) => {
+    setMainColor(color);
+    localStorage.setItem('mainColor', color);
+    document.documentElement.style.setProperty('--main-color', color);
+    
   };
 
   const toggleSettingsMenu = () => {
@@ -654,6 +680,36 @@ const TopicInput = ({
                     >
                       off
                     </button>
+                  </div>
+                </div>
+
+                {/* Color Swatches */}
+                <div className="menu-row">
+                  <label className="menu-label">theme color:</label>
+                  <div className="color-swatch-container">
+                    <div className="color-swatches">
+                      {colorOptions.map((color) => (
+                        <button
+                          key={color}
+                          className={`color-swatch ${mainColor === color ? 'active' : ''}`}
+                          style={{ backgroundColor: color }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleColorChange(color);
+                          }}
+                          disabled={isLoading}
+                          aria-label={`Select ${color} theme`}
+                          title={color.toUpperCase()}
+                        >
+                          {mainColor === color && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
