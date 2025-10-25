@@ -519,7 +519,6 @@
   font-size: 0.875rem;
   font-weight: 500;
   border: none;
-  
   transition: all 0.2s ease;
   z-index: 10;
   display: flex;
@@ -528,7 +527,7 @@
 }
 
 .api-key-icon:hover {
-  background-color: #3a3a7c;
+  filter: brightness(0.9);
 }
 
 .animate-api-key-icon {
