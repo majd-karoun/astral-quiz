@@ -1,7 +1,7 @@
 # Astral Quiz
 An interactive quiz application that generates personalized questions on any topic using OpenAI's GPT models. This application creates exciting, progressively difficult quiz questions with an automatic hint and scoring system.
 
-
+> **Note:** The domain has been changed. If you have saved data on the previous domain, you can still access it at [https://astral-quiz.netlify.app](https://astral-quiz.netlify.app)
 
 [Live Demo](https://astral-quiz.netlify.app) 🚀
 
