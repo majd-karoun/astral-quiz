@@ -13,6 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+      - name: Check Fly CLI version
+        run: flyctl version
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          
+      - name: Deploy to Fly.io
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "Error: FLY_API_TOKEN is not set"
+            exit 1
+          fi
+          flyctl deploy --remote-only --verbose
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
