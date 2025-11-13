@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Howl } from 'howler';
 import './LoadingScreen.css';
 
+
 const LoadingScreen = ({ progress = 0 }) => {
   const [fakeProgress, setFakeProgress] = useState(0);
   

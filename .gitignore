@@ -27,3 +27,5 @@ yarn-error.log*
 *.suo
 *.ntvs*
 *.njsproj
+# macOS system files
+.DS_Store
