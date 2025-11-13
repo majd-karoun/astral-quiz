@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import { CaretRight, Trophy, X, Clock, Key, Gear } from '@phosphor-icons/react';
+import { CaretRight, Trophy, X, Clock, Key, Gear, Lock, Info } from '@phosphor-icons/react';
 import { apiKeyEncryption } from '../../utils/encryption';
 import BookIcon from '../BookIcon';
 import './TopicInput.css';
@@ -745,8 +745,17 @@ const TopicInput = ({
                     disabled={isLoading}
                   />
                 </div>
-                {apiKeyError && (
+                {apiKeyError ? (
                   <p className="error-message">{apiKeyError}</p>
+                ) : (
+                  <div className="encrypted-sign">
+                    <Lock size={12} weight="fill" />
+                    <span>API Keys are encrypted</span>
+                    <div className="info-tooltip">
+                      <Info size={12} weight="fill" />
+                      <span className="tooltip-text">Your API key is securely stored in your browser in an encoded format, which cannot be read or copied by other websites. and only used for generating quiz questions.</span>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
