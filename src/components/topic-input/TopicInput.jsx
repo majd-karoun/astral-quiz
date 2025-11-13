@@ -86,7 +86,7 @@ const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
         <div className="modal-header">
           <div className="modal-title">
             <Trophy size={24} className="leaderboard-icon" />
-            <h2>Leaderboard</h2>
+            <h2>My Leaderboard</h2>
           </div>
           <button className="modal-close" onClick={handleClose}>
             <X size={24} />
@@ -492,7 +492,7 @@ const TopicInput = ({
             onClick={() => setIsLeaderboardOpen(true)}
           >
             <Trophy size={20} />
-            Leaderboard
+            My Leaderboard
           </button>
         </div>
 
