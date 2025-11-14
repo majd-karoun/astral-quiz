@@ -397,8 +397,8 @@ const TopicInput = ({
     '#5050AA', // Purple (standard)
     '#b40d0d', // red
     '#F97316', // Orange
+    '#9abc9f', // Lime Green
     '#3B82F6', // Blue
-    '#10B981', // Green
     '#EC4899', // Pink
     '#000000'  // Black
   ];
