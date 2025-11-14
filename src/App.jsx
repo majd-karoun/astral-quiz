@@ -11,7 +11,7 @@ import './App.css';
 //TODO: 
 //use a sign in method instead of using openAI API keys
 //
-
+//NOTE: push next commit with no errors
 
 function App() {
   const [topic, setTopic] = useState('');
