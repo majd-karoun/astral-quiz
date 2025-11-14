@@ -44,8 +44,8 @@ An interactive quiz application that generates personalized questions on any top
 - **CORS**: Cross-Origin Resource Sharing support
 
 ### Deployment:
-- **Frontend**: Hosted on Netlify
-- **Backend**: Hosted on Fly.io
+- **Frontend**: using Netlify
+- **Backend**: using Fly.io
 
 
 ## 🚀 Getting Started:
