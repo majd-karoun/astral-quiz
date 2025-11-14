@@ -394,13 +394,13 @@ const TopicInput = ({
 
   // Color options - seven colors
   const colorOptions = [
-    '#5050AA', // Purple (standard)
-    '#b40d0d', // red
-    '#F97316', // Orange
-    '#9abc9f', // Lime Green
-    '#3B82F6', // Blue
-    '#EC4899', // Pink
-    '#000000'  // Black
+    '#5050AA',
+    '#9abc9f', 
+    '#b40d0d', 
+    '#F97316', 
+    '#3B82DD', 
+    '#EC4899', 
+    '#000000'  
   ];
 
   // Color change handler
