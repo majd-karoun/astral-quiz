@@ -33,12 +33,7 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# OS generated files
-._*
-.Spotlight-V100
 
-ehthumbs.db
-Thumbs.db
 
 # Testing
 /coverage
