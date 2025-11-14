@@ -395,10 +395,10 @@ const TopicInput = ({
   // Color options - seven colors
   const colorOptions = [
     '#5050AA',
-    '#b40d0d', 
+    '#B40D0D', 
     '#F97316', 
-    '#9ABC9f', 
-    '#3B82f6', 
+    '#9ABC9F', 
+    '#3B82F6', 
     '#EC4899', 
     '#000000'  
   ];
@@ -749,7 +749,7 @@ const TopicInput = ({
                 ) : (
                   <div className="encrypted-sign">
                     <Lock size={12} weight="fill" />
-                    <span>API Keys are encrypted</span>
+                    <span>API keys are encrypted</span>
                     <div className="info-tooltip">
                       <Info size={12} weight="fill" />
                       <span className="tooltip-text">Your API key is securely stored in your browser in an encoded format, which cannot be read or copied by other websites. and only used for generating quiz questions.</span>
