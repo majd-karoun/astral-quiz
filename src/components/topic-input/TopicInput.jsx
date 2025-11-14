@@ -395,10 +395,10 @@ const TopicInput = ({
   // Color options - seven colors
   const colorOptions = [
     '#5050AA',
-    '#9abc9f', 
     '#b40d0d', 
     '#F97316', 
-    '#3B82DD', 
+    '#9abc9f', 
+    '#3B82f6', 
     '#EC4899', 
     '#000000'  
   ];
