@@ -78,89 +78,39 @@ function App() {
 
   //https://server-cold-hill-2617.fly.dev
 
-  const fetchWithTimeout = async (url, options, timeout = 8000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    
+  const fetchImagesForQuestion = async (question) => {
     try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      });
-      clearTimeout(id);
-      return response;
-    } catch (error) {
-      clearTimeout(id);
-      throw new Error(`Request timed out after ${timeout}ms`);
-    }
-  };
-
-  const fetchImageWithRetry = async (optionText, maxRetries = 2, delay = 1000) => {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await fetchWithTimeout(
-          'https://server-cold-hill-2617.fly.dev/api/search-images',
-          {
+      // Fetch images for each option text
+      const imagePromises = question.answerOptions.map(async (optionText) => {
+        try {
+          const response = await fetch('https://server-cold-hill-2617.fly.dev/api/search-images', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             credentials: 'include',
             body: JSON.stringify({ 
-              questionTitle: optionText.trim()
+              questionTitle: optionText
             })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch images');
           }
-        );
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            `HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`
-          );
-        }
-
-        const data = await response.json();
-        if (!data || !Array.isArray(data.images)) {
-          throw new Error('Invalid response format from server');
-        }
-
-        return data.images[0] || null;
-      } catch (error) {
-        if (attempt === maxRetries) {
-          console.warn(`Failed to fetch image for "${optionText}" after ${maxRetries} attempts:`, error.message);
+          const data = await response.json();
+          // Return the first image for this option
+          return data.images && data.images.length > 0 ? data.images[0] : null;
+        } catch (error) {
+          console.error('Error fetching image for option:', optionText, error);
           return null;
         }
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, delay * attempt));
-      }
-    }
-    return null;
-  };
-
-  const fetchImagesForQuestion = async (question) => {
-    if (!question || !Array.isArray(question.answerOptions)) {
-      console.error('Invalid question format:', question);
-      return { ...question, images: [] };
-    }
-
-    try {
-      // Filter out empty or non-string options
-      const validOptions = question.answerOptions
-        .filter(opt => typeof opt === 'string' && opt.trim().length > 0);
-
-      if (validOptions.length === 0) {
-        console.warn('No valid answer options provided');
-        return { ...question, images: [] };
-      }
-
-      const imagePromises = validOptions.map(optionText => 
-        fetchImageWithRetry(optionText)
-      );
+      });
 
       const images = await Promise.all(imagePromises);
-      return { ...question, images };
+      return { ...question, images: images };
     } catch (error) {
-      console.error('Unexpected error in fetchImagesForQuestion:', error);
+      console.error('Error fetching images for question:', error);
       return { ...question, images: [] };
     }
   };
