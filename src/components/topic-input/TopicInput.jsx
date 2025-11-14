@@ -397,7 +397,7 @@ const TopicInput = ({
     '#5050AA',
     '#b40d0d', 
     '#F97316', 
-    '#9abc9f', 
+    '#9ABC9f', 
     '#3B82f6', 
     '#EC4899', 
     '#000000'  
@@ -700,7 +700,6 @@ const TopicInput = ({
                           }}
                           disabled={isLoading}
                           aria-label={`Select ${color} theme`}
-                          title={color.toUpperCase()}
                         >
                           {mainColor === color && (
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
