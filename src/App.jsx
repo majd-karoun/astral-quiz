@@ -8,6 +8,11 @@ import { apiKeyEncryption } from './utils/encryption';
 import './App.css';
 
 
+//TODO: 
+//use a sign in method instead of using openAI API keys
+//
+
+
 function App() {
   const [topic, setTopic] = useState('');
   const [apiKey, setApiKey] = useState('');
