@@ -33,8 +33,6 @@ yarn-error.log*
 *.sw?
 
 # OS generated files
-.DS_Store
-.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
@@ -58,7 +56,3 @@ Thumbs.db
 
 # Yarn Integrity file
 .yarn-integrity
-
-# parcel-bundler cache
-.cache
-.parcel-cache
