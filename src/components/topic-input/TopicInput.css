@@ -368,48 +368,65 @@
 .settings-dropdown {
   width: 100%;
   max-width: 100%;
-  border: 2px solid #D1D5DB;
+  border: 2px solid #E5E7EB;
   border-radius: 20px;
-  padding: 1rem;
-  background-color: white;
+  padding: 1.25rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 1rem;
   margin-top: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  animation: slideDown 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  animation: dropdownEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   box-sizing: border-box;
   overflow: hidden;
+  transform-origin: top center;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+  will-change: transform, opacity;
 }
 
 .settings-dropdown.closing {
-  animation: slideUp 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: dropdownExit 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes slideDown {
-  from {
+@keyframes dropdownEnter {
+  0% {
     opacity: 0;
-    transform: translateY(-8px) scale(0.96);
-    filter: blur(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.9);
+    transform: translateY(-10px) scale(0.98);
     filter: blur(4px);
   }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes dropdownExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    filter: blur(4px);
+    pointer-events: none;
+  }
+}
+
+/* Add a subtle transition for the settings icon */
+.settings-icon-button {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+
+.settings-icon-button.open {
+  transform: rotate(60deg);
+  background-color: rgba(80, 80, 170, 0.1);
 }
 
 /* Menu Row */
