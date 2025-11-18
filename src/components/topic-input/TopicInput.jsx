@@ -1,10 +1,10 @@
+//
 import React, { useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
 import { CaretRight, Trophy, X, Clock, Key, Gear, Lock, Info } from '@phosphor-icons/react';
 import { apiKeyEncryption } from '../../utils/encryption';
 import BookIcon from '../BookIcon';
 import './TopicInput.css';
-//
 const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
