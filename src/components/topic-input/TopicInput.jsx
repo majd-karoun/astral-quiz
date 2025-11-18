@@ -4,7 +4,7 @@ import { CaretRight, Trophy, X, Clock, Key, Gear, Lock, Info } from '@phosphor-i
 import { apiKeyEncryption } from '../../utils/encryption';
 import BookIcon from '../BookIcon';
 import './TopicInput.css';
-
+//
 const LeaderboardModal = ({ isOpen, onClose, onSelectTopic }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
