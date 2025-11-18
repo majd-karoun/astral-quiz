@@ -398,7 +398,7 @@ const TopicInput = ({
     '#B40D0D', 
     '#F97316', 
     '#9ABC9F', 
-    '#03BEFC', 
+    '#03BCFC', 
     '#EC4899', 
     '#000000'  
   ];
