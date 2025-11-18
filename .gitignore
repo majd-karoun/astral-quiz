@@ -14,8 +14,7 @@ node_modules/
 /dist
 /build
 .cache
-.parcel-cache 
-.Trashes
+
 
 # Logs
 logs
@@ -32,7 +31,6 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
-
 
 
 # Testing
@@ -53,4 +51,5 @@ yarn-error.log*
 # Yarn Integrity file
 .yarn-integrity
 
-# Color Codes
+
+
